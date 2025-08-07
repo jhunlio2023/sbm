@@ -39,8 +39,8 @@ public function user_insert(){
     'mname' => $this->input->post('mname'),
     'lname' => $this->input->post('lname'),
     'gender' => $this->input->post('gender'),
-    'r_id' => $this->input->post('r_id'),
-    'p_id' => $this->input->post('p_id'),
+    'r_id' => $this->session->region,
+    'p_id' => $this->input->post('division_id'),
     'd_id' => $this->input->post('d_id'),
     'image' => $filename
     ); 
@@ -309,7 +309,96 @@ public function action_plan_update()
 
 		$this->db->where('id', $this->input->post('id'));
 		return $this->db->update('sgod_action_plan', $data);
+}
+
+public function sbm_checklist_insert()
+{
+    $data = [];
+
+    // Loop through q1 to q42
+    for ($i = 1; $i <= 42; $i++) {
+        $data["q$i"] = $this->input->post("q$i");
+    }
+
+    // Add fixed values
+    $data['school_id'] = $this->session->username;
+    $data['fy'] = $this->session->fy;
+    $data['district'] = $this->input->post('district');
+    $data['region'] = $this->session->region;
+
+    return $this->db->insert('sbm', $data);
+}
+
+public function sbm_checklist_update()
+{
+    $data = [];
+
+    // Loop through q1 to q42
+    for ($i = 1; $i <= 42; $i++) {
+        $data["q$i"] = $this->input->post("q$i");
+    }
+
+
+   $this->db->where('id', $this->input->post('id'));
+   return $this->db->update('sbm', $data);
+}
+
+public function sbm_cecklist_lock_unloc($stat){
+	$data = array(
+		'stat' => $stat
+	);
+
+	$this->db->where('id', $this->uri->segment(3));
+	return $this->db->update('sbm', $data);
+}
+
+public function sbm_ta_insert()
+	{
+		$data = [];
+
+		// Collect data for 'q', 'qq', 'a', and 'f' fields
+		foreach (['q', 'qq', 'a', 'f'] as $prefix) {
+			for ($i = 1; $i <= 42; $i++) {
+				$data["{$prefix}{$i}"] = $this->input->post("{$prefix}{$i}");
+			}
+		}
+
+		// Add additional fields
+		$data['school_id'] = $this->session->username;
+		$data['fy'] = $this->session->fy;
+		$data['district'] = $this->session->district;
+        $data['region'] = $this->session->region;
+        $data['division'] = $this->session->division;
+        $data['stat'] = 0;
+
+		return $this->db->insert('sbm_ta', $data);
 	}
+
+	public function sbm_ta_update()
+	{
+		$data = [];
+
+		// Collect data for 'q', 'qq', 'a', and 'f' fields
+		foreach (['q', 'qq', 'a', 'f'] as $prefix) {
+			for ($i = 1; $i <= 42; $i++) {
+				$data["{$prefix}{$i}"] = $this->input->post("{$prefix}{$i}");
+			}
+		}
+
+		$this->db->where('id', $this->input->post('id'));
+		return $this->db->update('sbm_ta', $data);
+	}
+
+    public function sbm_ta_lock_unloc($stat)
+	{
+		$data = array(
+			'stat' => $stat
+		);
+
+		$this->db->where('id', $this->uri->segment(3));
+		return $this->db->update('sbm_ta', $data);
+	}
+
 
 
 
