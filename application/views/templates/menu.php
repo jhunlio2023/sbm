@@ -131,7 +131,7 @@
                 </li>
                 <?php } ?>
                 <?php if($this->session->position == 'admin'){ ?>
-                    <li><a href="<?= base_url(); ?>" class="waves-effect"><i class="fas fa-cogs"></i><span>  Settings  </span></a></li>
+                    <!-- <li><a href="<?= base_url(); ?>" class="waves-effect"><i class="fas fa-cogs"></i><span>  Settings  </span></a></li> -->
                     <li><a href="<?= base_url(); ?>pages/userlist" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span>  Manage User  </span></a></li>
                 <?php } ?>
             </ul>
