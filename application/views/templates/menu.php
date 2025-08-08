@@ -103,20 +103,17 @@
                 <li class="menu-title">Navigation</li>
 
                 <li><a href="<?= base_url(); ?>" class="waves-effect"><i class="mdi mdi-view-dashboard"></i><span>  Dashboard  </span></a></li>
-                <?php if($this->session->position != 'admin'){?>
-                <?php if($this->session->position != 'school'){?>
+                <?php if($this->session->position == 'district'){?>
                 <li>
-                    <a href="javascript: void(0);" class="waves-effect">
+                    <a href="<?= base_url(); ?>Pages/school_list" class="waves-effect">
                         <i class="fas fa-book-reader"></i>
                         <span> Schools </span>
-                        <span class="menu-arrow"></span>
                     </a>
-                    <ul class="nav-second-level" aria-expanded="false">
-                        <li><a href="<?= base_url(); ?>Pages/school_list/0">Public</a></li>
-                        <li><a href="<?= base_url(); ?>Pages/school_list/1">Private</a></li>
-                    </ul>
                 </li>
                 <?php } ?>
+               
+                <?php if($this->session->position == 'school'){?>
+                
                 <li>
                     <a href="javascript: void(0);" class="waves-effect">
                         <i class="mdi mdi-format-list-checks"></i>
@@ -130,6 +127,7 @@
                     </ul>
                 </li>
                 <?php } ?>
+
                 <?php if($this->session->position == 'admin'){ ?>
                     <!-- <li><a href="<?= base_url(); ?>" class="waves-effect"><i class="fas fa-cogs"></i><span>  Settings  </span></a></li> -->
                     <li><a href="<?= base_url(); ?>pages/userlist" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span>  Manage User  </span></a></li>

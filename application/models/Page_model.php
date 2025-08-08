@@ -255,12 +255,12 @@ function delete_with_attach($table,$segment,$attach){
 
 
 // Special query
-public function schools_with_district($type)
+public function schools_with_district()
 {
     $this->db->select('a.*, b.description');
     $this->db->from('schools a');
-    $this->db->join('district b', 'b.id = a.d_id', 'left');
-    $this->db->where('schoolType', $type);
+    $this->db->join('district b', 'b.id = a.district_id', 'left');
+    $this->db->where('district_id', 1);
     $query = $this->db->get();
     return $query->result();
 }

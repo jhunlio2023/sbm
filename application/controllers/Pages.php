@@ -398,7 +398,7 @@ class Pages extends CI_Controller{
         $data['title'] = "School List"; 
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        $data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
+        $data['data'] = $this->Page_model->schools_with_district();
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
