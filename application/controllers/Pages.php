@@ -389,7 +389,7 @@ class Pages extends CI_Controller{
 
     public function school_list(){
         
-        $page = "schools";
+        $page = "district_schools";
 
         if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
             show_404();
@@ -413,7 +413,7 @@ class Pages extends CI_Controller{
         if (!empty($new_fy)) {
             $this->session->set_userdata('fy', $new_fy);
         }
-        redirect($_SERVER['HTTP_REFERER']); // or redirect('dashboard');
+        redirect($_SERVER['HTTP_REFERER']); 
     }
 
     public function school_new(){  
