@@ -2,7 +2,6 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <a class="btn btn-success" href="<?= base_url(); ?>pages/school_new">Add New</a>
                                     
 
                                 
@@ -46,26 +45,53 @@
                                     <div class="card-body table-responsive">
                                         <h4 class="m-t-0 header-title mb-4"><?= $title; ?></h4>
 
-                                        <table id="datatable" class="table table-bordered dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-
+                                        <table class="table mb-0">
+                                            <!-- <table class="table mb-0"> -->
                                             <thead>
                                                 <tr>
+                                                    <th>No.</th>
                                                     <th>School ID</th>
-                                                    <th>School Name</th>
-                                                </tr>
-
+                                                    <th>School Name </th>
+                                                    <th class="text-center">Action Plan</th>
+                                                    <th class="text-center">Self-Assessment</th>
+                                                    <th class="text-center">TA Form</th>
                                             </thead>
-
                                             <tbody>
-                                                <?php foreach($data as $row){?>
+
+                                                <?php $c=1; foreach($data as $row){
+                                                    $sbm_submit=$this->Page_model->two_cond_row_select('sbm','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
+                                                    $sbm_ta=$this->Page_model->two_cond_row_select('sbm_ta','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
+                                                    $sbm_action=$this->Page_model->two_cond_row_select('sgod_action_plan','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
+                                                    ?>
                                                 <tr>
+                                                    <td><?= $c++; ?></td>
                                                     <td><?= $row->schoolID; ?></td>
                                                     <td><?= strtoupper($row->schoolName); ?></td>
-                                                    <td></td>
-                                                    <td>
-                                                        <a href="<?=base_url(); ?>Page/schoolProfile?schoolid=<?php echo $row->schoolID; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
-                                                        <a href="<?=base_url(); ?>Page/schoolInfo?schoolid=<?php echo $row->schoolID; ?>" class="text-warning"><i class="mdi mdi-pencil-outline"></i>edit</a> 
-                                                    </td>
+                                                    <td class="text-center">
+                                                    <?php if(empty($sbm_action)){?>
+                                                    <span class="text-danger">&#10008;</span> 
+                                                    <?php }else{ ?>
+                                                        <a target="_blank" href="<?= base_url(); ?>Pages/sbm_action_plan_pview_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a>
+                                                    <?php } ?>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?php if(empty($sbm_submit)){?>
+                                                    <span class="text-danger">&#10008;</span> 
+                                                    <?php }else{ ?>
+                                                        <a target="_blank" href="<?= base_url(); ?>Pages/checklist_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a>
+                                                    <?php } ?>
+                                                </td>
+                                                <td class="text-center">
+                                                    <?php if(empty($sbm_ta)){?>
+                                                    <span class="text-danger">&#10008;</span> 
+                                                    <?php }else{ ?>
+                                                    
+                                                        
+                                                        <a target="_blank" href="<?= base_url(); ?>Pages/tapr_form_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a>
+
+
+                                                    <?php } ?>
+                                                </td>
                                                 </tr>
                                                 <?php } ?>
                                                 

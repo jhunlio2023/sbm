@@ -33,7 +33,7 @@
 
                     <p>
                     <b><u><?= strtoupper($school->schoolName); ?></u></b><br />
-                        <?= ucfirst($school->brgy).', '.ucfirst($school->city) ?>, Davao Oriental<br />
+                        <?= ucfirst($school->brgy).', '.ucfirst($school->city) ?>, <?= ucfirst($school->province); ?><br />
                         School ID <b><u><?= $school->schoolID; ?></u></b><br />
                     </p>
                     

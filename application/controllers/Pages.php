@@ -497,6 +497,24 @@ class Pages extends CI_Controller{
 
 	}
 
+    function sbm_action_plan_pview_district()
+	    {
+
+        $page = "action_plan_pview";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "Action Plan"; 
+
+        $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $this->uri->segment(3));
+		$data['data'] = $this->Common->two_cond('sgod_action_plan', 'fy', $this->session->fy, 'school_id', $this->uri->segment(3));
+        
+        $this->load->view('pages/'.$page, $data);
+
+	}
+
     public function action_plan_new(){
 
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -603,6 +621,32 @@ class Pages extends CI_Controller{
         }    
     } 
 
+    public function checklist_district(){
+
+
+       $data['sbmc'] = $this->Common->two_cond_row('sbm','school_id',$this->uri->segment(3),'fy',$this->session->fy);
+
+       $page = 'sbm_form_update';
+
+            if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+                show_404();
+            }
+
+            $data['title'] = "New Action Plan"; 
+
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+            $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/'.$page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+
+        
+    } 
+
     public function sbm_checklist_update(){
         $this->Page_model->sbm_checklist_update();
         $this->session->set_flashdata('success', 'Successfully saved.');
@@ -675,6 +719,39 @@ class Pages extends CI_Controller{
             $this->session->set_flashdata('danger', 'Successfully deleted.');
             redirect(base_url().'pages/sbm_action_plan'); 
     } 
+
+    public function tapr_form_district(){
+        if($this->form_validation->run() == FALSE){  
+
+       $page = 'sbm_ta_district';
+
+            if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+                show_404();
+            }
+
+            $data['title'] = "New Action Plan"; 
+
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+            $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+            $data['sbmc_count'] = $this->Common->two_cond_count_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
+            $data['sbmc'] = $this->Common->two_cond_row('sbm_ta','school_id',$this->uri->segment(3),'fy',$this->session->fy);
+
+            
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/'.$page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+
+         }  
+    } 
+
+    function tapr_admin()
+	{
+		$this->Page_model->sbm_cecklist_admin_insert();
+		$this->session->set_flashdata('success', 'Saved successfully.');
+		redirect(base_url() . 'Pages/tapr_form_district/' . $this->input->post('school_id'));
+	}
 
 
 

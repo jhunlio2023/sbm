@@ -230,11 +230,21 @@ public function one_cond_loop_order_by($table,$col,$val,$orderby,$orderbyvalue){
 }
 
 
+
 // common function single row
 public function one_cond_row($table, $col, $val){
     $this->db->where($col, $val);
     $result = $this->db->get($table)->row();
     return $result;
+}
+
+public function two_cond_row_select($table,$select, $col, $val,$col2, $val2)
+    {
+        $this->db->select($select);
+        $this->db->where($col, $val);
+        $this->db->where($col2, $val2);
+        $result = $this->db->get($table)->row();
+        return $result;
 }
 
 
@@ -398,6 +408,29 @@ public function sbm_ta_insert()
 		$this->db->where('id', $this->uri->segment(3));
 		return $this->db->update('sbm_ta', $data);
 	}
+    
+    public function sbm_cecklist_admin_insert()
+	{
+		$data = [];
+
+		// Collect data for questions
+		for ($i = 1; $i <= 42; $i++) {
+			$data["q$i"] = $this->input->post("r$i");
+		}
+
+		// Collect data for forms
+		for ($i = 1; $i <= 42; $i++) {
+			$data["fs$i"] = $this->input->post("fs$i");
+		}
+
+		// Additional data
+		$data['school_id'] = $this->input->post('school_id');
+		$data['fy'] = date('Y');
+
+		return $this->db->insert('sbm_remark_admin', $data);
+	}
+
+    
 
 
 
