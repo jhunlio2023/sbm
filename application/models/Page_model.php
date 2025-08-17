@@ -265,12 +265,12 @@ function delete_with_attach($table,$segment,$attach){
 
 
 // Special query
-public function schools_with_district()
+public function schools_with_district($id)
 {
     $this->db->select('a.*, b.description');
     $this->db->from('schools a');
     $this->db->join('district b', 'b.id = a.district_id', 'left');
-    $this->db->where('district_id', 1);
+    $this->db->where('district_id', $id);
     $query = $this->db->get();
     return $query->result();
 }
@@ -335,6 +335,7 @@ public function sbm_checklist_insert()
     $data['fy'] = $this->session->fy;
     $data['district'] = $this->input->post('district');
     $data['region'] = $this->session->region;
+    $data['division'] = $this->session->division;
 
     return $this->db->insert('sbm', $data);
 }
@@ -428,6 +429,63 @@ public function sbm_ta_insert()
 		$data['fy'] = date('Y');
 
 		return $this->db->insert('sbm_remark_admin', $data);
+	}
+
+    public function sbm_cecklist_admin_update()
+	{
+		$data = [];
+
+		// Collect data for questions
+		for ($i = 1; $i <= 42; $i++) {
+			$data["q$i"] = $this->input->post("r$i");
+		}
+
+		// Collect data for forms
+		for ($i = 1; $i <= 42; $i++) {
+			$data["fs$i"] = $this->input->post("fs$i");
+		}
+
+		// Additional data
+
+        $this->db->where('id', $this->input->post('id'));
+		return $this->db->update('sbm_remark_admin', $data);
+	}
+
+    public function sbm_tech_insert()
+	{
+
+		$data = array(
+			'ta_rec' => $this->input->post('ta_rec'),
+			'sa' => $this->input->post('sa'),
+			'cd' => $this->input->post('cd'),
+			'mtd' => $this->input->post('mtd'),
+			'schedule' => $this->input->post('schedule'),
+			'ct' => $this->input->post('ct'),
+			'district' => $this->session->district,
+			'fy' => date('Y'),
+
+		);
+
+		return $this->db->insert('sbm_tech', $data);
+	}
+
+    public function sbm_tech_update()
+	{
+
+		$data = array(
+			'ta_rec' => $this->input->post('ta_rec'),
+			'sa' => $this->input->post('sa'),
+			'cd' => $this->input->post('cd'),
+			'mtd' => $this->input->post('mtd'),
+			'schedule' => $this->input->post('schedule'),
+			'ct' => $this->input->post('ct'),
+			'district' => $this->session->district,
+			'fy' => date('Y'),
+
+		);
+
+        $this->db->where('id', $this->input->post('id'));
+		return $this->db->update('sbm_tech', $data);
 	}
 
     

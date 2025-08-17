@@ -9,17 +9,16 @@ class Pages extends CI_Controller{
         if($this->session->position == 'admin'){
             $page = "dashboard";
             $data['title'] = "Dashboard"; 
+        }elseif($this->session->position == 'division'){
+            $page = "dashboard_division";
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+		    $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $data['title'] = "Dashboard"; 
         }else{
             $page = "dashboard_school";
             $data['title'] = "Dashboard"; 
         }
-
-
-
-
-
-
-
 
             if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
                 show_404();
@@ -398,7 +397,30 @@ class Pages extends CI_Controller{
         $data['title'] = "School List"; 
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        $data['data'] = $this->Page_model->schools_with_district();
+        $data['data'] = $this->Common->two_join_one_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.school_id', 'b.schoolName', 'ASC');
+        
+        //$data['data'] = $this->Page_model->schools_with_district($this->session->district);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+
+    }
+
+    public function school_list_division(){
+        
+        $page = "district_schools";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "School List"; 
+
+        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
+        $data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -723,7 +745,11 @@ class Pages extends CI_Controller{
     public function tapr_form_district(){
         if($this->form_validation->run() == FALSE){  
 
-       $page = 'sbm_ta_district';
+        $data['sbm_remark'] = $this->Common->two_cond_row('sbm_remark_admin','school_id',$this->uri->segment(3),'fy',$this->session->fy);
+
+        $page = !$data['sbm_remark'] ? 'sbm_ta_district' : 'sbm_ta_district_update';
+
+       //$page = 'sbm_ta_district';
 
             if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
                 show_404();
@@ -735,6 +761,7 @@ class Pages extends CI_Controller{
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
             $data['sbmc_count'] = $this->Common->two_cond_count_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
             $data['sbmc'] = $this->Common->two_cond_row('sbm_ta','school_id',$this->uri->segment(3),'fy',$this->session->fy);
+            
 
             
             $this->load->view('templates/header');
@@ -752,7 +779,172 @@ class Pages extends CI_Controller{
 		$this->session->set_flashdata('success', 'Saved successfully.');
 		redirect(base_url() . 'Pages/tapr_form_district/' . $this->input->post('school_id'));
 	}
+    function tapr_district_update()
+	{
+		$this->Page_model->sbm_cecklist_admin_update();
+		$this->session->set_flashdata('success', 'Saved successfully.');
+		redirect(base_url() . 'Pages/tapr_form_district/' . $this->input->post('school_id'));
+	}
 
+
+    public function sbm_district_tech(){
+
+       $page = 'sbm_district_tech';
+
+            if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+                show_404();
+            }
+
+            $data['title'] = "Technical Assisstance Provision Form"; 
+
+            $data['data'] = $this->Common->two_cond('sbm_tech', 'district', $this->session->district,'fy',$this->session->fy);
+
+            
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/'.$page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+
+        
+    } 
+
+    public function sbm_district_tech_new(){
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>','</div>');
+
+        $this->form_validation->set_rules('ta_rec', 'Technical Assisstance', 'required');
+
+        if($this->form_validation->run() == FALSE){  
+
+       $page = 'sbm_district_tech_new';
+
+            if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+                show_404();
+            }
+
+
+            $data['title'] = "New Action Plan"; 
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/'.$page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+
+         }else{
+            $this->Page_model->sbm_tech_insert();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url().'pages/sbm_district_tech');
+        }    
+    } 
+
+    public function sbm_district_tech_edit(){
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>','</div>');
+
+        $this->form_validation->set_rules('ta_rec', 'Technical Assisstance', 'required');
+
+        if($this->form_validation->run() == FALSE){  
+
+       $page = 'sbm_district_tech_update';
+
+            if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+                show_404();
+            }
+
+            $data['data'] = $this->Common->one_cond_row('sbm_tech', 'id',$this->uri->segment(3));
+            $data['title'] = "New Action Plan"; 
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/'.$page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+
+         }else{
+            $this->Page_model->sbm_tech_update();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url().'pages/sbm_district_tech');
+        }    
+    } 
+
+    public function sbm_district_tech_del(){
+            $this->Page_model->delete('sbm_tech','id',3);
+            $this->session->set_flashdata('danger', 'Successfully deleted.');
+            redirect(base_url().'pages/sbm_district_tech'); 
+    } 
+
+
+
+    // function sbm_list()
+	// {
+	// 	$_SESSION['sbm_fy'] = $this->input->post('fy');
+	// 	$result['title'] = "SCHOOL-BASED FEEDING PROGRAM";
+	// 	$result['sbm'] = $this->Common->no_cond('sbm_indicator');
+	// 	$result['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+	// 	$sbm = $this->Common->one_cond_count_row('sbm', 'school_id', $this->uri->segment(3));
+	// 	$result['sbmc'] = $this->Common->one_cond_row('sbm', 'school_id', $this->uri->segment(3));
+
+	// 	$result['sbmcr'] = $this->Common->one_cond_row('sbm_remark', 'school_id', $this->uri->segment(3));
+	// 	$sbmr = $this->Common->one_cond_count_row('sbm_remark', 'school_id', $this->uri->segment(3));
+
+
+	// 	$this->load->view('sbm_list', $result);
+	// }
+
+    public function sbm_list(){
+
+       $page = 'sbm_list';
+
+            if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+                show_404();
+            }
+
+            $data['title'] = "Technical Assisstance Provision Form"; 
+
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+	        $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $data['data'] = $this->Common->two_cond('sbm_tech', 'district', $this->session->district,'fy',$this->session->fy);
+
+            
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/'.$page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+
+        
+    } 
+
+    public function district_list(){
+        
+        $page = "district";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "School List"; 
+
+        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
+        $data['data'] = $this->Page_model->one_cond('district','division_id',$this->session->division);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+
+    }
 
 
 

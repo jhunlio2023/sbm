@@ -107,8 +107,16 @@
                 <li>
                     <a href="<?= base_url(); ?>Pages/school_list" class="waves-effect">
                         <i class="fas fa-book-reader"></i>
-                        <span> Schools </span>
+                        <span> School </span>
                     </a>
+                    
+                </li>
+                <li>
+                    <a href="<?= base_url(); ?>Pages/sbm_district_tech" class="waves-effect">
+                        <i class="fas fa-wrench"></i>
+                        <span> Technical Assisstance </span>
+                    </a>
+                    
                 </li>
                 <?php } ?>
                
@@ -125,6 +133,17 @@
                         <li><a href="<?= base_url(); ?>Pages/sbm_checklist">Self-Assessment</a></li>
                         <li><a href="<?= base_url(); ?>Pages/tapr_form">TA Form</a></li>
                     </ul>
+                </li>
+                <?php } ?>
+
+                <?php if($this->session->position == 'division'){?>
+                
+                <li>
+                    <a href="<?= base_url(); ?>Pages/district_list" class="waves-effect">
+                        <i class="fas fa-book-reader"></i>
+                        <span> School </span>
+                    </a>
+                    
                 </li>
                 <?php } ?>
 

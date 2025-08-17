@@ -57,8 +57,22 @@
                                                     <th class="text-center">TA Form</th>
                                             </thead>
                                             <tbody>
+                                                <?php 
+                                                    $c=1; foreach($data as $row){
+                                                    $sbm_submit=$this->Page_model->two_cond_row_select('sbm','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
+                                                    $sbm_ta=$this->Page_model->two_cond_row_select('sbm_ta','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
+                                                ?>
+                                                <tr>
+                                                    <td><?= $c++; ?></td>
+                                                    <td><?= $row->school_id; ?></td>
+                                                    <td><?= $row->schoolName; ?></td>
+                                                    <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/sbm_action_plan_pview_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a></td>
+                                                    <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/checklist_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a></td>
+                                                    <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/tapr_form_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a></td>
+                                                </tr>
+                                                <?php } ?>
 
-                                                <?php $c=1; foreach($data as $row){
+                                                <!-- <?php $c=1; foreach($data as $row){
                                                     $sbm_submit=$this->Page_model->two_cond_row_select('sbm','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
                                                     $sbm_ta=$this->Page_model->two_cond_row_select('sbm_ta','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
                                                     $sbm_action=$this->Page_model->two_cond_row_select('sgod_action_plan','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
@@ -93,7 +107,7 @@
                                                     <?php } ?>
                                                 </td>
                                                 </tr>
-                                                <?php } ?>
+                                                <?php } ?> -->
                                                 
                                             </tbody>
                                         </table>

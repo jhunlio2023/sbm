@@ -433,6 +433,25 @@ class Common extends CI_Model
         return $result;
     }
 
+    public function two_cond_count_row_gb($table, $col, $val, $col2, $val2,$gb)
+    {
+        $this->db->where($col, $val);
+        $this->db->where($col2, $val2);
+        $this->db->group_by($gb);
+        $result = $this->db->get($table);
+        return $result;
+    }
+
+    public function three_cond_count_row_gb($table, $col, $val, $col2, $val2, $col3, $val3, $gb)
+    {
+        $this->db->where($col, $val);
+        $this->db->where($col2, $val2);
+        $this->db->where($col3, $val3);
+        $this->db->group_by($gb);
+        $result = $this->db->get($table);
+        return $result;
+    }
+
     //join table
 
    public function two_join_ob($t1, $t2, $select, $joinby, $ob, $obval)
