@@ -15,6 +15,12 @@ class Pages extends CI_Controller{
 		    $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
             $data['title'] = "Dashboard"; 
+        }elseif($this->session->position == 'region'){
+            $page = "dashboard_region";
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+		    $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $data['title'] = "Dashboard"; 
         }else{
             $page = "dashboard_school";
             $data['title'] = "Dashboard"; 
@@ -420,7 +426,32 @@ class Pages extends CI_Controller{
         $data['title'] = "School List"; 
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        $data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
+        //$data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
+        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.district',$this->uri->segment(3), 'b.schoolName', 'ASC');
+
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+
+    }
+
+    public function district_list_division(){
+        
+        $page = "division_district";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "School List"; 
+
+        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
+        //$data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
+        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.division', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.division',$this->uri->segment(3), 'b.schoolName', 'ASC');
+
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -937,6 +968,27 @@ class Pages extends CI_Controller{
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         $data['data'] = $this->Page_model->one_cond('district','division_id',$this->session->division);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+
+    }
+
+    public function division_list(){
+        
+        $page = "division";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "Division List"; 
+
+        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
+        $data['data'] = $this->Page_model->one_cond('division','region_id',12);
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');

@@ -145,6 +145,19 @@
                     </a>
                     
                 </li>
+                
+                <?php } ?>
+
+                <?php if($this->session->position == 'region'){?>
+                
+                <li>
+                    <a href="<?= base_url(); ?>Pages/division_list" class="waves-effect">
+                        <i class="fas fa-book-reader"></i>
+                        <span> division </span>
+                    </a>
+                    
+                </li>
+                
                 <?php } ?>
 
                 <?php if($this->session->position == 'admin'){ ?>
