@@ -103,6 +103,10 @@
                                                                     <th scope="row">School Email</th>
                                                                     <td><?= $data->schoolEmail; ?></td>
                                                                 </tr>
+                                                                <tr>
+                                                                    <th scope="row">School Email</th>
+                                                                    <td><?= $data->schoolEmail; ?></td>
+                                                                </tr>
                                                                 
                                                             </tbody>
                                                         </table>

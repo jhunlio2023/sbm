@@ -1,6 +1,8 @@
-<?php if($this->session->logged_in == false){
-redirect(base_url().'homepage');
-} ?>
+<?php 
+if ($this->session->logged_in == false || $this->session->virified == 1) {
+    redirect(base_url().'homepage');
+}
+?>
 
 
 <!DOCTYPE html>

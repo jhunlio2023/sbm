@@ -303,6 +303,12 @@ class Pages extends CI_Controller{
             redirect(base_url().'pages/userlist'); 
     } 
 
+    public function confirm_signup(){
+            $user = $this->Page_model->confirm_signup();
+            $this->session->set_flashdata('success', 'Successfully Confirmed.');
+            redirect(base_url().'pages/log_in'); 
+    } 
+
     public function cp(){
         $this->Page_model->user_pass();
         $this->session->set_flashdata('success', 'Successfully updated.');
@@ -356,6 +362,7 @@ class Pages extends CI_Controller{
                         'region' => $user_id['r_id'],
                         'division' => $user_id['p_id'],
                         'district' => $user_id['d_id'],
+                        'virified' => $user_id['virified'],
                         'logged_in' => true
 
                     );
@@ -1100,7 +1107,6 @@ class Pages extends CI_Controller{
     public function signup()
     {
 
-
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         ', '</div>');
@@ -1120,16 +1126,16 @@ class Pages extends CI_Controller{
             
         } else {
 
-            $recaptcha = $this->input->post('g-recaptcha-response');
-            $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
+            // $recaptcha = $this->input->post('g-recaptcha-response');
+            // $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
 
-            $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
-            $responseKeys = json_decode($response, true);
+            // $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
+            // $responseKeys = json_decode($response, true);
 
-            if (!$responseKeys["success"]) {
-                $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
-                redirect(base_url().'log_in'); 
-            }
+            // if (!$responseKeys["success"]) {
+            //     $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
+            //     redirect(base_url().'log_in'); 
+            // }
 
 
             $renren = $this->input->post('renren');
@@ -1157,102 +1163,104 @@ class Pages extends CI_Controller{
 
             }
 
-            // $email = $this->input->post('schoolEmail');
-            // $name = $this->input->post('schoolName');
-            // $username = $this->input->post('schoolID');
-            // $pass = 'private112';
+            $email = $this->input->post('schoolEmail');
+            $name = $this->input->post('schoolName');
+            $username = $this->input->post('schoolID');
+            $pass = $this->input->post('password');
+            $pass = base_url().'confirm_signup';
 
-            // //Email Notification
-			// 	$this->load->config('email');
-			// 	$this->load->library('email');
-			// 	$mail_message = '
-            //         <html>
-            //         <head>
-            //         <style>
-            //             body {
-            //             font-family: "Segoe UI", Roboto, Arial, sans-serif;
-            //             background-color: #f0f4f8;
-            //             margin: 0;
-            //             padding: 20px;
-            //             }
-            //             .email-wrapper {
-            //             max-width: 600px;
-            //             margin: auto;
-            //             background-color: #ffffff;
-            //             border-radius: 10px;
-            //             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            //             overflow: hidden;
-            //             }
-            //             .email-header {
-            //             background-color: #0d6efd;
-            //             color: white;
-            //             padding: 20px;
-            //             text-align: center;
-            //             }
-            //             .email-header h2 {
-            //             margin: 0;
-            //             font-size: 24px;
-            //             }
-            //             .email-body {
-            //             padding: 30px 25px;
-            //             color: #333333;
-            //             }
-            //             .email-body p {
-            //             font-size: 16px;
-            //             line-height: 1.6;
-            //             }
-            //             .credentials-box {
-            //             background-color: #e9f2ff;
-            //             padding: 15px;
-            //             border-left: 4px solid #0d6efd;
-            //             margin: 20px 0;
-            //             border-radius: 6px;
-            //             }
-            //             .credentials-box p {
-            //             margin: 0;
-            //             font-weight: bold;
-            //             color: #0d3f8f;
-            //             }
-            //             .email-footer {
-            //             background-color: #f7f7f7;
-            //             padding: 15px;
-            //             text-align: center;
-            //             font-size: 14px;
-            //             color: #666666;
-            //             }
-            //         </style>
-            //         </head>
-            //         <body>
-            //         <div class="email-wrapper">
-            //             <div class="email-header">
-            //             <h2>Welcome to DepEd MIS</h2>
-            //             </div>
-            //             <div class="email-body">
-            //             <p>Dear ' . htmlspecialchars($name) . ',</p>
-            //             <p>Your profile has been successfully encoded into the <strong>DepEd MIS</strong> system. Please find your login credentials below:</p>
+            //Email Notification
+				$this->load->config('email');
+				$this->load->library('email');
+				$mail_message = '
+                    <html>
+                    <head>
+                    <style>
+                        body {
+                        font-family: "Segoe UI", Roboto, Arial, sans-serif;
+                        background-color: #f0f4f8;
+                        margin: 0;
+                        padding: 20px;
+                        }
+                        .email-wrapper {
+                        max-width: 600px;
+                        margin: auto;
+                        background-color: #ffffff;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                        overflow: hidden;
+                        }
+                        .email-header {
+                        background-color: #0d6efd;
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        }
+                        .email-header h2 {
+                        margin: 0;
+                        font-size: 24px;
+                        }
+                        .email-body {
+                        padding: 30px 25px;
+                        color: #333333;
+                        }
+                        .email-body p {
+                        font-size: 16px;
+                        line-height: 1.6;
+                        }
+                        .credentials-box {
+                        background-color: #e9f2ff;
+                        padding: 15px;
+                        border-left: 4px solid #0d6efd;
+                        margin: 20px 0;
+                        border-radius: 6px;
+                        }
+                        .credentials-box p {
+                        margin: 0;
+                        font-weight: bold;
+                        color: #0d3f8f;
+                        }
+                        .email-footer {
+                        background-color: #f7f7f7;
+                        padding: 15px;
+                        text-align: center;
+                        font-size: 14px;
+                        color: #666666;
+                        }
+                    </style>
+                    </head>
+                    <body>
+                    <div class="email-wrapper">
+                        <div class="email-header">
+                        <h2>Welcome to DepEd MIS</h2>
+                        </div>
+                        <div class="email-body">
+                        <p>Dear ' . htmlspecialchars($name) . ',</p>
+                        <p>Your profile has been successfully encoded into the <strong>DepEd MIS</strong> system. Please find your login credentials below:</p>
 
-            //             <div class="credentials-box">
-            //                 <p>Username: ' . htmlspecialchars($username) . '</p>
-            //                 <p>Password: ' . htmlspecialchars($pass) . '</p>
-            //             </div>
+                        <div class="credentials-box">
+                            <p>Username: ' . htmlspecialchars($username) . '</p>
+                            <p>Password: ' . htmlspecialchars($pass) . '</p>
+                            <p>Confirm Signup Link: ' . htmlspecialchars($pass) . '</p>
+                        </div>
 
-            //             <p>Kindly keep this information secure and do not share it with anyone.</p>
-            //             <p>Should you have any issues accessing your account, please contact your system administrator.</p>
+                        <p>Kindly keep this information secure and do not share it with anyone.</p>
+                        <p>Should you have any issues accessing your account, please contact your system administrator.</p>
 
-            //             <p style="margin-top: 30px;">Thanks & Regards,<br><strong>DepEd MIS Team</strong></p>
-            //             </div>
-            //             <div class="email-footer">
-            //             © ' . date('Y') . ' Department of Education | Management Information System
-            //             </div>
-            //         </div>
-            //         </body>
-            //         </html>';
+                        <p style="margin-top: 30px;">Thanks & Regards,<br><strong>DepEd MIS Team</strong></p>
+                        </div>
+                        <div class="email-footer">
+                        © ' . date('Y') . ' Department of Education | Management Information System
+                        </div>
+                    </div>
+                    </body>
+                    </html>';
 
-			// 	$this->email->from('no-reply@lxeinfotechsolutions.com', 'DepEd MIS Team')
-			// 		->to($email)
-			// 		->subject('Account Created')
-			// 		->message($mail_message);
-			// 	$this->email->send();
+				$this->email->from('no-reply@lxeinfotechsolutions.com', 'DepEd MIS Team')
+					->to($email)
+					->subject('Account Created')
+					->message($mail_message);
+				$this->email->send();
 
             $this->session->set_flashdata('success', 'School account has been registered successfully. Your username and password have been sent to your email.');
             redirect(base_url() . 'log_in');

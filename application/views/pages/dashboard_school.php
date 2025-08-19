@@ -15,7 +15,6 @@
                         </div>
                         <!-- end page title -->
 
-                        
 
                         <div class="row">
                             

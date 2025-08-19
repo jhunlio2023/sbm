@@ -23,10 +23,10 @@
         <div class="account-pages my-12">
             <div class="container">
                 <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-6 col-xl-8">
+                    <div class="col-md-8 col-lg-6 col-xl-10">
                         <div class="card mt-4">
                             <div class="card-header p-4" style="background:#a00000">
-                                <h4 class="text-white text-center mb-0 mt-0"><img src="<?= base_url(); ?>assets/images/candor.png" width="10%" alt=""><br />SCHOOL-BASED MANAGEMENT</h4>
+                                <h4 class="text-white text-center mb-0 mt-0"><img src="<?= base_url(); ?>assets/images/candor.png" width="10%" alt=""><br />FTAD OneView</h4>
                             </div>
                             <div class="card-body">
                             <?php if($this->session->flashdata('failed')) : ?>
@@ -54,10 +54,12 @@
                                 <?= form_open('Pages/signup') ?>
 
                                 <div class="form-row">
+                                    
                                     <div class="form-group col-md-6">
-                                        <label for="schoolName">School Name</label>
-                                        <input class="form-control" type="text" id="schoolName" required="" name="schoolName" placeholder="Your Name">
+                                        <label for="schoolID">School ID</label>
+                                        <input class="form-control" type="text" id="schoolID" required="" name="schoolID" placeholder="School ID">
                                     </div>
+
                                     <div class="form-group col-md-6">
                                         <label for="schoolID">Password</label>
                                         <input class="form-control" type="password" id="password" required="" name="password" placeholder="Your Password">
@@ -66,15 +68,17 @@
 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
+                                        <label for="schoolName">School Name</label>
+                                        <input class="form-control" type="text" id="schoolName" required="" name="schoolName" placeholder="Your Name">
+                                    </div>
+                                    <div class="form-group col-md-6">
                                         <label for="schoolName">School Email</label>
                                         <input class="form-control" type="email" id="schoolEmail" name="schoolEmail" required="" placeholder="Your Name">
                                     </div>
-
-                                    <div class="form-group col-md-6">
-                                        <label for="schoolID">School ID</label>
-                                        <input class="form-control" type="text" id="schoolID" required="" name="schoolID" placeholder="School ID">
-                                    </div>
+                                    
                                 </div>
+
+                                
 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
@@ -95,8 +99,20 @@
                                     </div>
                                 </div>
 
-                                    <div class="form-group">
-                                                    <label for="inputAddress" class="col-form-label" name="">Categories</label>
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label for="schoolName">School Governance Council (SGC)</label>
+                                        <select name="sgc" id="sgc" required class="form-control">
+                                                <option disabled selected>Select SGC</option>
+                                                    <option value="1">Not yet Organized</option>
+                                                    <option value="2">Organized only</option>
+                                                    <option value="3">Organized but not Functional</option>
+                                                    <option value="4">Functional</option>
+                                            </select>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                                    <label name="">Categories</label>
                                                     <select class="form-control" required name='course'>
                                                         <option disabled selected>Choose Offers</option>
                                                         <?php $schoo_type = array(1=>'Elementary',2=>'Integrated(Elem & JHS)',3=>'Integrated(Elem, JHS, & SHS)',4=>'Secondary(JHS only)',5=>'Secondary(JHS & SHS)',6=>'SHS - Stand Alone');
@@ -106,7 +122,18 @@
                                                         <option value="<?= $key; ?>"><?= $row; ?></option>
                                                         <?php } ?>
                                                     </select>
-                                                </div>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label for="schoolName">Type</label>
+                                        <select name="type" id="school_type" class="form-control">
+                                                <option disabled selected>Select Type</option>
+                                                    <option value="0"></option>
+                                                    <option value="1">School-based ALS program</option>
+                                                    <option value="2">TLE-TVL course offerings </option>
+                                            </select>
+                                    </div>
+                                </div>
 
                                     
                                     <input type="hidden" valu="" name="renren">
@@ -124,9 +151,9 @@
                                         </div>
                                     </div>
 
-                                    <div class="form-group">
+                                    <!-- <div class="form-group">
                                         <div class="g-recaptcha" data-sitekey="6LedsqorAAAAAMSwAX3ZLaCOyCFv5oVRRwR9AW34"></div>
-                                    </div>
+                                    </div> -->
 
 
                                     <div class="form-group text-right mt-4 mb-4">
