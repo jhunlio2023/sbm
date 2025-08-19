@@ -4,7 +4,6 @@ if ($this->session->logged_in == false || $this->session->virified == 1) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 
