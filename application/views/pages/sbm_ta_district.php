@@ -4,7 +4,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <h2 class="text-center">TECHNICAL ASSISSTANCE PROVISION REPORT FORM fasfdsa</h2>
+                                    <h2 class="text-center">TECHNICAL ASSISSTANCE PROVISION REPORT FORM</h2>
                                     <div class="clearfix"></div>
                                 </div>
                             </div>
@@ -77,7 +77,7 @@
                                                                                     <th>Proposed Resolutions/Commitment</th>
                                                                                     <th>Significant Findings(this pertains to the unusual findings-it may be positive or negative that can give impact to organization)</th>
                                                                                     <th>Recommendation</th>
-                                                                                    <th>SDO Recommendation</th>
+                                                                                    <th>District Recommendation</th>
                                                                                     <th>status</th>
                                                                                 </tr>
                                                                             </thead>
@@ -162,10 +162,10 @@
 
                                     <div class="form-group text-left mb-0">
                                                <input type="submit" name="submit" value="Submit" class="btn btn-primary waves-effect waves-light mr-1">
-                                               <?php if($sbmc->stat == 1){?>
+                                               <!-- <?php if($sbmc->stat == 1){?>
                                             <?php if($this->session->position == 'smme'){ ?>
                                             <a href="<?= base_url(); ?>/Page/sbm_ta_unlock/<?= $sbmc->id; ?>/<?= $sbmc->school_id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Unlock</a>
-                                        <?php }} ?> 
+                                        <?php }} ?>  -->
                                             </div>
 
                                     </div>

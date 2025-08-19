@@ -473,7 +473,7 @@ class Pages extends CI_Controller{
         $data['title'] = "School List"; 
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        $data['data'] = $this->Common->two_join_one_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.school_id', 'b.schoolName', 'ASC');
+        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.fy', 'a.school_id = b.schoolID', 'a.fy', $this->session->fy, 'a.district',$this->session->district, 'b.schoolName', 'ASC');
         
         //$data['data'] = $this->Page_model->schools_with_district($this->session->district);
 
@@ -1231,7 +1231,7 @@ class Pages extends CI_Controller{
                     <body>
                     <div class="email-wrapper">
                         <div class="email-header">
-                        <h2>Welcome to DepEd MIS</h2>
+                        <h2>Welcome to FTAD OneView</h2>
                         </div>
                         <div class="email-body">
                         <p>Dear ' . htmlspecialchars($name) . ',</p>
@@ -1249,7 +1249,7 @@ class Pages extends CI_Controller{
                         <p style="margin-top: 30px;">Thanks & Regards,<br><strong>DepEd MIS Team</strong></p>
                         </div>
                         <div class="email-footer">
-                        © ' . date('Y') . ' Department of Education | Management Information System
+                        © ' . date('Y') . ' Department of Education
                         </div>
                     </div>
                     </body>

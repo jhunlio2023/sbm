@@ -103,11 +103,10 @@
                                     <div class="form-group col-md-4">
                                         <label for="schoolName">School Governance Council (SGC)</label>
                                         <select name="sgc" id="sgc" required class="form-control">
-                                                <option disabled selected>Select SGC</option>
-                                                    <option value="1">Not yet Organized</option>
-                                                    <option value="2">Organized only</option>
-                                                    <option value="3">Organized but not Functional</option>
-                                                    <option value="4">Functional</option>
+                                                <option disabled selected>Select</option>
+                                                    <option value="1">Not Yet Organized</option>
+                                                    <option value="2">Organized but not Functional</option>
+                                                    <option value="3">Functional</option>
                                             </select>
                                     </div>
 
@@ -129,8 +128,8 @@
                                         <select name="type" id="school_type" class="form-control">
                                                 <option disabled selected>Select Type</option>
                                                     <option value="0">None</option>
-                                                    <option value="1">School-based ALS program</option>
-                                                    <option value="2">TLE-TVL course offerings </option>
+                                                    <option value="1">School-Based ALS Program</option>
+                                                    <option value="2">TLE-TVL Course Offerings </option>
                                             </select>
                                     </div>
                                 </div>
