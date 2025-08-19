@@ -1125,16 +1125,16 @@ class Pages extends CI_Controller{
             
         } else {
 
-            $recaptcha = $this->input->post('g-recaptcha-response');
-            $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
+            // $recaptcha = $this->input->post('g-recaptcha-response');
+            // $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
 
-            $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
-            $responseKeys = json_decode($response, true);
+            // $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
+            // $responseKeys = json_decode($response, true);
 
-            if (!$responseKeys["success"]) {
-                $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
-                redirect(base_url().'log_in'); 
-            }
+            // if (!$responseKeys["success"]) {
+            //     $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
+            //     redirect(base_url().'log_in'); 
+            // }
 
 
             $renren = $this->input->post('renren');

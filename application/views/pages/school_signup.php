@@ -26,7 +26,7 @@
                     <div class="col-md-8 col-lg-6 col-xl-10">
                         <div class="card mt-4">
                             <div class="card-header p-4" style="background:#a00000">
-                                <h4 class="text-white text-center mb-0 mt-0"><img src="<?= base_url(); ?>assets/images/candor.png" width="10%" alt=""><br />FTAG OneView</h4>
+                                <h4 class="text-white text-center mb-0 mt-0"><img src="<?= base_url(); ?>assets/images/candor.png" width="10%" alt=""><br />FTAD OneView</h4>
                             </div>
                             <div class="card-body">
                             <?php if($this->session->flashdata('failed')) : ?>
@@ -151,9 +151,9 @@
                                         </div>
                                     </div>
 
-                                    <div class="form-group">
+                                    <!-- <div class="form-group">
                                         <div class="g-recaptcha" data-sitekey="6LedsqorAAAAAMSwAX3ZLaCOyCFv5oVRRwR9AW34"></div>
-                                    </div>
+                                    </div> -->
 
 
                                     <div class="form-group text-right mt-4 mb-4">
