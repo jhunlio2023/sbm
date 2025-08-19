@@ -198,6 +198,10 @@
               <i class="bi bi-flag-fill me-2"></i>Login To Get Started
             </a>
 
+            <a href="<?= base_url('signup'); ?>" class="btn btn-outline-light">
+              <i class="bi bi-life-preserver me-2"></i>Create an Account
+            </a>
+
           </div>
         </div>
         <div class="col-lg-6 text-center">

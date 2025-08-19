@@ -329,7 +329,7 @@
           <div class="profile-card">
             <img src="<?= base_url(); ?>assets/images/authors/elenita.jpg" alt="QA 2">
             <h5>Elenita L. Bernales</h5>
-            <span>Education Program Supervisor <br />Division of Digos City</span>
+            <span>Education Program Supervisor <br />Division of Davao Occidental</span>
             <div class="social-icons">
               <a href="#"><i class="bi bi-facebook"></i></a>
               <a href="#"><i class="bi bi-envelope"></i></a>
