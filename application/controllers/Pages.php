@@ -1296,6 +1296,7 @@ class Pages extends CI_Controller
             show_404();
         }
         $data['title'] = "Homepage";
+        $this->load->view('templates/css_homepage');
         $this->load->view('templates/nav');
         $this->load->view($page, $data);
     }
@@ -1304,7 +1305,7 @@ class Pages extends CI_Controller
     {
 
         $page = "authors";
-
+        $this->load->view('templates/css_author');
         if (!file_exists(APPPATH . 'views/' . $page . '.php')) {
             show_404();
         }
@@ -1322,6 +1323,7 @@ class Pages extends CI_Controller
             show_404();
         }
         $data['title'] = "About";
+        $this->load->view('templates/css_about');
         $this->load->view('templates/nav');
         $this->load->view($page, $data);
     }
