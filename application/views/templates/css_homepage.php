@@ -75,6 +75,8 @@
             color: #fff !important;
         }
 
+        
+
 
         .hero-section {
             background: url("<?= base_url(); ?>assets/images/ftadbg.jpg") no-repeat center left;
