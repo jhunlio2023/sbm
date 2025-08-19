@@ -473,13 +473,8 @@ class Pages extends CI_Controller
         $data['title'] = "School List";
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-<<<<<<< Updated upstream
-        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.fy', 'a.school_id = b.schoolID', 'a.fy', $this->session->fy, 'a.district',$this->session->district, 'b.schoolName', 'ASC');
-        
-=======
-        $data['data'] = $this->Common->two_join_one_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.school_id', 'b.schoolName', 'ASC');
+        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.fy', 'a.school_id = b.schoolID', 'a.fy', $this->session->fy, 'a.district', $this->session->district, 'b.schoolName', 'ASC');
 
->>>>>>> Stashed changes
         //$data['data'] = $this->Page_model->schools_with_district($this->session->district);
 
         $this->load->view('templates/header_dt');
@@ -1301,7 +1296,7 @@ class Pages extends CI_Controller
             show_404();
         }
         $data['title'] = "Homepage";
-
+        $this->load->view('templates/nav');
         $this->load->view($page, $data);
     }
 
@@ -1314,8 +1309,8 @@ class Pages extends CI_Controller
             show_404();
         }
         $data['title'] = "Authors";
-
-        $this->load->view($page, $data);
+        $this->load->view('templates/nav');
+        $this->load->view('pages/' . $page, $data);
     }
 
     function about()
@@ -1323,11 +1318,11 @@ class Pages extends CI_Controller
 
         $page = "about";
 
-        if (!file_exists(APPPATH . 'views/' . $page . '.php')) {
+        if (!file_exists(APPPATH . 'views/pages' . $page . '.php')) {
             show_404();
         }
         $data['title'] = "About";
-
-        $this->load->view($page, $data);
+        $this->load->view('templates/nav');
+        $this->load->view('pages/' . $page, $data);
     }
 }
