@@ -1305,7 +1305,7 @@ class Pages extends CI_Controller
 
         $page = "authors";
 
-        if (!file_exists(APPPATH . 'views/' . $page . '.php')) {
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
             show_404();
         }
         $data['title'] = "Authors";
@@ -1318,7 +1318,7 @@ class Pages extends CI_Controller
 
         $page = "about";
 
-        if (!file_exists(APPPATH . 'views/pages' . $page . '.php')) {
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
             show_404();
         }
         $data['title'] = "About";
