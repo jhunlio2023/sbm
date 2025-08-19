@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EduAlert - Empowering and Defending Underage learners through Active Logging of Events, Reports, and Threats</title>
+  <title>FTAD OneView v1.0 </title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
@@ -168,7 +168,6 @@
               <li class="nav-item"><a class="nav-link" href="#">About</a></li>
               <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
               <li class="nav-item"><a class="nav-link" href="<?= base_url('pages/authors'); ?>">Authors</a></li>
-             <li class="nav-item"><a class="nav-link" href="<?= base_url('pages/tracking'); ?>">Tracking</a></li>
               <li class="nav-item"><a class="nav-link btn ms-2" href="log_in">Login</a></li>
         </ul>
       </div>
@@ -180,15 +179,13 @@
   <div class="container">
     <div class="row align-items-center">
       <div class="col-lg-6">
-        <h1>Welcome to Edu<span class="highlight-text">Alert</span></h1>
-        <p>EduAlert is a School Incident Reporting System designed to empower students, faculty, and staff in reporting and tracking school-related incidents securely—identified or anonymously.</p>
+        <h1>FTAD <span class="highlight-text">OneView v1.0</span></h1>
+        <p>FTAD OneView is a monitoring and knowledge management initiative of the Field Technical Assistance Division (FTAD) that unifies school data and insights into a single platform. It is a comprehensive tool for tracking progress, ensuring accountability, and delivering evidence-based technical assistance to support continuous school improvement.</p>
         <div class="mt-4 d-flex gap-3 flex-wrap">
           <a href="<?= base_url('incident_report'); ?>" class="btn btn-light">
-            <i class="bi bi-flag-fill me-2"></i>Submit Incident Report
+            <i class="bi bi-flag-fill me-2"></i>Login To Get Started
           </a>
-          <a href="<?= base_url('help'); ?>" class="btn btn-outline-light">
-            <i class="bi bi-life-preserver me-2"></i>Seek Help
-          </a>
+         
         </div>
       </div>
       <div class="col-lg-6 text-center">
