@@ -26,7 +26,7 @@
                         <?php if($this->session->position == 'school'){?>
                             <a href="<?= base_url(); ?>school/<?= $this->session->username; ?>" class="dropdown-item notify-item">
                         <?php }else{ ?>
-                            <a href="javascript: void(0);" class="waves-effect">
+                            <a href="javascript:void(0);" class="dropdown-item notify-item">
                         <?php } ?>
                             <i class="mdi mdi-account-outline"></i>
                             <span>Profile</span>

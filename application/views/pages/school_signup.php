@@ -151,9 +151,9 @@
                                         </div>
                                     </div>
 
-                                    <!-- <div class="form-group">
+                                    <div class="form-group">
                                         <div class="g-recaptcha" data-sitekey="6LedsqorAAAAAMSwAX3ZLaCOyCFv5oVRRwR9AW34"></div>
-                                    </div> -->
+                                    </div>
 
 
                                     <div class="form-group text-right mt-4 mb-4">

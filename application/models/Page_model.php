@@ -72,12 +72,14 @@ public function insert_user(){
 }
 
 public function confirm_signup(){
+    $id = $this->uri->segment(2);
     
     $data = array(
     'virified' => 0
     ); 
 
-    return $this->db->insert('users', $data);
+    $this->db->where('id', $id);
+    return $this->db->update('users', $data);
     
 }
 
