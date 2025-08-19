@@ -1,5 +1,5 @@
 <?php if($this->session->logged_in == false){
-redirect(base_url().'log_in');
+redirect(base_url().'homepage');
 } ?>
 
 
