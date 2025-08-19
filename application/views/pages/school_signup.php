@@ -23,7 +23,7 @@
         <div class="account-pages my-12">
             <div class="container">
                 <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-6 col-xl-8">
+                    <div class="col-md-8 col-lg-6 col-xl-10">
                         <div class="card mt-4">
                             <div class="card-header p-4" style="background:#a00000">
                                 <h4 class="text-white text-center mb-0 mt-0"><img src="<?= base_url(); ?>assets/images/candor.png" width="10%" alt=""><br />SCHOOL-BASED MANAGEMENT</h4>
@@ -95,8 +95,20 @@
                                     </div>
                                 </div>
 
-                                    <div class="form-group">
-                                                    <label for="inputAddress" class="col-form-label" name="">Categories</label>
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label for="schoolName">School Governance Council (SGC)</label>
+                                        <select name="division_id" id="division" class="form-control">
+                                                <option disabled selected>Select SGC</option>
+                                                    <option value="1">Not yet Organized</option>
+                                                    <option value="2">Organized only</option>
+                                                    <option value="3">Organized but not Functional</option>
+                                                    <option value="4">Functional</option>
+                                            </select>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                                    <label name="">Categories</label>
                                                     <select class="form-control" required name='course'>
                                                         <option disabled selected>Choose Offers</option>
                                                         <?php $schoo_type = array(1=>'Elementary',2=>'Integrated(Elem & JHS)',3=>'Integrated(Elem, JHS, & SHS)',4=>'Secondary(JHS only)',5=>'Secondary(JHS & SHS)',6=>'SHS - Stand Alone');
@@ -106,7 +118,8 @@
                                                         <option value="<?= $key; ?>"><?= $row; ?></option>
                                                         <?php } ?>
                                                     </select>
-                                                </div>
+                                    </div>
+                                </div>
 
                                     
                                     <input type="hidden" valu="" name="renren">
