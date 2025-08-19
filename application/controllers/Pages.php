@@ -304,6 +304,7 @@ class Pages extends CI_Controller{
     } 
 
     public function confirm_signup(){
+            
             $user = $this->Page_model->confirm_signup();
             $this->session->set_flashdata('success', 'Successfully Confirmed.');
             redirect(base_url().'pages/log_in'); 
@@ -1164,8 +1165,8 @@ class Pages extends CI_Controller{
             $email = $this->input->post('schoolEmail');
             $name = $this->input->post('schoolName');
             $username = $this->input->post('schoolID');
-            $pass = $this->input->post('password');
-            $pass = base_url().'confirm_signup/'.$this->db->insert_id();
+            $pn = $this->input->post('password');
+            $pass = base_url().'Pages/confirm_signup/'.$this->db->insert_id();
 
             //Email Notification
 				$this->load->config('email');
@@ -1238,7 +1239,7 @@ class Pages extends CI_Controller{
 
                         <div class="credentials-box">
                             <p>Username: ' . htmlspecialchars($username) . '</p>
-                            <p>Password: ' . htmlspecialchars($pass) . '</p>
+                            <p>Password: ' . htmlspecialchars($pn) . '</p>
                             <p>Confirm Signup Link: ' . htmlspecialchars($pass) . '</p>
                         </div>
 
