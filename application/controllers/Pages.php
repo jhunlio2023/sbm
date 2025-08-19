@@ -1284,6 +1284,20 @@ class Pages extends CI_Controller{
 
 	}
 
+    function homepage()
+	    {
+
+        $page = "home";
+
+        if(!file_exists(APPPATH.'views/'.$page.'.php')){
+            show_404();
+        }
+        $data['title'] = "Homepage"; 
+
+        $this->load->view($page, $data);
+
+	}
+
     
 
 
