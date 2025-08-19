@@ -128,7 +128,7 @@
                                         <label for="schoolName">Type</label>
                                         <select name="type" id="school_type" class="form-control">
                                                 <option disabled selected>Select Type</option>
-                                                    <option value="0"></option>
+                                                    <option value="0">None</option>
                                                     <option value="1">School-based ALS program</option>
                                                     <option value="2">TLE-TVL course offerings </option>
                                             </select>
@@ -188,12 +188,12 @@
                                         <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="display: none;" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
-                                                    <div class="modal-header bg-primary">
+                                                    <div class="modal-header" style="background:#a00000">
                                                         <h5 class="modal-title text-white" id="myModalLabel">DECLARATION AND ATTESTATION:</h5>
                                                         <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        <p class="text-justify" style="text-indent: 2rem;">Consent & Privacy Notice (Online School-Based Self-Assessment) The Department of Education (DepEd) complies with Republic Act No. 10173 or the Data Privacy Act of 2012 and its Implementing Rules and Regulations. By ticking the checkbox and clicking “Submit,” you freely, specifically, and informedly consent to DepEd’s collection, processing, and storage of your personal information (e.g., name, position/designation, school, contact details, and assessment responses) for lawful and legitimate purposes connected with the implementation, monitoring, and validation of the Revised School-Based Management (SBM) System under DepEd Order No. 007, s. 2024 and the Regional initiative to consolidate results, provide technical assistance, and support continuous improvement at the school level</p>
+                                                        <p class="text-justify" style="text-indent: 2rem;">The Department of Education (DepEd) complies with Republic Act No. 10173 or the Data Privacy Act of 2012 and its Implementing Rules and Regulations. By ticking the checkbox and clicking “Submit,” you freely, specifically, and informedly consent to DepEd’s collection, processing, and storage of your personal information (e.g., name, position/designation, school, contact details, and assessment responses) for lawful and legitimate purposes connected with the implementation, monitoring, and data management under DepEd Order No. 007, s. 2024 on the Revised School-Based Management (SBM) System. This system is a Regional initiative to consolidate results, provide technical assistance, and support continuous improvement at the school level through the Schools Division Offices.</p>
                                                     </div>
                                                 </div>
                                                 <!-- /.modal-content -->

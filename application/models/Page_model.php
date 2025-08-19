@@ -72,7 +72,7 @@ public function insert_user(){
 }
 
 public function confirm_signup(){
-    $id = $this->uri->segment(2);
+    $id = $this->uri->segment(3);
     
     $data = array(
     'virified' => 0
