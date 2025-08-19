@@ -167,7 +167,7 @@
               <li class="nav-item"><a class="nav-link" href="<?= base_url(); ?>">Home</a></li>
               <li class="nav-item"><a class="nav-link" href="#">About</a></li>
               <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
-              <li class="nav-item"><a class="nav-link" href="<?= base_url('pages/authors'); ?>">Authors</a></li>
+              <li class="nav-item"><a class="nav-link" href="<?= base_url('OneView/authors'); ?>">Authors</a></li>
               <li class="nav-item"><a class="nav-link btn ms-2" href="log_in">Login</a></li>
         </ul>
       </div>
