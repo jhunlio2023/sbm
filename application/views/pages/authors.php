@@ -170,8 +170,7 @@
           <li class="nav-item"><a class="nav-link" href="<?= base_url(); ?>">Home</a></li>
           <li class="nav-item"><a class="nav-link" href="#">About</a></li>
           <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
-          <li class="nav-item"><a class="nav-link active" href="<?= base_url('pages/authors'); ?>">Authors</a></li>
-          <li class="nav-item"><a class="nav-link btn ms-2" href="<?= base_url('log_in'); ?>">Login</a></li>
+          <li class="nav-item"><a class="nav-link active" href="<?= base_url('OneView/authors'); ?>">Authors</a></li>
         </ul>
       </div>
     </div>
@@ -215,7 +214,7 @@
         <div class="col-md-4 col-sm-6" data-aos="fade-up">
           <div class="profile-card shadow-lg position-relative"
             style="border: 3px solid #198754; background: linear-gradient(to right, #e6fff0, #f0fff7);">
-            <img src="<?= base_url(); ?>assets/images/avatar.png" alt="Assistant Regional Director"
+            <img src="<?= base_url(); ?>assets/images/authors/ard.jpg" alt="Assistant Regional Director"
               style="width: 130px; height: 130px; border: 4px solid #198754;">
             <h5 style="font-size: 1.3rem; color: #198754; margin-top: 15px;">Rebonfamil R. Baguio</h5>
             <span style="font-weight: 500; color: #0f5132;">Assistant Regional Director <br />DepEd Region XI</span>

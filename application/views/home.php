@@ -20,71 +20,73 @@
       padding: 0;
     }
 
-  .navbar {
-  background-color: #fff; /* Light on desktop */
-  transition: background-color 0.3s ease;
-}
+    .navbar {
+      background-color: #fff;
+      /* Light on desktop */
+      transition: background-color 0.3s ease;
+    }
 
-.navbar-toggler {
-  border-color: #800000;
-}
+    .navbar-toggler {
+      border-color: #800000;
+    }
 
-.navbar-toggler-icon {
-  background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(128,0,0, 1)' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
-}
-
-
-.navbar .nav-link {
-  position: relative;
-  color: #800000 !important;
-  font-weight: 500;
-  padding: 8px 12px;
-  transition: color 0.3s ease;
-}
-
-.navbar .nav-link::after {
-  content: '';
-  position: absolute;
-  width: 0%;
-  height: 2px;
-  left: 0;
-  bottom: 0;
-  background-color: #800000;
-  transition: width 0.3s;
-}
-
-.navbar .nav-link:hover::after {
-  width: 100%;
-}
-
-.navbar .nav-link:hover {
-  color: #a00000 !important;
-}
-
-.navbar .nav-link.btn {
-  border: 2px solid #800000;
-  color: #800000 !important;
-  border-radius: 20px;
-  transition: all 0.3s ease;
-}
-
-.navbar .nav-link.btn:hover {
-  background-color: #800000;
-  color: #fff !important;
-}
+    .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(128,0,0, 1)' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
 
 
-  .hero-section {
-  background: url("<?= base_url(); ?>assets/images/bgwel.jpg") no-repeat center left;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
-  color: #fff;
-  height: 600px; /* ✅ Fixed height */
-  position: relative;
-  display: flex;
-  align-items: center;
-}
+    .navbar .nav-link {
+      position: relative;
+      color: #800000 !important;
+      font-weight: 500;
+      padding: 8px 12px;
+      transition: color 0.3s ease;
+    }
+
+    .navbar .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0%;
+      height: 2px;
+      left: 0;
+      bottom: 0;
+      background-color: #800000;
+      transition: width 0.3s;
+    }
+
+    .navbar .nav-link:hover::after {
+      width: 100%;
+    }
+
+    .navbar .nav-link:hover {
+      color: #a00000 !important;
+    }
+
+    .navbar .nav-link.btn {
+      border: 2px solid #800000;
+      color: #800000 !important;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .navbar .nav-link.btn:hover {
+      background-color: #800000;
+      color: #fff !important;
+    }
+
+
+    .hero-section {
+      background: url("<?= base_url(); ?>assets/images/bgwel.jpg") no-repeat center left;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      color: #fff;
+      height: 600px;
+      /* ✅ Fixed height */
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
 
     .hero-section .left {
       padding: 0 40px;
@@ -132,22 +134,24 @@
     }
 
     .highlight-text {
-    color: #ffc107; /* Example: Bootstrap warning yellow */
-    font-weight: bold;
+      color: #ffc107;
+      /* Example: Bootstrap warning yellow */
+      font-weight: bold;
     }
 
     @media (max-width: 768px) {
       .hero-section {
         text-align: center;
       }
+
       .hero-section .left,
       .hero-section .right {
         padding: 20px;
       }
 
-       .navbar .nav-link {
-    color: #800000 !important;
-  }
+      .navbar .nav-link {
+        color: #800000 !important;
+      }
     }
   </style>
 </head>
@@ -164,11 +168,10 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
-              <li class="nav-item"><a class="nav-link" href="<?= base_url(); ?>">Home</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-              <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
-              <li class="nav-item"><a class="nav-link" href="<?= base_url('OneView/authors'); ?>">Authors</a></li>
-              <li class="nav-item"><a class="nav-link btn ms-2" href="log_in">Login</a></li>
+          <li class="nav-item"><a class="nav-link" href="<?= base_url(); ?>">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
+          <li class="nav-item"><a class="nav-link active" href="<?= base_url('OneView/authors'); ?>">Authors</a></li>
         </ul>
       </div>
     </div>
@@ -176,48 +179,48 @@
 
   <!-- Hero Section -->
   <div class="hero-section">
-  <div class="container">
-    <div class="row align-items-center">
-      <div class="col-lg-6">
-        <h1>FTAD <span class="highlight-text">OneView v1.0</span></h1>
-        <p>FTAD OneView is a monitoring and knowledge management initiative of the Field Technical Assistance Division (FTAD) that unifies school data and insights into a single platform. It is a comprehensive tool for tracking progress, ensuring accountability, and delivering evidence-based technical assistance to support continuous school improvement.</p>
-        <div class="mt-4 d-flex gap-3 flex-wrap">
-          <a href="<?= base_url('incident_report'); ?>" class="btn btn-light">
-            <i class="bi bi-flag-fill me-2"></i>Login To Get Started
-          </a>
-         
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-6">
+          <h1>FTAD <span class="highlight-text">OneView v1.0</span></h1>
+          <p>FTAD OneView is a monitoring and knowledge management initiative of the Field Technical Assistance Division (FTAD) that unifies school data and insights into a single platform. It is a comprehensive tool for tracking progress, ensuring accountability, and delivering evidence-based technical assistance to support continuous school improvement.</p>
+          <div class="mt-4 d-flex gap-3 flex-wrap">
+            <a href="<?= base_url('log_in'); ?>" class="btn btn-light">
+              <i class="bi bi-flag-fill me-2"></i>Login To Get Started
+            </a>
+
+          </div>
         </div>
-      </div>
-      <div class="col-lg-6 text-center">
-        <!-- <img src="<?= base_url(); ?>assets/images/wel.png" alt="Students working" class="img-fluid rounded"> -->
+        <div class="col-lg-6 text-center">
+          <!-- <img src="<?= base_url(); ?>assets/images/wel.png" alt="Students working" class="img-fluid rounded"> -->
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Features -->
   <div class="feature-icons">
-  <div class="container">
-    <div class="row g-4">
-      <div class="col-md-3 text-center">
-        <i class="bi bi-exclamation-triangle-fill"></i>
-        <p>Report incidents easily and accurately</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <i class="bi bi-shield-lock-fill"></i>
-        <p>Submit reports anonymously and securely</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <i class="bi bi-clock-history"></i>
-        <p>Track updates and responses in real time</p>
-      </div>
-      <div class="col-md-3 text-center">
-        <i class="bi bi-people-fill"></i>
-        <p>Engage students, teachers, and staff in safe learning</p>
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-3 text-center">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <p>Report incidents easily and accurately</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <i class="bi bi-shield-lock-fill"></i>
+          <p>Submit reports anonymously and securely</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <i class="bi bi-clock-history"></i>
+          <p>Track updates and responses in real time</p>
+        </div>
+        <div class="col-md-3 text-center">
+          <i class="bi bi-people-fill"></i>
+          <p>Engage students, teachers, and staff in safe learning</p>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
