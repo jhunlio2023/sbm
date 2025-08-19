@@ -161,7 +161,7 @@
   <nav class="navbar navbar-expand-lg navbar-dark">
     <div class="container">
       <a class="navbar-brand" href="<?= base_url(); ?>">
-        <img src="<?= base_url(); ?>assets/images/drkedu.png" alt="Logo" height="40">
+        <img src="<?= base_url(); ?>assets/images/ftad-logo" alt="Logo" height="40">
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
