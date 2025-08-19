@@ -28,7 +28,6 @@ public function user_insert(){
     $file = $this->upload->data();
     $filename = $file['file_name']; 
 
-
     $password = $this->input->post('password');
     $hash = password_hash($password, PASSWORD_DEFAULT);
     
@@ -66,6 +65,16 @@ public function insert_user(){
     'p_id' => $this->input->post('division_id'),
     'd_id' => $this->input->post('d_id'),
     'virified' => 1
+    ); 
+
+    return $this->db->insert('users', $data);
+    
+}
+
+public function confirm_signup(){
+    
+    $data = array(
+    'virified' => 0
     ); 
 
     return $this->db->insert('users', $data);

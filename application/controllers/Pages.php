@@ -303,6 +303,12 @@ class Pages extends CI_Controller{
             redirect(base_url().'pages/userlist'); 
     } 
 
+    public function confirm_signup(){
+            $user = $this->Page_model->confirm_signup();
+            $this->session->set_flashdata('success', 'Successfully Confirmed.');
+            redirect(base_url().'pages/log_in'); 
+    } 
+
     public function cp(){
         $this->Page_model->user_pass();
         $this->session->set_flashdata('success', 'Successfully updated.');
@@ -1100,7 +1106,6 @@ class Pages extends CI_Controller{
     public function signup()
     {
 
-
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         ', '</div>');
@@ -1161,7 +1166,7 @@ class Pages extends CI_Controller{
             $name = $this->input->post('schoolName');
             $username = $this->input->post('schoolID');
             $pass = $this->input->post('password');
-            $pass = base_url().'homepage';
+            $pass = base_url().'confirm_signup';
 
             //Email Notification
 				$this->load->config('email');

@@ -56,6 +56,8 @@ $route['signup'] = 'pages/signup';
 $route['logout'] = 'pages/logout';
 $route['lock'] = 'pages/lock';
 $route['homepage'] = 'pages/homepage';
+
+$route['confirm_signup'] = 'pages/confirm_signup';
 $route['lock_user_screen'] = 'pages/lock_user_screen';
 
 
