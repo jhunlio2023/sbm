@@ -1305,12 +1305,12 @@ class Pages extends CI_Controller
 
         $page = "authors";
 
-        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+        if (!file_exists(APPPATH . 'views/' . $page . '.php')) {
             show_404();
         }
         $data['title'] = "Authors";
         $this->load->view('templates/nav');
-        $this->load->view('pages/' . $page, $data);
+        $this->load->view($page, $data);
     }
 
     function about()
@@ -1318,11 +1318,11 @@ class Pages extends CI_Controller
 
         $page = "about";
 
-        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+        if (!file_exists(APPPATH . 'views/' . $page . '.php')) {
             show_404();
         }
         $data['title'] = "About";
         $this->load->view('templates/nav');
-        $this->load->view('pages/' . $page, $data);
+        $this->load->view($page, $data);
     }
 }
