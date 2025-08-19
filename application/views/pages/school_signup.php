@@ -25,7 +25,7 @@
                 <div class="row justify-content-center">
                     <div class="col-md-8 col-lg-6 col-xl-8">
                         <div class="card mt-4">
-                            <div class="card-header p-4 bg-primary">
+                            <div class="card-header p-4" style="background:#a00000">
                                 <h4 class="text-white text-center mb-0 mt-0"><img src="<?= base_url(); ?>assets/images/candor.png" width="10%" alt=""><br />SCHOOL-BASED MANAGEMENT</h4>
                             </div>
                             <div class="card-body">
@@ -131,7 +131,7 @@
 
                                     <div class="form-group text-right mt-4 mb-4">
                                         <div class="col-12">
-                                            <button class="btn btn-md btn-primary waves-effect waves-light" type="submit">Register</button>
+                                            <button class="btn btn-md waves-effect waves-light" style="background:#a00000" type="submit">Register</button>
                                         </div>
                                     </div>
 
