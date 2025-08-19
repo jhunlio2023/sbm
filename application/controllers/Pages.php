@@ -184,7 +184,7 @@ class Pages extends CI_Controller
 
         $data['title'] = "School List";
 
-        $data['data'] = $this->Common->one_cond_select('schools', 'schoolID,schoolName', 'division_id', $this->uri->segment(3));
+        $data['data'] = $this->Common->two_join_one_cond_not_gb('schools','district', 'id,description,schoolID,schoolName,a.division_id,a.district_id','a.district_id = id', 'a.division_id', $this->uri->segment(3),'schoolName','ASC');
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');

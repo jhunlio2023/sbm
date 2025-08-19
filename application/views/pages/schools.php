@@ -52,6 +52,7 @@
                                                 <tr>
                                                     <th>School ID</th>
                                                     <th>School Name</th>
+                                                    <th>District</th>
                                                     <th>Action</th>
                                                 </tr>
 
@@ -62,6 +63,7 @@
                                                 <tr>
                                                     <td><?= $row->schoolID; ?></td>
                                                     <td><?= strtoupper($row->schoolName); ?></td>
+                                                    <td><?= $row->description; ?></td>
                                                     <td>
                                                         <a href="<?=base_url(); ?>Page/schoolProfile?schoolid=<?php echo $row->schoolID; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
                                                         <a href="<?=base_url(); ?>Page/schoolInfo?schoolid=<?php echo $row->schoolID; ?>" class="text-warning"><i class="mdi mdi-pencil-outline"></i>edit</a> 

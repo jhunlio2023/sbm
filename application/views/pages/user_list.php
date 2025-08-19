@@ -60,7 +60,7 @@
                                             <tbody>
                                                 <?php foreach($users as $row){?>
                                                 <tr>
-                                                    <td><?= $row->lname.', '.$row->fname; ?> <?php if(!empty($row->mname)){echo substr($row->mname, 0, 1).'.';} ?></td>
+                                                    <td><?= !empty($row->lname) ? $row->lname . ', ' : '' ?> <?= $row->fname; ?> <?php if(!empty($row->mname)){echo substr($row->mname, 0, 1).'.';} ?></td>
                                                     <td><?= $row->username; ?></td>
                                                     <td><?= $row->position; ?></td>
                                                     <td>
