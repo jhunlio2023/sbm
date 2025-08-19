@@ -77,7 +77,7 @@
 
 
         .hero-section {
-            background: url("<?= base_url(); ?>assets/images/bgwel.jpg") no-repeat center left;
+            background: url("<?= base_url(); ?>assets/images/ftadbg.jpg") no-repeat center left;
             background-size: cover;
             background-repeat: no-repeat;
             background-position: center;
