@@ -362,6 +362,7 @@ class Pages extends CI_Controller{
                         'region' => $user_id['r_id'],
                         'division' => $user_id['p_id'],
                         'district' => $user_id['d_id'],
+                        'virified' => $user_id['virified'],
                         'logged_in' => true
 
                     );
