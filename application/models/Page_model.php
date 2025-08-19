@@ -49,6 +49,25 @@ public function user_insert(){
     
 }
 
+public function insert_user(){
+
+    $password = $this->input->post('password');
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    
+    $data = array(
+    'username' => $this->input->post('schoolID'),
+    'password' => $hash,
+    'position' => 'school',
+    'fname' => $this->input->post('schoolName'),
+    'r_id' => 12,
+    'p_id' => $this->input->post('division_id'),
+    'd_id' => $this->input->post('d_id'),
+    ); 
+
+    return $this->db->insert('users', $data);
+    
+}
+
 public function user_update(){
 
     $id = $this->input->post('id'); 
@@ -293,9 +312,9 @@ public function action_plan_insert()
 			'remarks' => $this->input->post('remarks'),
 			'fy' => $this->session->fy,
 			'school_id' => $this->session->username,
-            'region_id' => $this->session->region,
-            'division_id' => $this->session->division,
-            'district_id' => $this->session->district,
+            'region' => $this->session->region,
+            'division' => $this->session->division,
+            'district' => $this->session->district,
 
 		);
 
@@ -486,6 +505,23 @@ public function sbm_ta_insert()
 
         $this->db->where('id', $this->input->post('id'));
 		return $this->db->update('sbm_tech', $data);
+	}
+
+    public function insert_school()
+	{
+		$data = array(
+			'schoolID' => $this->input->post('schoolID'),
+			'schoolName' => $this->input->post('schoolName'),
+			'division_id' => $this->input->post('division_id'),
+			'district_id' => $this->input->post('d_id'),
+            'region_id' => 12,
+			'course' => $this->input->post('course'),
+			'schoolEmail' => $this->input->post('schoolEmail'),
+            'schoolType' => 0,
+			'schoolLogo' => 'logo.png'
+		);
+
+		return $this->db->insert('schools', $data);
 	}
 
     

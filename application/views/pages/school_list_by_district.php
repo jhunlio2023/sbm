@@ -2,7 +2,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <a class="btn btn-success" href="<?= base_url(); ?>pages/school_new">Add New</a>
+                                    <!-- <a class="btn btn-success" href="<?= base_url(); ?>pages/school_new">Add New</a> -->
                                     
 
                                 
@@ -50,21 +50,20 @@
 
                                             <thead>
                                                 <tr>
-                                                    <th>School ID</th>
-                                                    <th>School Name</th>
+                                                    <th>#</th>
+                                                    <th>District</th>
                                                     <th>Action</th>
                                                 </tr>
 
                                             </thead>
 
                                             <tbody>
-                                                <?php foreach($data as $row){?>
+                                                <?php $ivykate=1; foreach($data as $row){?>
                                                 <tr>
-                                                    <td><?= $row->schoolID; ?></td>
-                                                    <td><?= strtoupper($row->schoolName); ?></td>
+                                                    <td><?= $ivykate++; ?></td>
+                                                    <td><?= $row->description; ?></td>
                                                     <td>
-                                                        <a href="<?=base_url(); ?>Page/schoolProfile?schoolid=<?php echo $row->schoolID; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
-                                                        <a href="<?=base_url(); ?>Page/schoolInfo?schoolid=<?php echo $row->schoolID; ?>" class="text-warning"><i class="mdi mdi-pencil-outline"></i>edit</a> 
+                                                        <a href="<?=base_url(); ?>Pages/schools/<?= $row->id; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
                                                     </td>
                                                 </tr>
                                                 <?php } ?>

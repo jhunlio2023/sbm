@@ -2,7 +2,6 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <a class="btn btn-success" href="<?= base_url(); ?>pages/school_new">Add New</a>
                                     
 
                                 
@@ -46,28 +45,30 @@
                                     <div class="card-body table-responsive">
                                         <h4 class="m-t-0 header-title mb-4"><?= $title; ?></h4>
 
-                                        <table id="datatable" class="table table-bordered dt-responsive nowrap" style="border-collapse: collapse; border-spacing: 0; width: 100%;">
-
+                                        <table class="table mb-0">
+                                            <!-- <table class="table mb-0"> -->
                                             <thead>
                                                 <tr>
-                                                    <th>School ID</th>
-                                                    <th>School Name</th>
-                                                    <th>Action</th>
-                                                </tr>
-
+                                                    <th>No.</th>
+                                                    <th>Division Name </th>
+                                                    <th>Count</th>
                                             </thead>
-
                                             <tbody>
-                                                <?php foreach($data as $row){?>
-                                                <tr>
-                                                    <td><?= $row->schoolID; ?></td>
-                                                    <td><?= strtoupper($row->schoolName); ?></td>
-                                                    <td>
-                                                        <a href="<?=base_url(); ?>Page/schoolProfile?schoolid=<?php echo $row->schoolID; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
-                                                        <a href="<?=base_url(); ?>Page/schoolInfo?schoolid=<?php echo $row->schoolID; ?>" class="text-warning"><i class="mdi mdi-pencil-outline"></i>edit</a> 
-                                                    </td>
-                                                </tr>
-                                                <?php } ?>
+                                                <?php 
+                                                    $c = 1; 
+                                                    foreach ($data as $row) {
+                                                        $ivan = $this->Common->three_cond_count_row('sbm','fy',$this->session->fy,'division',$row->id,$this->uri->segment(3),$this->uri->segment(4))->num_rows();
+                                                    ?>
+                                                    <tr>
+                                                        <td><?= $c++; ?></td>
+                                                        <td><?= $row->description; ?></td>
+                                                        <td>
+                                                            <a href="<?= base_url(); ?>Pages/sbm_rate_list/<?= $this->uri->segment(3); ?>/<?= $this->uri->segment(4); ?>">
+                                                                <span class="badge badge-<?= $ivan != 0 ? 'primary' : 'danger'; ?>"><?= $ivan; ?></span>
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                    <?php } ?>
                                                 
                                             </tbody>
                                         </table>

@@ -52,9 +52,13 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'pages/view';
 
 $route['log_in'] = 'pages/log_in';
+$route['signup'] = 'pages/signup';
 $route['logout'] = 'pages/logout';
 $route['lock'] = 'pages/lock';
 $route['lock_user_screen'] = 'pages/lock_user_screen';
+
+
+$route['school/(:any)'] = 'pages/school/$1';
 
 $route['pages/get_provinces'] = 'pages/get_provinces';
 $route['pages/get_districts'] = 'pages/get_districts';

@@ -23,7 +23,11 @@
                         </div>
 
                         <!-- item-->
-                        <a href="javascript:void(0);" class="dropdown-item notify-item">
+                        <?php if($this->session->position == 'school'){?>
+                            <a href="<?= base_url(); ?>school/<?= $this->session->username; ?>" class="dropdown-item notify-item">
+                        <?php }else{ ?>
+                            <a href="javascript: void(0);" class="waves-effect">
+                        <?php } ?>
                             <i class="mdi mdi-account-outline"></i>
                             <span>Profile</span>
                         </a>
@@ -141,7 +145,7 @@
                             <li>
                                 <a href="<?= base_url(); ?>Pages/district_list" class="waves-effect">
                                     <i class="fas fa-book-reader"></i>
-                                    <span> School </span>
+                                    <span> SBM </span>
                                 </a>
 
                             </li>
@@ -153,7 +157,7 @@
                             <li>
                                 <a href="<?= base_url(); ?>Pages/division_list" class="waves-effect">
                                     <i class="fas fa-book-reader"></i>
-                                    <span> SDOs </span>
+                                    <span> SBM </span>
                                 </a>
 
                             </li>
@@ -161,7 +165,7 @@
                         <?php } ?>
 
                         <?php if ($this->session->position == 'admin') { ?>
-                            <!-- <li><a href="<?= base_url(); ?>" class="waves-effect"><i class="fas fa-cogs"></i><span>  Settings  </span></a></li> -->
+                            <li><a href="<?= base_url(); ?>pages/school_by_district" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li>
                             <li><a href="<?= base_url(); ?>pages/userlist" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
                         <?php } ?>
                     </ul>

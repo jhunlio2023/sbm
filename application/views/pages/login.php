@@ -76,6 +76,8 @@
                                         </div>
                                     </div>
 
+                                    <p>Do you already have an account? If not, please <a href="<?= base_url(); ?>signup"><span class="badge badge-primary">create</span></a> one.</p>
+
                                 
 
                                     

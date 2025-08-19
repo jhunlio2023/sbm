@@ -14,13 +14,19 @@ class Pages extends CI_Controller{
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
 		    $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
-            $data['title'] = "Dashboard"; 
+            $data['title'] = "Division Dashboard"; 
         }elseif($this->session->position == 'region'){
             $page = "dashboard_region";
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
 		    $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
-            $data['title'] = "Dashboard"; 
+            $data['title'] = "Region Dashboard"; 
+        }elseif($this->session->position == 'district'){
+            $page = "dashboard_district";
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+		    $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $data['title'] = "District Dashboard"; 
         }else{
             $page = "dashboard_school";
             $data['title'] = "Dashboard"; 
@@ -145,6 +151,62 @@ class Pages extends CI_Controller{
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
 
+    }
+
+    public function school_by_district(){
+        
+        $page = "school_list_by_district";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "Division List"; 
+
+        $data['data'] = $this->Common->one_cond_select('division','description,id','region_id',$this->session->region);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+
+    }
+
+    public function schools(){
+        $page = "schools";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "School List"; 
+
+        $data['data'] = $this->Common->one_cond_select('schools','schoolID,schoolName','division_id',$this->uri->segment(3));
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function sbm_rate_list(){
+        $page = "sbm_list_rate";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "School List"; 
+
+        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.'.$this->uri->segment(3), 'a.school_id = b.schoolID', 'fy', $this->session->fy, $this->uri->segment(3),$this->uri->segment(4), 'b.schoolName', 'ASC');
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
     }
 
     public function user_new(){
@@ -858,7 +920,7 @@ class Pages extends CI_Controller{
             }
 
 
-            $data['title'] = "New Action Plan"; 
+            $data['title'] = "Technical Assisstance Provision Form"; 
 
             $this->load->view('templates/header');
             $this->load->view('templates/menu');
@@ -997,6 +1059,232 @@ class Pages extends CI_Controller{
         $this->load->view('templates/footer_dt');
 
     }
+
+    public function sbm_rate_divisions_list(){
+        
+        $page = "sbm_rate_division_list";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "Division List"; 
+
+        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
+        $data['data'] = $this->Page_model->one_cond('division','region_id',12);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    // public function signup(){
+        
+    //     $page = "school_signup";
+
+    //     if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+    //         show_404();
+    //     }
+
+    //     $data['title'] = "Division List"; 
+
+    //     //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
+    //     $data['division'] = $this->Page_model->one_cond('division','region_id',12);
+
+    //     $this->load->view('pages/'.$page, $data);
+
+    // }
+
+    public function signup()
+    {
+
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        ', '</div>');
+        $this->form_validation->set_rules('schoolName', 'school Name', 'required');
+       
+        if ($this->form_validation->run() == FALSE) {
+
+            $page = "school_signup";
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+            $data['division'] = $this->Page_model->one_cond('division','region_id',12);
+
+
+            $this->load->view('pages/' . $page, $data);
+            
+        } else {
+
+            $recaptcha = $this->input->post('g-recaptcha-response');
+            $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
+
+            $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
+            $responseKeys = json_decode($response, true);
+
+            if (!$responseKeys["success"]) {
+                $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
+                redirect(base_url().'log_in'); 
+            }
+
+
+            $renren = $this->input->post('renren');
+            $ivykate = $this->input->post('ivykate');
+            $ivankyle = $this->input->post('ivankyle');
+            $ic = $this->input->post('ic');
+
+            $schoolID = $this->input->post('schoolID');
+
+            if (!empty($renren) || !empty($ivykate) || !empty($ivankyle) || !empty($ic)) {
+                $this->session->set_flashdata('danger', 'I Got you');
+                redirect(base_url() . 'private');
+            }
+
+            $check = $this->Common->one_cond_count_row('schools','schoolID',$schoolID)->num_rows();
+
+            
+
+            if($check == 0){
+                $this->Page_model->insert_school();
+                $this->Page_model->insert_user();
+            }else{
+                $this->session->set_flashdata('failed', 'Duplicate entry found. The record already exists.');
+                redirect(base_url() . 'log_in');
+
+            }
+
+            // $email = $this->input->post('schoolEmail');
+            // $name = $this->input->post('schoolName');
+            // $username = $this->input->post('schoolID');
+            // $pass = 'private112';
+
+            // //Email Notification
+			// 	$this->load->config('email');
+			// 	$this->load->library('email');
+			// 	$mail_message = '
+            //         <html>
+            //         <head>
+            //         <style>
+            //             body {
+            //             font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            //             background-color: #f0f4f8;
+            //             margin: 0;
+            //             padding: 20px;
+            //             }
+            //             .email-wrapper {
+            //             max-width: 600px;
+            //             margin: auto;
+            //             background-color: #ffffff;
+            //             border-radius: 10px;
+            //             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            //             overflow: hidden;
+            //             }
+            //             .email-header {
+            //             background-color: #0d6efd;
+            //             color: white;
+            //             padding: 20px;
+            //             text-align: center;
+            //             }
+            //             .email-header h2 {
+            //             margin: 0;
+            //             font-size: 24px;
+            //             }
+            //             .email-body {
+            //             padding: 30px 25px;
+            //             color: #333333;
+            //             }
+            //             .email-body p {
+            //             font-size: 16px;
+            //             line-height: 1.6;
+            //             }
+            //             .credentials-box {
+            //             background-color: #e9f2ff;
+            //             padding: 15px;
+            //             border-left: 4px solid #0d6efd;
+            //             margin: 20px 0;
+            //             border-radius: 6px;
+            //             }
+            //             .credentials-box p {
+            //             margin: 0;
+            //             font-weight: bold;
+            //             color: #0d3f8f;
+            //             }
+            //             .email-footer {
+            //             background-color: #f7f7f7;
+            //             padding: 15px;
+            //             text-align: center;
+            //             font-size: 14px;
+            //             color: #666666;
+            //             }
+            //         </style>
+            //         </head>
+            //         <body>
+            //         <div class="email-wrapper">
+            //             <div class="email-header">
+            //             <h2>Welcome to DepEd MIS</h2>
+            //             </div>
+            //             <div class="email-body">
+            //             <p>Dear ' . htmlspecialchars($name) . ',</p>
+            //             <p>Your profile has been successfully encoded into the <strong>DepEd MIS</strong> system. Please find your login credentials below:</p>
+
+            //             <div class="credentials-box">
+            //                 <p>Username: ' . htmlspecialchars($username) . '</p>
+            //                 <p>Password: ' . htmlspecialchars($pass) . '</p>
+            //             </div>
+
+            //             <p>Kindly keep this information secure and do not share it with anyone.</p>
+            //             <p>Should you have any issues accessing your account, please contact your system administrator.</p>
+
+            //             <p style="margin-top: 30px;">Thanks & Regards,<br><strong>DepEd MIS Team</strong></p>
+            //             </div>
+            //             <div class="email-footer">
+            //             © ' . date('Y') . ' Department of Education | Management Information System
+            //             </div>
+            //         </div>
+            //         </body>
+            //         </html>';
+
+			// 	$this->email->from('no-reply@lxeinfotechsolutions.com', 'DepEd MIS Team')
+			// 		->to($email)
+			// 		->subject('Account Created')
+			// 		->message($mail_message);
+			// 	$this->email->send();
+
+            $this->session->set_flashdata('success', 'School account has been registered successfully. Your username and password have been sent to your email.');
+            redirect(base_url() . 'log_in');
+                
+            
+        }
+    }
+
+
+    function school()
+	    {
+
+        $page = "school_info";
+
+        if(!file_exists(APPPATH.'views/pages/'.$page.'.php')){
+            show_404();
+        }
+
+        $data['title'] = "Action Plan"; 
+
+        $data['data'] = $this->Common->one_cond_row('schools', 'schoolID', $this->uri->segment(2));
+        
+
+        $this->load->view('templates/header');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/'.$page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_basic');
+
+	}
+
+    
 
 
 

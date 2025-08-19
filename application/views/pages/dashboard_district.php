@@ -108,7 +108,7 @@
                                                                                 <?php 
                                                                                     $questions = $this->Common->one_cond('sbm_sub_indicator', 'priciple_id', $row->id);
                                                                                     $fy       = $this->session->fy;
-                                                                                    $division = $this->session->division;
+                                                                                    $district = $this->session->district;
                                                                                     $base     = base_url();
                                                                                     $badges   = [1 => 'primary', 2 => 'purple', 3 => 'info', 4 => 'warning'];
                                                                                     $c = 0;
@@ -122,7 +122,7 @@
 
                                                                                         <?php foreach ($badges as $rate => $badge): 
                                                                                             $count = $this->Common->three_cond_count_row(
-                                                                                                'sbm', $ren, $rate, 'fy', $fy, 'division', $division
+                                                                                                'sbm', $ren, $rate, 'fy', $fy, 'district', $district
                                                                                             )->num_rows();
                                                                                             $href = $base . "Pages/sbm_rate_list/{$ren}/{$rate}";
                                                                                         ?>
@@ -158,7 +158,7 @@
 
                      </div>
                         <!-- End row -->
-
+                    
 
                         <!-- sample modal content -->
                                         <div id="myModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="display: none;" aria-hidden="true">

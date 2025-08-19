@@ -124,7 +124,7 @@
                                                                                             $count = $this->Common->three_cond_count_row(
                                                                                                 'sbm', $ren, $rate, 'fy', $fy, 'region', $region
                                                                                             )->num_rows();
-                                                                                            $href = $base . "Page/sbm_rate_list/{$ren}/{$rate}";
+                                                                                            $href = $base . "Pages/sbm_rate_divisions_list/{$ren}/{$rate}";
                                                                                         ?>
                                                                                             <td class="text-center">
                                                                                                 <a href="<?= $href; ?>">
