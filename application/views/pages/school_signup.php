@@ -54,10 +54,12 @@
                                 <?= form_open('Pages/signup') ?>
 
                                 <div class="form-row">
+                                    
                                     <div class="form-group col-md-6">
-                                        <label for="schoolName">School Name</label>
-                                        <input class="form-control" type="text" id="schoolName" required="" name="schoolName" placeholder="Your Name">
+                                        <label for="schoolID">School ID</label>
+                                        <input class="form-control" type="text" id="schoolID" required="" name="schoolID" placeholder="School ID">
                                     </div>
+
                                     <div class="form-group col-md-6">
                                         <label for="schoolID">Password</label>
                                         <input class="form-control" type="password" id="password" required="" name="password" placeholder="Your Password">
@@ -66,15 +68,17 @@
 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
+                                        <label for="schoolName">School Name</label>
+                                        <input class="form-control" type="text" id="schoolName" required="" name="schoolName" placeholder="Your Name">
+                                    </div>
+                                    <div class="form-group col-md-6">
                                         <label for="schoolName">School Email</label>
                                         <input class="form-control" type="email" id="schoolEmail" name="schoolEmail" required="" placeholder="Your Name">
                                     </div>
-
-                                    <div class="form-group col-md-6">
-                                        <label for="schoolID">School ID</label>
-                                        <input class="form-control" type="text" id="schoolID" required="" name="schoolID" placeholder="School ID">
-                                    </div>
+                                    
                                 </div>
+
+                                
 
                                 <div class="form-row">
                                     <div class="form-group col-md-6">
@@ -98,7 +102,7 @@
                                 <div class="form-row">
                                     <div class="form-group col-md-4">
                                         <label for="schoolName">School Governance Council (SGC)</label>
-                                        <select name="division_id" id="division" class="form-control">
+                                        <select name="sgc" id="sgc" required class="form-control">
                                                 <option disabled selected>Select SGC</option>
                                                     <option value="1">Not yet Organized</option>
                                                     <option value="2">Organized only</option>
@@ -118,6 +122,16 @@
                                                         <option value="<?= $key; ?>"><?= $row; ?></option>
                                                         <?php } ?>
                                                     </select>
+                                    </div>
+
+                                    <div class="form-group col-md-4">
+                                        <label for="schoolName">Type</label>
+                                        <select name="type" id="school_type" class="form-control">
+                                                <option disabled selected>Select Type</option>
+                                                    <option value="0"></option>
+                                                    <option value="1">School-based ALS program</option>
+                                                    <option value="2">TLE-TVL course offerings </option>
+                                            </select>
                                     </div>
                                 </div>
 
