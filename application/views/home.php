@@ -169,7 +169,16 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item"><a class="nav-link" href="<?= base_url(); ?>">Home</a></li>
-          <li class="nav-item"><a class="nav-link" href="#">About</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="manualsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Manuals
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="manualsDropdown">
+              <li><a class="dropdown-item" href="<?= base_url('resources/FTAD_Manual-for-Dissemination.pdf'); ?>" target="_blank">FTAD Manual</a></li>
+              <li><a class="dropdown-item" href="<?= base_url('resources/GAD_Manual_FTAD-for-Dissemination-1.pdf'); ?>" target="_blank">GAD Manual</a></li>
+            </ul>
+          </li>
+
           <li class="nav-item"><a class="nav-link" href="#">Features</a></li>
           <li class="nav-item"><a class="nav-link active" href="<?= base_url('OneView/authors'); ?>">Authors</a></li>
         </ul>
@@ -199,28 +208,38 @@
   </div>
 
   <!-- Features -->
-  <div class="feature-icons">
+  <div class="feature-icons py-5">
     <div class="container">
       <div class="row g-4">
+
+        <!-- Technical Assistance -->
         <div class="col-md-3 text-center">
-          <i class="bi bi-exclamation-triangle-fill"></i>
-          <p>Report incidents easily and accurately</p>
+          <i class="bi bi-tools fs-1 text-primary"></i>
+          <p class="mt-2 fw-semibold">Technical Assistance</p>
         </div>
+
+        <!-- Knowledge Management -->
         <div class="col-md-3 text-center">
-          <i class="bi bi-shield-lock-fill"></i>
-          <p>Submit reports anonymously and securely</p>
+          <i class="bi bi-journal-bookmark-fill fs-1 text-success"></i>
+          <p class="mt-2 fw-semibold">Knowledge Management</p>
         </div>
+
+        <!-- Organization Management -->
         <div class="col-md-3 text-center">
-          <i class="bi bi-clock-history"></i>
-          <p>Track updates and responses in real time</p>
+          <i class="bi bi-diagram-3-fill fs-1 text-warning"></i>
+          <p class="mt-2 fw-semibold">Organization Management</p>
         </div>
+
+        <!-- Project Management -->
         <div class="col-md-3 text-center">
-          <i class="bi bi-people-fill"></i>
-          <p>Engage students, teachers, and staff in safe learning</p>
+          <i class="bi bi-kanban-fill fs-1 text-danger"></i>
+          <p class="mt-2 fw-semibold">Project Management</p>
         </div>
+
       </div>
     </div>
   </div>
+
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
