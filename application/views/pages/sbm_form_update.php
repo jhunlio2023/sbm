@@ -142,7 +142,7 @@
                                     <div class="form-group text-left mb-0">
                                         <?php if($sbmc->stat == 0){?>
                                         <?php if($this->session->position == 'school'){ ?>
-                                               <input type="submit" name="submit_edit" value="Update" class="btn btn-primary waves-effect waves-light mr-1">
+                                               <input type="submit" name="submit_edit" value="Save Draft" class="btn btn-primary waves-effect waves-light mr-1">
                                                <a href="<?= base_url(); ?>Pages/sbm_checklist_final/<?= $sbmc->id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Final</a>
                                         <?php } }else{ ?>
                                             <?php if($this->session->position == 'division'){ ?>

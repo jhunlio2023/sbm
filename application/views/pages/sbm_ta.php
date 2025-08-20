@@ -2,7 +2,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <h2 class="text-center">TECHNICAL ASSISSTANCE PROVISION REPORT FORM</h2>
+                                    <h2 class="text-center"><?= $title; ?></h2>
                                     <div class="clearfix"></div>
                                 </div>
                             </div>

@@ -2,7 +2,7 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <h4 class="page-title"><?= $title; ?></h4>
+                                    <h4 class="page-title"><?= $this->session->user; ?> <?= $title; ?></h4>
                                     <div class="page-title-right">
                                         <ol class="breadcrumb p-0 m-0">
                                             <li class="breadcrumb-item"><a href="#" data-toggle="modal" data-target="#myModal">Current Fiscal Year : <span class="badge badge-success"><?= $this->session->fy; ?></span></a></li>

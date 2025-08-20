@@ -16,19 +16,19 @@ class Pages extends CI_Controller
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
-            $data['title'] = "Division Dashboard";
+            $data['title'] = "Dashboard";
         } elseif ($this->session->position == 'region') {
             $page = "dashboard_region";
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
-            $data['title'] = "Region Dashboard";
+            $data['title'] = "Dashboard";
         } elseif ($this->session->position == 'district') {
             $page = "dashboard_district";
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
-            $data['title'] = "District Dashboard";
+            $data['title'] = "Dashboard";
         } else {
             $page = "dashboard_school";
             $data['title'] = "Dashboard";
@@ -231,6 +231,29 @@ class Pages extends CI_Controller
         $division = $this->session->division;
 
         $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'division',$division, 'b.schoolName', 'ASC');
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function sbm_rate_list_region()
+    {
+        $page = "sbm_list_rate";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "School List";
+        $fy  = $this->session->fy;
+        $q   = $this->uri->segment(3);
+        $val = $this->uri->segment(4);
+        $region = $this->session->region;
+
+        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'region',$region, 'b.schoolName', 'ASC');
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -617,7 +640,7 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['title'] = "Action Plan";
+        $data['title'] = "Action Plan for Implementation of SBM";
 
         $data['data'] = $this->Common->two_cond('sgod_action_plan', 'school_id', $this->session->username, 'fy', $this->session->fy);
 
@@ -638,7 +661,7 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['title'] = "Action Plan";
+        $data['title'] = "Action Plan for Implementation of SBM";
 
         $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $this->session->username);
         $data['data'] = $this->Common->two_cond('sgod_action_plan', 'fy', $this->session->fy, 'school_id', $this->session->username);
@@ -655,7 +678,7 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['title'] = "Action Plan";
+        $data['title'] = "Action Plan for Implementation of SBM";
 
         $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $this->uri->segment(3));
         $data['data'] = $this->Common->two_cond('sgod_action_plan', 'fy', $this->session->fy, 'school_id', $this->uri->segment(3));
@@ -680,7 +703,7 @@ class Pages extends CI_Controller
                 show_404();
             }
 
-            $data['title'] = "New Action Plan";
+            $data['title'] = "New Action Plan for Implementation of SBM";
 
 
             $this->load->view('templates/header');
@@ -713,7 +736,7 @@ class Pages extends CI_Controller
                 show_404();
             }
 
-            $data['title'] = "New Action Plan";
+            $data['title'] = "Update Action Plan for Implementation of SBM";
             $data['data'] = $this->Common->one_cond_row('sgod_action_plan', 'id', $this->uri->segment(3));
 
             $this->load->view('templates/header');
@@ -829,7 +852,7 @@ class Pages extends CI_Controller
                 show_404();
             }
 
-            $data['title'] = "New Action Plan";
+            $data['title'] = "Technical Assistance Needs Assessment Form";
 
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');

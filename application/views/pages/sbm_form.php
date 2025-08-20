@@ -138,7 +138,7 @@
 
 
                                     <div class="form-group text-left mb-0">
-                                               <input type="submit" name="submit" value="Submit" class="btn btn-primary waves-effect waves-light mr-1">
+                                               <input type="submit" name="submit" value="Save Draft" class="btn btn-primary waves-effect waves-light mr-1">
                                                 
                                                
                                             </div>

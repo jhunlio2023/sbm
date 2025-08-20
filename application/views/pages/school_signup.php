@@ -124,12 +124,13 @@
                                     </div>
 
                                     <div class="form-group col-md-4">
-                                        <label for="schoolName">Type</label>
+                                        <label for="schoolName">Offers</label>
                                         <select name="type" id="school_type" class="form-control">
-                                                <option disabled selected>Select Type</option>
+                                                <option disabled selected>Select Offers</option>
                                                     <option value="0">None</option>
                                                     <option value="1">School-Based ALS Program</option>
                                                     <option value="2">TLE-TVL Course Offerings </option>
+                                                    <option value="3">School-Based ALS Program and TLE-TVL Course Offerings </option>
                                             </select>
                                     </div>
                                 </div>
