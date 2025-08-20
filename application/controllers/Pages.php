@@ -202,8 +202,12 @@ class Pages extends CI_Controller
         }
 
         $data['title'] = "School List";
+        $fy  = $this->session->fy;
+        $q   = $this->uri->segment(3);
+        $val = $this->uri->segment(4);
+        $district = $this->session->district;
 
-        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' . $this->uri->segment(3), 'a.school_id = b.schoolID', 'fy', $this->session->fy, $this->uri->segment(3), $this->uri->segment(4), 'b.schoolName', 'ASC');
+        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'district',$district, 'b.schoolName', 'ASC');
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
