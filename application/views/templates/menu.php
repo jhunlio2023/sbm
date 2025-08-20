@@ -111,7 +111,7 @@
                             <li>
                                 <a href="<?= base_url(); ?>Pages/school_list" class="waves-effect">
                                     <i class="fas fa-book-reader"></i>
-                                    <span> School </span>
+                                    <span> SBM </span>
                                 </a>
 
                             </li>

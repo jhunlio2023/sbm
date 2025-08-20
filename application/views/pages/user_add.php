@@ -105,7 +105,7 @@
                                             <div class="form-group row">
                                                 <label class="col-md-4 col-form-label">Last Name<span class="text-danger">*</span></label>
                                                 <div class="col-md-7">
-                                                    <input type="text" required name="lname" class="form-control" placeholder="Last Name" oninput="this.value = this.value.toUpperCase()">
+                                                    <input type="text" name="lname" class="form-control" placeholder="Last Name" oninput="this.value = this.value.toUpperCase()">
                                                 </div>
                                             </div>
 

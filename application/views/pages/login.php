@@ -26,7 +26,7 @@
                     <div class="col-md-8 col-lg-6 col-xl-5">
                         <div class="card mt-4">
                             <div class="card-header p-4" style="background:#a00000">
-                                <h4 class="text-white text-center mb-0 mt-0"><img src="<?= base_url(); ?>assets/images/candor.png" width="20%" alt=""><br />SCHOOL-BASED MANAGEMENT</h4>
+                                <h4 class="text-white text-center mb-0 mt-0"><a href="<?= base_url(); ?>"><img src="<?= base_url(); ?>assets/images/ftad-logo.png" width="30%" alt=""></a></h4>
                             </div>
                             <div class="card-body">
                             <?php if($this->session->flashdata('failed')) : ?>
