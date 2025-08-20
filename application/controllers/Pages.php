@@ -216,6 +216,29 @@ class Pages extends CI_Controller
         $this->load->view('templates/footer_dt');
     }
 
+    public function sbm_rate_list_division()
+    {
+        $page = "sbm_list_rate";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "School List";
+        $fy  = $this->session->fy;
+        $q   = $this->uri->segment(3);
+        $val = $this->uri->segment(4);
+        $division = $this->session->division;
+
+        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'division',$division, 'b.schoolName', 'ASC');
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
     public function user_new()
     {
 
