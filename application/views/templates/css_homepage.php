@@ -16,7 +16,7 @@
 
         body {
             font-family: 'Poppins', sans-serif;
-            background-color: #f8f9fa;
+            background-color: #800000;
             margin: 0;
             padding: 0;
         }
@@ -75,26 +75,24 @@
             color: #fff !important;
         }
 
-        
-
-
         .hero-section {
-            background: url("<?= base_url(); ?>assets/images/ftadbg.jpg") no-repeat center left;
+            background: url("<?= base_url(); ?>assets/images/bgftad.jpg") no-repeat center center;
             background-size: cover;
-            background-repeat: no-repeat;
-            background-position: center;
-            color: #fff;
-            height: 600px;
-            /* ✅ Fixed height */
-            position: relative;
+            height: 100vh;
+            color: white;
             display: flex;
             align-items: center;
+            padding: 0 10%;
+            position: relative;
         }
 
         .hero-section .left {
-            padding: 0 40px;
-        }
-
+            margin-top: -300px;
+                max-width: 1280px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center; /* ensures internal text stays centered vertically */
+            }
         .hero-section h1 {
             font-size: 3rem;
             font-weight: 700;
