@@ -539,6 +539,19 @@ public function sbm_ta_insert()
 		return $this->db->insert('schools', $data);
 	}
 
+    public function all_fields_positive($id)
+    {
+        $this->db->from('sbm');
+        $this->db->where('id', $id);
+
+        for ($i = 1; $i <= 42; $i++) {
+            $this->db->where("q{$i} >", 0);
+        }
+
+        $query = $this->db->get();
+        return $query->num_rows() > 0; // true if all q1..q42 > 0
+    }
+
     
 
 

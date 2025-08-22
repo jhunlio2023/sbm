@@ -9,6 +9,7 @@
                                 </div>
                             </div>
                         </div>
+                        <?php $check = $this->Page_model->all_fields_positive($sbmc->id); ?>
                         <!-- end page title -->
 
                         <div class="row">
@@ -143,7 +144,11 @@
                                         <?php if($sbmc->stat == 0){?>
                                         <?php if($this->session->position == 'school'){ ?>
                                                <input type="submit" name="submit_edit" value="Save Draft" class="btn btn-primary waves-effect waves-light mr-1">
+                                               <?php if($check){?>
                                                <a href="<?= base_url(); ?>Pages/sbm_checklist_final/<?= $sbmc->id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Final</a>
+                                               <?php }else{ ?>
+                                                <button type="button" class="btn btn-success" onclick="alert('Please review all the indicators. You cannot proceed because some areas still need to be answered.')">Final</button>
+                                               <?php } ?>
                                         <?php } }else{ ?>
                                             <?php if($this->session->position == 'division'){ ?>
                                             <a href="<?= base_url(); ?>Pages/sbm_checklist_unlock/<?= $sbmc->id; ?>/<?= $sbmc->school_id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Unlock</a>
