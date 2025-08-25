@@ -154,6 +154,26 @@ class Pages extends CI_Controller
         $this->load->view('templates/footer_dt');
     }
 
+    public function userlist_division()
+    {
+
+        $page = "user_list";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "User List";
+
+        $data['users'] = $this->Page_model->one_cond('users','p_id',$this->session->division);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
     public function school_by_district()
     {
 
@@ -282,7 +302,11 @@ class Pages extends CI_Controller
 
             $data['title'] = "New User";
             $data['division'] = $this->Page_model->one_cond('division', 'region_id', 12);
-            $data['pos'] = $this->Page_model->no_cond('position');
+            if($this->session->position == 'ict'){
+                $data['pos'] = $this->Page_model->no_cond_ne('position','pos','admin');
+            }else{
+                $data['pos'] = $this->Page_model->no_cond('position');  
+            }
 
 
             $this->load->view('templates/header');
@@ -607,7 +631,7 @@ class Pages extends CI_Controller
             }
 
             $data['title'] = "Add New School";
-            $data['district'] = $this->Page_model->one_cond('district', 'province_id', $this->session->p_id);
+            $data['district'] = $this->Page_model->one_cond('district', 'division_id', $this->session->p_id);
 
 
             $this->load->view('templates/header');

@@ -168,6 +168,11 @@
                             <li><a href="<?= base_url(); ?>pages/school_by_district" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li>
                             <li><a href="<?= base_url(); ?>pages/userlist" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
                         <?php } ?>
+
+                        <?php if ($this->session->position == 'ict') { ?>
+                            <li><a href="<?= base_url(); ?>pages/schools/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li>
+                            <li><a href="<?= base_url(); ?>pages/userlist_division" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
+                        <?php } ?>
                     </ul>
 
                 </div>

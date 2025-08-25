@@ -114,12 +114,16 @@
                                                 <div class="col-md-7">
                                                     <select name="position" class="form-control" required>
                                                         <option value="">Select Position</option>
-                                                        <?php foreach ($pos as $row): ?>
+                                                        <?php foreach ($pos as $row){?>
                                                             <option value="<?= $row->pos ?>"><?= $row->description ?></option>
-                                                        <?php endforeach; ?>
+                                                        <?php } ?>
                                                     </select>
                                                 </div>
                                             </div>
+
+                                            <?php if($this->session->position == 'ict'){ ?>
+                                                <input type='hidden' name="division_id" value="<?= $this->session->division; ?>" >
+                                            <?php }else{ ?>
 
                                             <div class="form-group row">
                                                 <label class="col-md-4 col-form-label">Division<span class="text-danger">*</span></label>
@@ -141,6 +145,7 @@
                                                     </select>
                                                 </div>
                                             </div>
+                                            <?php } ?>
 
                                             
 

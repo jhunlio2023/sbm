@@ -185,6 +185,8 @@ public function check_dup_user($fname,$lname,$username){
 }
 
 
+
+
 public function school_insert(){
     
     $data = array(
@@ -232,6 +234,12 @@ public function school_insert(){
 // common functions loop
 
 public function no_cond($table){
+    $query = $this->db->get($table);
+    return $query->result();
+}
+
+public function no_cond_ne($table,$necol,$neval){
+    $this->db->where($necol.' !=', $neval);
     $query = $this->db->get($table);
     return $query->result();
 }
