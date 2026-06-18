@@ -5,26 +5,6 @@ if ($action_plan_rows instanceof Traversable) {
 }
 $action_plan_rows = is_array($action_plan_rows) ? array_values($action_plan_rows) : array();
 
-$school = $this->Common->one_cond_row('schools', 'schoolID', $this->session->username);
-$school_name = $school && trim((string) $school->schoolName) !== ''
-    ? mb_convert_case((string) $school->schoolName, MB_CASE_TITLE, 'UTF-8')
-    : mb_convert_case((string) $this->session->user, MB_CASE_TITLE, 'UTF-8');
-$school_initials = '';
-foreach (preg_split('/\s+/', trim($school_name)) as $word) {
-    if ($word === '') {
-        continue;
-    }
-    $school_initials .= function_exists('mb_substr')
-        ? mb_substr($word, 0, 1, 'UTF-8')
-        : substr($word, 0, 1);
-    if ((function_exists('mb_strlen') ? mb_strlen($school_initials, 'UTF-8') : strlen($school_initials)) >= 3) {
-        break;
-    }
-}
-$school_initials = $school_initials !== ''
-    ? (function_exists('mb_strtoupper') ? mb_strtoupper($school_initials, 'UTF-8') : strtoupper($school_initials))
-    : 'SAP';
-
 $escape = static function ($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 };
@@ -122,7 +102,6 @@ $remarks_coverage_rate = $total_entries > 0 ? ($remarks_entries / $total_entries
 $outputs_coverage_rate = $total_entries > 0 ? ($outputs_entries / $total_entries) * 100 : 0;
 
 $total_budget_label = $budget_total > 0 ? 'PHP ' . number_format($budget_total, 2) : 'No budget yet';
-$fiscal_year_label = 'Fiscal Year ' . $this->session->fy;
 $dashboard_url = base_url();
 $new_action_plan_url = base_url() . 'Pages/action_plan_new';
 $print_view_url = base_url() . 'Pages/sbm_action_plan_pview';
@@ -232,30 +211,9 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
 
     .action-plan-page .plan-hero-side {
         display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-        justify-content: space-between;
-        gap: 16px;
-        min-width: 220px;
-    }
-
-    .action-plan-page .plan-eyebrow {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 14px;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, .12);
-        color: rgba(255, 255, 255, .92);
-        font-size: 11px;
-        font-weight: 700;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-
-    .action-plan-page .plan-eyebrow i {
-        font-size: 15px;
+        align-items: flex-start;
+        justify-content: flex-end;
+        min-width: 0;
     }
 
     .action-plan-page .plan-hero h1 {
@@ -265,69 +223,6 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
         font-weight: 800;
         line-height: 1.1;
         letter-spacing: -.03em;
-    }
-
-    .action-plan-page .plan-hero p {
-        max-width: 700px;
-        margin: 14px 0 18px;
-        color: rgba(255, 255, 255, .86);
-        font-size: 14px;
-        line-height: 1.75;
-    }
-
-    .action-plan-page .plan-hero-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .action-plan-page .plan-hero-meta span {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, .10);
-        color: rgba(255, 255, 255, .92);
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .action-plan-page .plan-school-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        min-width: 88px;
-        min-height: 88px;
-        padding: 18px 20px;
-        border: 3px solid rgba(255, 255, 255, .20);
-        border-radius: 24px;
-        color: var(--plan-primary);
-        background: #fff;
-        font-size: 14px;
-        font-weight: 800;
-        text-align: center;
-        line-height: 1.5;
-        box-shadow: 0 14px 26px rgba(58, 10, 17, .18);
-    }
-
-    .action-plan-page .plan-school-badge small {
-        display: block;
-        color: var(--plan-muted);
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: .06em;
-        text-transform: uppercase;
-    }
-
-    .action-plan-page .plan-school-badge strong {
-        display: block;
-        margin-top: 2px;
-        color: var(--plan-primary);
-        font-size: 22px;
-        font-weight: 800;
-        letter-spacing: .08em;
     }
 
     .action-plan-page .plan-action-stack {
@@ -365,12 +260,6 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
         color: #fff;
         background: rgba(255, 255, 255, .10);
         border: 1px solid rgba(255, 255, 255, .18);
-    }
-
-    .action-plan-page .plan-button-tertiary {
-        color: #fff;
-        background: rgba(255, 255, 255, .16);
-        border: 1px solid rgba(255, 255, 255, .22);
     }
 
     .action-plan-page .plan-stats {
@@ -864,7 +753,6 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
             font-size: 24px;
         }
 
-        .action-plan-page .plan-hero-meta,
         .action-plan-page .next-step-actions {
             flex-direction: column;
             align-items: stretch;
@@ -902,26 +790,10 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
 
     <div class="plan-hero">
         <div class="plan-hero-copy">
-            <span class="plan-eyebrow">
-                <i class="mdi mdi-clipboard-text-outline"></i>
-                School Planning Workspace
-            </span>
             <h1><?= $escape($title); ?></h1>
-            <p>
-                Build a school action plan that translates SBM findings into clear activities, expected outputs, implementation strategy, ownership, timeline, and budget for <?= $escape($fiscal_year_label); ?>.
-            </p>
-            <div class="plan-hero-meta">
-                <span><i class="mdi mdi-school-outline"></i> <?= $escape($school_name); ?></span>
-                <span><i class="mdi mdi-calendar-range"></i> <?= $escape($fiscal_year_label); ?></span>
-                <span><i class="mdi mdi-clipboard-list-outline"></i> <?= $total_entries; ?> item<?= $total_entries === 1 ? '' : 's'; ?></span>
-            </div>
         </div>
 
         <div class="plan-hero-side">
-            <div class="plan-school-badge">
-                <small>School Plan</small>
-                <strong><?= $escape($school_initials); ?></strong>
-            </div>
             <div class="plan-action-stack">
                 <a href="<?= $new_action_plan_url; ?>" class="plan-button plan-button-primary">
                     <i class="mdi mdi-plus"></i>
@@ -930,10 +802,6 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
                 <a href="<?= $print_view_url; ?>" target="_blank" class="plan-button plan-button-secondary">
                     <i class="mdi mdi-printer-outline"></i>
                     Print View
-                </a>
-                <a href="<?= $dashboard_url; ?>" class="plan-button plan-button-tertiary">
-                    <i class="mdi mdi-view-dashboard-outline"></i>
-                    Dashboard
                 </a>
             </div>
         </div>

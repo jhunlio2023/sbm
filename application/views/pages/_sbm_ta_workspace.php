@@ -283,6 +283,7 @@ if (!$checklist_record) {
         display: grid;
         grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
         gap: 1.5rem;
+        margin-top: 1rem;
         padding: 2rem;
         border-radius: 28px;
         background:

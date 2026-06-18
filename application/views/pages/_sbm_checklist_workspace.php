@@ -1193,6 +1193,14 @@ if ($checklist_record && !$all_answered && $can_edit) {
         background: #fff;
     }
 
+    .sbm-checklist-page .pdf-link-url.is-disabled,
+    .sbm-checklist-page .pdf-link-url.is-disabled:hover {
+        color: #7c8699;
+        background: rgba(248, 250, 252, .96);
+        border-color: rgba(148, 163, 184, .22);
+        cursor: default;
+    }
+
     .sbm-checklist-page .empty-state {
         display: flex;
         flex-direction: column;
@@ -1662,18 +1670,24 @@ if ($checklist_record && !$all_answered && $can_edit) {
                         <?php endif; ?>
                     </p>
 
-                    <?php if ($checklist_record && $is_finalized) : ?>
-                        <div class="pdf-link-panel">
-                            <span class="pdf-link-icon">
-                                <i class="mdi mdi-link-variant"></i>
-                            </span>
-                            <div class="pdf-link-copy">
-                                <strong>PDF Link</strong>
-                                <p>Open or copy this direct link to generate the finalized checklist PDF.</p>
+                    <div class="pdf-link-panel">
+                        <span class="pdf-link-icon">
+                            <i class="mdi mdi-link-variant"></i>
+                        </span>
+                        <div class="pdf-link-copy">
+                            <strong>PDF Link</strong>
+                            <p>
+                                <?= $checklist_record && $is_finalized
+                                    ? 'Open or copy this direct link to generate the finalized checklist PDF.'
+                                    : 'This direct PDF link becomes active after the checklist is finalized.'; ?>
+                            </p>
+                            <?php if ($checklist_record && $is_finalized) : ?>
                                 <a href="<?= $checklist_pdf_url; ?>" target="_blank" class="pdf-link-url"><?= $escape($checklist_pdf_url); ?></a>
-                            </div>
+                            <?php else : ?>
+                                <span class="pdf-link-url is-disabled"><?= $escape($checklist_pdf_url); ?></span>
+                            <?php endif; ?>
                         </div>
-                    <?php endif; ?>
+                    </div>
 
                     </form>
                 </div>
