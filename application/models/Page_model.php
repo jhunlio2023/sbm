@@ -388,6 +388,27 @@ public function three_cond($table,$col,$val,$col2,$val2,$col3,$val3){
     return $query->result();
 }
 
+public function district_submission_counts($table, $division, $fy){
+    $allowed_tables = array('sgod_action_plan', 'sbm', 'sbm_ta');
+
+    if (!in_array($table, $allowed_tables, true)) {
+        return array();
+    }
+
+    $this->db->select('district, COUNT(DISTINCT school_id) AS total', false);
+    $this->db->where('division', $division);
+    $this->db->where('fy', $fy);
+    $this->db->group_by('district');
+    $query = $this->db->get($table);
+
+    $counts = array();
+    foreach ($query->result() as $row) {
+        $counts[(string) $row->district] = (int) $row->total;
+    }
+
+    return $counts;
+}
+
 public function one_cond_loop_order_by($table,$col,$val,$orderby,$orderbyvalue){
     $this->db->where($col, $val);
     $this->db->order_by($orderby, $orderbyvalue);

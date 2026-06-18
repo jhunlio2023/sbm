@@ -1508,6 +1508,23 @@ class Pages extends CI_Controller
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         $data['data'] = $this->Page_model->one_cond('district', 'division_id', $this->session->division);
+        $data['submission_counts'] = array(
+            'sgod_action_plan' => $this->Page_model->district_submission_counts(
+                'sgod_action_plan',
+                $this->session->division,
+                $this->session->fy
+            ),
+            'sbm' => $this->Page_model->district_submission_counts(
+                'sbm',
+                $this->session->division,
+                $this->session->fy
+            ),
+            'sbm_ta' => $this->Page_model->district_submission_counts(
+                'sbm_ta',
+                $this->session->division,
+                $this->session->fy
+            )
+        );
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
