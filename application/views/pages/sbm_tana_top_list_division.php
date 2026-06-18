@@ -1,184 +1,522 @@
-                        <style>
-                            select option:disabled {
-                                background-color: #ffcccc;
-                                color: #555;
-                                font-weight: bold;
-                            }
-                        </style>
+<?php
+$concern_count = count($data);
+$analysis_count = count($ivy);
+$used_sequences = array();
 
-<!-- start page title -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="page-title-box">
-                                    <a class="btn btn-success text-white" data-toggle="modal" data-target=".renren">Add Thematic Analysis</a>
-                                    <h2 class="text-center"><?= $title; ?></h2>
-                                    <div class="clearfix"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- end page title -->
-                        <?php if ($this->session->flashdata('success')) : ?>
+foreach ($ivy as $analysis) {
+    $used_sequences[(int) $analysis->sequence] = true;
+}
+?>
 
-                            <?= '<div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>'
-                                . $this->session->flashdata('success') .
-                                '</div>';
-                            ?>
-                        <?php endif; ?>
+<style>
+    .tana-division-page {
+        --tana-primary: #8b1e3f;
+        --tana-primary-dark: #64142d;
+        --tana-border: #e8ecf4;
+        --tana-muted: #6b7280;
+    }
 
-                        <?php if ($this->session->flashdata('danger')) : ?>
-                            <?= '<div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>'
-                                . $this->session->flashdata('danger') .
-                                '</div>';
-                            ?>
-                        <?php endif;  ?>
+    .tana-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin: 18px 0 22px;
+        padding: 28px;
+        border-radius: 18px;
+        color: #fff;
+        background:
+            radial-gradient(circle at 90% 15%, rgba(255, 255, 255, .2), transparent 25%),
+            linear-gradient(135deg, #64142d 0%, #a83255 100%);
+        box-shadow: 0 14px 34px rgba(139, 30, 63, .22);
+    }
 
+    .tana-hero h2 {
+        margin: 0 0 7px;
+        color: #fff;
+        font-size: 25px;
+        font-weight: 700;
+    }
 
+    .tana-hero p {
+        max-width: 670px;
+        margin: 0;
+        color: rgba(255, 255, 255, .82);
+    }
 
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-body table-responsive">
-                                        
-                                    <div class="table-responsive">
-                                                                        <table class="table table-bordered mb-0">
-                                                                            <thead>
-                                                                                <tr class="text-center">
-                                                                                    <th>#</th>
-                                                                                    <th>Concerns, Issues, Gaps, Problems and Bottlenecks (CIGPB s) Encountered</th>
-                                                                                    <!-- <th>Average</th>
-                                                                                    <th>Priority</th> -->
-                                                                                </tr>
-                                                                            </thead>
-                                                                            
-                                                                            <tbody>
-                                                                              <?php $ic=1; foreach($data as $row){
-                                                                                $question = 'q' . $row->concern_id;
-                                                                                $text = isset($row->$question) ? $row->$question : '';
-                                                                                ?>
-                                                                                <tr>
-                                                                                    <td><?= $ic++; ?></td>
-                                                                                    <td><?= htmlspecialchars($text, ENT_QUOTES, 'UTF-8'); ?></td>
-                                                                                    <!-- <td><?= $row->average; ?></td>
-                                                                                    <td><?= $row->sequence; ?></td> -->
-                                                                                </tr>
-                                                                                <?php } ?>
-                                                                                
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div>
+    .tana-hero-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
 
-                                                                    <br />
+    .tana-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, .24);
+        border-radius: 999px;
+        color: #fff;
+        background: rgba(255, 255, 255, .14);
+        font-size: 12px;
+        font-weight: 700;
+        backdrop-filter: blur(5px);
+    }
 
+    .tana-add-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 11px 16px;
+        border: 0;
+        border-radius: 10px;
+        color: var(--tana-primary-dark);
+        background: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        box-shadow: 0 7px 18px rgba(22, 36, 88, .18);
+    }
 
-                                               
-                                            </div>
+    .tana-add-button:hover {
+        color: var(--tana-primary);
+        transform: translateY(-1px);
+    }
 
-                                    </div>
-                                </div>
-                            </div>
-                        
-                        <?php if(!empty($ivy)){?>
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-body table-responsive">
-                                        <h2 class="text-center">Thematic Analysis</h2>
-                                        
-                                    <div class="table-responsive">
-                                                                        <table class="table table-bordered mb-0">
-                                                                            <thead>
-                                                                                <tr class="text-center">
-                                                                                    <th>#</th>
-                                                                                    <th>Concerns, Issues, Gaps, Problems and Bottlenecks (CIGPB s) Encountered</th>
-                                                                                    <th>Action</th>
-                                                                                </tr>
-                                                                            </thead>
-                                                                            
-                                                                            <tbody>
-                                                                              <?php  foreach($ivy as $row){
-                                                                                ?>
-                                                                                <tr>
-                                                                                    <td><?= $row->sequence; ?></td>
-                                                                                    <td><?= htmlspecialchars($row->tana, ENT_QUOTES, 'UTF-8'); ?></td>
-                                                                                    <td>
-                                                                                        <a onclick="return confirm('Are You Sure?')" href="<?= base_url(); ?>Pages/tana_division_delete/<?= $row->id; ?>" class="btn btn-danger btn-sm">Delete</a>
-                                                                                    </td>
-                                                                                </tr>
-                                                                                <?php } ?>
-                                                                                
-                                                                            </tbody>
-                                                                        </table>
-                                                                    </div>
+    .tana-panel {
+        margin-bottom: 22px;
+        border: 1px solid var(--tana-border);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 8px 28px rgba(31, 45, 75, .07);
+        overflow: hidden;
+    }
 
-                                                                    <br />
+    .tana-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--tana-border);
+    }
 
+    .tana-panel-header h4 {
+        margin: 0 0 3px;
+        color: #27324a;
+        font-size: 17px;
+        font-weight: 700;
+    }
 
-                                               
-                                            </div>
+    .tana-panel-header p {
+        margin: 0;
+        color: var(--tana-muted);
+        font-size: 12px;
+    }
 
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- end row -->
-                         <?php } ?>
+    .tana-panel-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        color: var(--tana-primary-dark);
+        background: #f9e9ee;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
 
-                        </div>
-                        <!-- end row -->
+    .tana-table-wrap {
+        padding: 10px 24px 24px;
+    }
 
-                    </div>
-                    <!-- end container-fluid -->
-                     
+    .tana-table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
 
+    .tana-table thead th {
+        padding: 11px 14px;
+        border: 0;
+        color: #687086;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .tana-table tbody td {
+        padding: 15px 14px;
+        border-top: 1px solid var(--tana-border);
+        border-bottom: 1px solid var(--tana-border);
+        vertical-align: top;
+        background: #fff;
+    }
+
+    .tana-table tbody td:first-child {
+        border-left: 1px solid var(--tana-border);
+        border-radius: 11px 0 0 11px;
+    }
+
+    .tana-table tbody td:last-child {
+        border-right: 1px solid var(--tana-border);
+        border-radius: 0 11px 11px 0;
+    }
+
+    .tana-table tbody tr:hover td {
+        background: #fff7f9;
+    }
+
+    .tana-sequence {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 9px;
+        border-radius: 10px;
+        color: var(--tana-primary-dark);
+        background: #f9e9ee;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .tana-concern {
+        color: #39445b;
+        line-height: 1.65;
+        white-space: normal;
+    }
+
+    .tana-delete-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .tana-empty {
+        padding: 48px 24px;
+        color: var(--tana-muted);
+        text-align: center;
+    }
+
+    .tana-empty i {
+        display: block;
+        margin-bottom: 10px;
+        color: #aab2c3;
+        font-size: 38px;
+    }
+
+    .tana-division-page .alert {
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(31, 45, 75, .07);
+    }
+
+    .tana-modal .modal-content {
+        border: 0;
+        border-radius: 16px;
+        box-shadow: 0 18px 45px rgba(31, 45, 75, .2);
+        overflow: hidden;
+    }
+
+    .tana-modal .modal-header {
+        padding: 18px 20px;
+        color: #fff;
+        background: linear-gradient(135deg, #64142d, #a83255);
+    }
+
+    .tana-modal .modal-body {
+        padding: 22px;
+    }
+
+    .tana-modal .form-control {
+        border: 1px solid #dce2ee;
+        border-radius: 9px;
+        box-shadow: none;
+    }
+
+    .tana-modal textarea.form-control {
+        min-height: 150px;
+        resize: vertical;
+    }
+
+    .tana-modal select option:disabled {
+        color: #9aa1b1;
+        background: #f0f2f6;
+    }
+
+    @media (max-width: 767.98px) {
+        .tana-hero {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 22px;
+            border-radius: 14px;
+        }
+
+        .tana-hero-actions {
+            width: 100%;
+        }
+
+        .tana-count,
+        .tana-add-button {
+            justify-content: center;
+            flex: 1 1 auto;
+        }
+
+        .tana-panel-header {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 18px;
+        }
+
+        .tana-table-wrap {
+            padding: 8px 14px 18px;
+        }
+
+        .tana-table thead {
+            display: none;
+        }
+
+        .tana-table,
+        .tana-table tbody,
+        .tana-table tr,
+        .tana-table td {
+            display: block;
+            width: 100%;
+        }
+
+        .tana-table {
+            border-spacing: 0;
+        }
+
+        .tana-table tbody tr {
+            margin-bottom: 13px;
+            padding: 8px 14px;
+            border: 1px solid var(--tana-border);
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .tana-table tbody td,
+        .tana-table tbody td:first-child,
+        .tana-table tbody td:last-child {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 11px 0;
+            border: 0;
+            border-bottom: 1px solid #f0f2f7;
+            border-radius: 0;
+        }
+
+        .tana-table tbody td:last-child {
+            border-bottom: 0;
+        }
+
+        .tana-table tbody td::before {
+            content: attr(data-label);
+            flex: 0 0 70px;
+            color: var(--tana-muted);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .tana-table tbody td.tana-text-cell {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="tana-division-page">
+    <div class="row">
+        <div class="col-12">
+            <div class="tana-hero">
+                <div>
+                    <h2><i class="mdi mdi-clipboard-text-outline mr-2"></i>TANA Priority Summary</h2>
+                    <p>Review priority concerns gathered from schools and organize them into a division-level thematic analysis.</p>
                 </div>
-                <!-- end content -->
+                <div class="tana-hero-actions">
+                    <span class="tana-count">
+                        <i class="mdi mdi-alert-circle-outline"></i>
+                        <?= $concern_count; ?> <?= $concern_count === 1 ? 'concern' : 'concerns'; ?>
+                    </span>
+                    <button type="button" class="tana-add-button" data-toggle="modal" data-target="#tanaAnalysisModal">
+                        <i class="mdi mdi-plus-circle-outline"></i> Add Analysis
+                    </button>
+                </div>
+            </div>
 
-                <div class="modal fade renren" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabelcenter" style="display: none;" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                                <div class="modal-content">
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title" id="mySmallModalLabelcenter">Add Thematic Analysis</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <?php $att = array('class' => 'parsley-examples'); ?>
-                                                        <?= form_open('Pages/tana_division', $att); ?>
+            <?php if ($this->session->flashdata('success')) : ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <?= $this->session->flashdata('success'); ?>
+                </div>
+            <?php endif; ?>
 
-                                                        <div class="form-group row">
-                                                            <div class="col-lg-12">
-                                                                <label class="form-label">Thematic Analysis</label>
-                                                                <textarea class="form-control" rows="5" name="tana" id="example-textarea"></textarea>
-                                                            </div>
-                                                        </div>
+            <?php if ($this->session->flashdata('danger')) : ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <?= $this->session->flashdata('danger'); ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
 
-                                                        <div class="form-group row">
-                                                            <div class="col-lg-12">
-                                                                <label class="form-label">Sequence</label>
-                                                                <select class="form-control" name="sequence" required>
-                                                                    <option value="0"></option>
-                                                                    <?php for($i = 1; $i <= 20; $i++): ?>
-                                                                    <option value="<?= $i ?>"><?= $i ?></option>
-                                                                    <?php endfor; ?>
-                                                                </select>
-                                                            </div>
-                                                        </div>
+    <section class="tana-panel">
+        <div class="tana-panel-header">
+            <div>
+                <h4>Priority Concerns</h4>
+                <p>Top-ranked concerns, issues, gaps, problems, and bottlenecks reported by schools.</p>
+            </div>
+            <span class="tana-panel-badge">
+                <i class="mdi mdi-sort-ascending"></i> Priority 1–2
+            </span>
+        </div>
 
+        <?php if (!empty($data)) { ?>
+            <div class="tana-table-wrap table-responsive">
+                <table class="table tana-table">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Concern, Issue, Gap, Problem or Bottleneck</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($data as $index => $row) :
+                            $question = 'q' . $row->concern_id;
+                            $text = isset($row->$question) ? $row->$question : '';
+                        ?>
+                            <tr>
+                                <td data-label="No."><span class="tana-sequence"><?= $index + 1; ?></span></td>
+                                <td class="tana-text-cell" data-label="Concern">
+                                    <div class="tana-concern"><?= html_escape($text); ?></div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php } else { ?>
+            <div class="tana-empty">
+                <i class="mdi mdi-clipboard-alert-outline"></i>
+                No priority concerns are available for the selected fiscal year.
+            </div>
+        <?php } ?>
+    </section>
 
-                                                    <div class="modal-footer">
-                                                        <button type="submit" class="btn btn-primary waves-effect waves-light">Save changes</button>
-                                                    </div>
-                                                    </form>
-                                                </div>
-                                                <!-- /.modal-content -->
-                                            </div>
-                                            <!-- /.modal-dialog -->
-                                        </div>
-                                        <!-- /.modal -->
-                                                                    </div>                                                  
+    <section class="tana-panel">
+        <div class="tana-panel-header">
+            <div>
+                <h4>Thematic Analysis</h4>
+                <p>Division-level themes arranged according to their priority sequence.</p>
+            </div>
+            <span class="tana-panel-badge">
+                <i class="mdi mdi-format-list-numbered"></i>
+                <?= $analysis_count; ?> <?= $analysis_count === 1 ? 'analysis' : 'analyses'; ?>
+            </span>
+        </div>
 
+        <?php if (!empty($ivy)) { ?>
+            <div class="tana-table-wrap table-responsive">
+                <table class="table tana-table">
+                    <thead>
+                        <tr>
+                            <th>Priority</th>
+                            <th>Thematic Analysis</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($ivy as $analysis) { ?>
+                            <tr>
+                                <td data-label="Priority"><span class="tana-sequence"><?= (int) $analysis->sequence; ?></span></td>
+                                <td class="tana-text-cell" data-label="Analysis">
+                                    <div class="tana-concern"><?= html_escape($analysis->tana); ?></div>
+                                </td>
+                                <td data-label="Action">
+                                    <a
+                                        onclick="return confirm('Delete this thematic analysis?');"
+                                        href="<?= base_url(); ?>Pages/tana_division_delete/<?= $analysis->id; ?>"
+                                        class="btn btn-danger btn-sm tana-delete-button"
+                                    >
+                                        <i class="mdi mdi-trash-can-outline"></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php } else { ?>
+            <div class="tana-empty">
+                <i class="mdi mdi-file-search-outline"></i>
+                No thematic analysis has been added yet.
+            </div>
+        <?php } ?>
+    </section>
+</div>
+
+<div id="tanaAnalysisModal" class="modal fade tana-modal" tabindex="-1" role="dialog" aria-labelledby="tanaAnalysisModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-white" id="tanaAnalysisModalLabel">Add Thematic Analysis</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+
+            <?= form_open('Pages/tana_division', array('class' => 'parsley-examples')); ?>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="tanaAnalysisText">Thematic Analysis</label>
+                        <textarea
+                            class="form-control"
+                            rows="5"
+                            name="tana"
+                            id="tanaAnalysisText"
+                            placeholder="Describe the recurring theme or priority concern..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    <div class="form-group mb-0">
+                        <label for="tanaAnalysisSequence">Priority Sequence</label>
+                        <select class="form-control" name="sequence" id="tanaAnalysisSequence" required>
+                            <option value="">Select priority sequence</option>
+                            <?php for ($sequence = 1; $sequence <= 20; $sequence++) :
+                                $is_used = !empty($used_sequences[$sequence]);
+                            ?>
+                                <option value="<?= $sequence; ?>" <?= $is_used ? 'disabled' : ''; ?>>
+                                    <?= $sequence; ?><?= $is_used ? ' — already assigned' : ''; ?>
+                                </option>
+                            <?php endfor; ?>
+                        </select>
+                        <small class="form-text text-muted">Previously assigned sequence numbers are unavailable.</small>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="mdi mdi-content-save-outline mr-1"></i> Save Analysis
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

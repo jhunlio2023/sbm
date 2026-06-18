@@ -1,7 +1,7 @@
 <style>
     .district-list-page {
-        --district-primary: #3157d5;
-        --district-primary-dark: #2445b4;
+        --district-primary: #8b1e3f;
+        --district-primary-dark: #64142d;
         --district-border: #e8ecf4;
         --district-muted: #6b7280;
     }
@@ -15,8 +15,8 @@
         padding: 26px 28px;
         border-radius: 18px;
         color: #fff;
-        background: linear-gradient(135deg, #2445b4 0%, #5275e8 100%);
-        box-shadow: 0 14px 34px rgba(49, 87, 213, .22);
+        background: linear-gradient(135deg, #64142d 0%, #a83255 100%);
+        box-shadow: 0 14px 34px rgba(139, 30, 63, .22);
     }
 
     .district-list-hero h2 {
@@ -114,7 +114,7 @@
     }
 
     .district-table tbody tr:hover td {
-        background: #f8faff;
+        background: #fff7f9;
     }
 
     .district-number {
@@ -125,7 +125,7 @@
         height: 34px;
         border-radius: 10px;
         color: var(--district-primary-dark);
-        background: #edf1ff;
+        background: #f9e9ee;
         font-size: 12px;
         font-weight: 700;
     }
@@ -146,7 +146,7 @@
         flex: 0 0 40px;
         border-radius: 12px;
         color: #fff;
-        background: linear-gradient(135deg, #3157d5, #7891eb);
+        background: linear-gradient(135deg, #8b1e3f, #c65a77);
         font-size: 19px;
     }
 
@@ -184,8 +184,8 @@
     }
 
     .submission-ta {
-        color: #3157d5;
-        background: #edf1ff;
+        color: #8b1e3f;
+        background: #f9e9ee;
     }
 
     .district-list-page .alert {

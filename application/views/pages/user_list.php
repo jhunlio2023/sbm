@@ -1,8 +1,8 @@
                         <?php if (!empty($division_scope)) { ?>
                         <style>
                             .division-users-page {
-                                --du-primary: #3157d5;
-                                --du-primary-dark: #2445b4;
+                                --du-primary: #8b1e3f;
+                                --du-primary-dark: #64142d;
                                 --du-surface: #ffffff;
                                 --du-muted: #6b7280;
                                 --du-border: #e8ecf4;
@@ -17,8 +17,8 @@
                                 padding: 26px 28px;
                                 border-radius: 18px;
                                 color: #fff;
-                                background: linear-gradient(135deg, #2445b4 0%, #5275e8 100%);
-                                box-shadow: 0 14px 34px rgba(49, 87, 213, .22);
+                                background: linear-gradient(135deg, #64142d 0%, #a83255 100%);
+                                box-shadow: 0 14px 34px rgba(139, 30, 63, .22);
                             }
 
                             .division-users-hero h2 {
@@ -77,7 +77,7 @@
                                 padding: 7px 11px;
                                 border-radius: 999px;
                                 color: var(--du-primary-dark);
-                                background: #edf1ff;
+                                background: #f9e9ee;
                                 font-size: 12px;
                                 font-weight: 700;
                             }
@@ -135,7 +135,7 @@
                             }
 
                             .division-users-page table.dataTable tbody tr:hover td {
-                                background: #f8faff;
+                                background: #fff7f9;
                             }
 
                             .account-cell {
@@ -154,7 +154,7 @@
                                 flex: 0 0 40px;
                                 border-radius: 12px;
                                 color: #fff;
-                                background: linear-gradient(135deg, #3157d5, #7891eb);
+                                background: linear-gradient(135deg, #8b1e3f, #c65a77);
                                 font-size: 14px;
                                 font-weight: 700;
                             }
@@ -174,8 +174,8 @@
                                 display: inline-flex;
                                 padding: 6px 10px;
                                 border-radius: 999px;
-                                color: #3157d5;
-                                background: #edf1ff;
+                                color: #8b1e3f;
+                                background: #f9e9ee;
                                 font-size: 11px;
                                 font-weight: 700;
                                 text-transform: capitalize;

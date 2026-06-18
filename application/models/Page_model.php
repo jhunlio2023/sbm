@@ -430,6 +430,123 @@ public function submission_school_ids($table, $fy, $school_ids){
     return $submitted;
 }
 
+public function division_sgc_counts($division_id){
+    $this->db->select('sgc, COUNT(*) AS total', false);
+    $this->db->where('division_id', $division_id);
+    $this->db->group_by('sgc');
+    $query = $this->db->get('schools');
+
+    $counts = array(1 => 0, 2 => 0, 3 => 0);
+    foreach ($query->result() as $row) {
+        $status = (int) $row->sgc;
+        if (isset($counts[$status])) {
+            $counts[$status] = (int) $row->total;
+        }
+    }
+
+    return $counts;
+}
+
+public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
+    if (empty($indicator_numbers)) {
+        return array();
+    }
+
+    $select = array();
+    foreach ($indicator_numbers as $indicator_number) {
+        $indicator_number = (int) $indicator_number;
+        if ($indicator_number < 1) {
+            continue;
+        }
+
+        for ($rate = 1; $rate <= 4; $rate++) {
+            $alias = 'q' . $indicator_number . '_r' . $rate;
+            $select[] = 'SUM(CASE WHEN q' . $indicator_number . ' = ' . $rate . ' THEN 1 ELSE 0 END) AS ' . $alias;
+        }
+    }
+
+    if (empty($select)) {
+        return array();
+    }
+
+    $row = $this->db
+        ->select(implode(', ', $select), false)
+        ->where('division', $division_id)
+        ->where('fy', $fy)
+        ->get('sbm')
+        ->row();
+
+    $counts = array();
+    foreach ($indicator_numbers as $indicator_number) {
+        $indicator_number = (int) $indicator_number;
+        for ($rate = 1; $rate <= 4; $rate++) {
+            $alias = 'q' . $indicator_number . '_r' . $rate;
+            $counts[$indicator_number][$rate] = $row && isset($row->$alias) ? (int) $row->$alias : 0;
+        }
+    }
+
+    return $counts;
+}
+
+public function division_account_overview($division_id){
+    $schools = $this->db
+        ->select('schoolName, district_id, schoolID, schoolType, recID, division_id')
+        ->where('division_id', $division_id)
+        ->order_by('schoolName', 'ASC')
+        ->get('schools')
+        ->result();
+
+    $users = $this->db
+        ->select('username, position, d_id')
+        ->where('p_id', $division_id)
+        ->get('users')
+        ->result();
+
+    $schools_by_district = array();
+    foreach ($schools as $school) {
+        $schools_by_district[(string) $school->district_id][] = $school;
+    }
+
+    $school_usernames = array();
+    $district_user_counts = array();
+    foreach ($users as $user) {
+        $school_usernames[(string) $user->username] = true;
+
+        if ($user->position === 'district') {
+            $district_id = (string) $user->d_id;
+            $district_user_counts[$district_id] = isset($district_user_counts[$district_id])
+                ? $district_user_counts[$district_id] + 1
+                : 1;
+        }
+    }
+
+    return array(
+        'schools_by_district' => $schools_by_district,
+        'school_usernames' => $school_usernames,
+        'district_user_counts' => $district_user_counts,
+        'school_count' => count($schools)
+    );
+}
+
+public function division_names_by_ids($division_ids){
+    $division_ids = array_values(array_unique(array_filter($division_ids)));
+
+    if (empty($division_ids)) {
+        return array();
+    }
+
+    $this->db->select('id, description');
+    $this->db->where_in('id', $division_ids);
+    $query = $this->db->get('division');
+
+    $names = array();
+    foreach ($query->result() as $row) {
+        $names[(string) $row->id] = $row->description;
+    }
+
+    return $names;
+}
+
 public function one_cond_loop_order_by($table,$col,$val,$orderby,$orderbyvalue){
     $this->db->where($col, $val);
     $this->db->order_by($orderby, $orderbyvalue);

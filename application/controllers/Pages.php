@@ -71,6 +71,24 @@ class Pages extends CI_Controller
             $page = "dashboard_division";
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+            $indicator_numbers = array_map(function ($indicator) {
+                return (int) $indicator->i_no;
+            }, $data['sbm_sub']);
+
+            $data['sbm_sub_by_principle'] = array();
+            foreach ($data['sbm_sub'] as $indicator) {
+                $data['sbm_sub_by_principle'][(string) $indicator->priciple_id][] = $indicator;
+            }
+
+            $data['sgc_counts'] = $this->Page_model->division_sgc_counts($this->session->division);
+            $data['sbm_rate_counts'] = $this->Page_model->division_sbm_rate_counts(
+                $this->session->division,
+                $this->session->fy,
+                $indicator_numbers
+            );
+            $data['district_count'] = count(
+                $this->Page_model->one_cond('district', 'division_id', $this->session->division)
+            );
 
             $data['title'] = "Dashboard";
         } elseif ($this->session->position == 'region') {
@@ -329,7 +347,17 @@ class Pages extends CI_Controller
         $val = $this->uri->segment(4);
         $district = $this->session->district;
 
-        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'district',$district, 'b.schoolName', 'ASC');
+        if (!preg_match('/^q([1-9]|[1-3][0-9]|4[0-2])$/', $q) || !in_array((int) $val, array(1, 2, 3, 4), true)) {
+            show_404();
+        }
+
+        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.division_id,b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'district',$district, 'b.schoolName', 'ASC');
+        $data['rate_scope'] = 'district';
+        $data['rate_question'] = $q;
+        $data['rate_value'] = (int) $val;
+        $data['division_names'] = $this->Page_model->division_names_by_ids(array_map(function ($row) {
+            return $row->division_id;
+        }, $data['data']));
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -352,7 +380,18 @@ class Pages extends CI_Controller
         $val = $this->uri->segment(4);
         $division = $this->session->division;
 
+        if (!preg_match('/^q([1-9]|[1-3][0-9]|4[0-2])$/', $q) || !in_array((int) $val, array(1, 2, 3, 4), true)) {
+            show_404();
+        }
+
         $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.division_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'division',$division, 'b.schoolName', 'ASC');
+        $data['rate_scope'] = 'division';
+        $data['rate_question'] = $q;
+        $data['rate_value'] = (int) $val;
+        $division_row = $this->Page_model->one_cond_row('division', 'id', $division);
+        $data['division_names'] = array(
+            (string) $division => $division_row ? $division_row->description : 'Division'
+        );
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -375,7 +414,17 @@ class Pages extends CI_Controller
         $val = $this->uri->segment(4);
         $region = $this->session->region;
 
+        if (!preg_match('/^q([1-9]|[1-3][0-9]|4[0-2])$/', $q) || !in_array((int) $val, array(1, 2, 3, 4), true)) {
+            show_404();
+        }
+
         $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.division_id,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'region',$region, 'b.schoolName', 'ASC');
+        $data['rate_scope'] = 'region';
+        $data['rate_question'] = $q;
+        $data['rate_value'] = (int) $val;
+        $data['division_names'] = $this->Page_model->division_names_by_ids(array_map(function ($row) {
+            return $row->division_id;
+        }, $data['data']));
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -2140,6 +2189,12 @@ class Pages extends CI_Controller
         $data['title'] = "Profile List";
 
         $data['district'] = $this->Page_model->one_cond('district','division_id',$this->session->division);
+        $overview = $this->Page_model->division_account_overview($this->session->division);
+        $data['schools_by_district'] = $overview['schools_by_district'];
+        $data['school_usernames'] = $overview['school_usernames'];
+        $data['district_user_counts'] = $overview['district_user_counts'];
+        $data['school_count'] = $overview['school_count'];
+        $data['division'] = $this->Page_model->one_cond_row('division', 'id', $this->session->division);
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');

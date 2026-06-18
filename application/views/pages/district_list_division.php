@@ -1,170 +1,553 @@
-                        <!-- start page title -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="page-title-box">
-                                    <h5>List of District</h5>
-                                    
+<?php
+$division_name = !empty($division) ? $division->description : 'Division';
+$district_total = count($district);
+?>
 
-                                
-                                    <div class="clearfix"></div>
+<style>
+    .district-accounts-page {
+        --accounts-primary: #8b1e3f;
+        --accounts-primary-dark: #64142d;
+        --accounts-border: #e8ecf4;
+        --accounts-muted: #6b7280;
+    }
 
-                                    <?php if($this->session->flashdata('success')) : ?>
+    .district-accounts-hero {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        margin: 18px 0 22px;
+        padding: 28px;
+        border-radius: 18px;
+        color: #fff;
+        background:
+            radial-gradient(circle at 90% 15%, rgba(255, 255, 255, .2), transparent 25%),
+            linear-gradient(135deg, #64142d 0%, #a83255 100%);
+        box-shadow: 0 14px 34px rgba(139, 30, 63, .22);
+    }
 
-                                        <?= '<br /><div class="alert alert-success alert-dismissible fade show" role="alert">
-                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>'
-                                                .$this->session->flashdata('success'). 
-                                            '</div>'; 
-                                        ?>
-                                        <?php endif; ?>
+    .district-accounts-hero h2 {
+        margin: 0 0 6px;
+        color: #fff;
+        font-size: 25px;
+        font-weight: 700;
+    }
 
-                                        <?php if($this->session->flashdata('danger')) : ?>
-                                        <?= '<br /><div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                                    <span aria-hidden="true">&times;</span>
-                                                </button>'
-                                                .$this->session->flashdata('danger'). 
-                                            '</div>'; 
-                                        ?>
-                                        <?php endif;  ?>
-                                </div>
-                            </div>
+    .district-accounts-hero p {
+        margin: 0;
+        color: rgba(255, 255, 255, .82);
+    }
+
+    .district-accounts-summary {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .summary-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 14px;
+        border: 1px solid rgba(255, 255, 255, .24);
+        border-radius: 999px;
+        color: #fff;
+        background: rgba(255, 255, 255, .14);
+        font-size: 12px;
+        font-weight: 700;
+        backdrop-filter: blur(5px);
+    }
+
+    .district-account-card {
+        margin-bottom: 13px;
+        border: 1px solid var(--accounts-border);
+        border-radius: 15px;
+        box-shadow: 0 7px 22px rgba(31, 45, 75, .06);
+        overflow: hidden;
+    }
+
+    .district-account-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .district-account-header {
+        padding: 0;
+        border: 0;
+        background: #fff;
+    }
+
+    .district-account-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        width: 100%;
+        padding: 18px 20px;
+        color: #27324a;
+    }
+
+    .district-account-toggle:hover {
+        color: var(--accounts-primary);
+        background: #fff7f9;
+    }
+
+    .district-account-title {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .district-account-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        flex: 0 0 42px;
+        border-radius: 12px;
+        color: #fff;
+        background: linear-gradient(135deg, #8b1e3f, #c65a77);
+        font-size: 19px;
+    }
+
+    .district-account-name {
+        display: block;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .district-account-meta {
+        display: block;
+        margin-top: 2px;
+        color: var(--accounts-muted);
+        font-size: 11px;
+        font-weight: 400;
+    }
+
+    .district-account-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex: 0 0 auto;
+    }
+
+    .district-user-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        color: #147a50;
+        background: #e6f7ef;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .district-chevron {
+        color: #8b93a7;
+        transition: transform .2s ease;
+    }
+
+    .district-account-toggle[aria-expanded="true"] .district-chevron {
+        transform: rotate(180deg);
+    }
+
+    .district-account-body {
+        padding: 8px 20px 20px;
+        border-top: 1px solid var(--accounts-border);
+        background: #fbfcff;
+    }
+
+    .school-account-table {
+        margin: 0;
+        border-collapse: separate;
+        border-spacing: 0 7px;
+    }
+
+    .school-account-table thead th {
+        padding: 10px 12px;
+        border: 0;
+        color: #687086;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .school-account-table tbody td {
+        padding: 12px;
+        border-top: 1px solid var(--accounts-border);
+        border-bottom: 1px solid var(--accounts-border);
+        vertical-align: middle;
+        background: #fff;
+    }
+
+    .school-account-table tbody td:first-child {
+        border-left: 1px solid var(--accounts-border);
+        border-radius: 10px 0 0 10px;
+    }
+
+    .school-account-table tbody td:last-child {
+        border-right: 1px solid var(--accounts-border);
+        border-radius: 0 10px 10px 0;
+    }
+
+    .school-account-table tbody tr:hover td {
+        background: #fff7f9;
+    }
+
+    .school-sequence {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        color: var(--accounts-primary-dark);
+        background: #f9e9ee;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .school-id-text {
+        color: #596277;
+        font-family: Consolas, Monaco, monospace;
+        font-size: 12px;
+    }
+
+    .school-account-name {
+        min-width: 210px;
+        color: #27324a;
+        font-weight: 600;
+    }
+
+    .account-state {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 9px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+    .account-state.active {
+        color: #147a50;
+        background: #e6f7ef;
+    }
+
+    .account-state.missing {
+        color: #8b6a12;
+        background: #fff4d6;
+    }
+
+    .school-account-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        min-width: 310px;
+    }
+
+    .school-account-actions .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 9px;
+        border-radius: 7px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .district-empty-state {
+        padding: 34px 20px;
+        color: var(--accounts-muted);
+        text-align: center;
+    }
+
+    .district-empty-state i {
+        display: block;
+        margin-bottom: 8px;
+        color: #aab2c3;
+        font-size: 32px;
+    }
+
+    .district-accounts-page .alert {
+        border: 0;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(31, 45, 75, .07);
+    }
+
+    .account-password-modal .modal-content {
+        border: 0;
+        border-radius: 15px;
+        box-shadow: 0 18px 45px rgba(31, 45, 75, .2);
+        overflow: hidden;
+    }
+
+    .account-password-modal .modal-header {
+        color: #fff;
+        background: linear-gradient(135deg, #64142d, #a83255);
+    }
+
+    @media (max-width: 767.98px) {
+        .district-accounts-hero {
+            align-items: flex-start;
+            flex-direction: column;
+            padding: 22px;
+            border-radius: 14px;
+        }
+
+        .district-accounts-summary {
+            width: 100%;
+        }
+
+        .summary-pill {
+            justify-content: center;
+            flex: 1 1 auto;
+        }
+
+        .district-account-toggle {
+            align-items: flex-start;
+            padding: 15px;
+        }
+
+        .district-account-header-actions {
+            align-items: flex-end;
+            flex-direction: column;
+        }
+
+        .district-account-body {
+            padding: 8px 12px 14px;
+        }
+
+        .school-account-actions {
+            min-width: 260px;
+        }
+    }
+</style>
+
+<div class="district-accounts-page">
+    <div class="row">
+        <div class="col-12">
+            <div class="district-accounts-hero">
+                <div>
+                    <h2><i class="mdi mdi-account-network-outline mr-2"></i>District &amp; School Accounts</h2>
+                    <p>Manage account access for schools under <?= html_escape(mb_convert_case($division_name, MB_CASE_TITLE, 'UTF-8')); ?>.</p>
+                </div>
+                <div class="district-accounts-summary">
+                    <span class="summary-pill">
+                        <i class="mdi mdi-map-marker-multiple"></i>
+                        <?= $district_total; ?> <?= $district_total === 1 ? 'district' : 'districts'; ?>
+                    </span>
+                    <span class="summary-pill">
+                        <i class="mdi mdi-school-outline"></i>
+                        <?= (int) $school_count; ?> <?= (int) $school_count === 1 ? 'school' : 'schools'; ?>
+                    </span>
+                </div>
+            </div>
+
+            <?php if ($this->session->flashdata('success')) : ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <?= $this->session->flashdata('success'); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($this->session->flashdata('danger')) : ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <?= $this->session->flashdata('danger'); ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div id="districtAccountsAccordion">
+                <?php foreach ($district as $index => $district_row) :
+                    $district_id = (string) $district_row->id;
+                    $schools = isset($schools_by_district[$district_id])
+                        ? $schools_by_district[$district_id]
+                        : array();
+                    $district_accounts = isset($district_user_counts[$district_id])
+                        ? $district_user_counts[$district_id]
+                        : 0;
+                    $panel_number = $index + 1;
+                ?>
+                    <div class="district-account-card">
+                        <div class="district-account-header" id="districtHeading<?= $panel_number; ?>">
+                            <a
+                                href="#districtCollapse<?= $panel_number; ?>"
+                                class="district-account-toggle"
+                                data-toggle="collapse"
+                                aria-expanded="<?= $panel_number === 1 ? 'true' : 'false'; ?>"
+                                aria-controls="districtCollapse<?= $panel_number; ?>"
+                            >
+                                <span class="district-account-title">
+                                    <span class="district-account-icon"><i class="mdi mdi-map-marker-outline"></i></span>
+                                    <span>
+                                        <span class="district-account-name"><?= html_escape(mb_convert_case($district_row->description, MB_CASE_TITLE, 'UTF-8')); ?></span>
+                                        <span class="district-account-meta"><?= count($schools); ?> <?= count($schools) === 1 ? 'school' : 'schools'; ?></span>
+                                    </span>
+                                </span>
+                                <span class="district-account-header-actions">
+                                    <span class="district-user-badge">
+                                        <i class="mdi mdi-account-key-outline"></i>
+                                        <?= $district_accounts; ?> district <?= $district_accounts === 1 ? 'account' : 'accounts'; ?>
+                                    </span>
+                                    <i class="mdi mdi-chevron-down district-chevron"></i>
+                                </span>
+                            </a>
                         </div>
-                        <!-- end page title -->
 
-
-                       <!-- ============================================================== -->
-                       <!-- Main Content here -->
-                       <!-- ============================================================== -->
-
-
-
-                        <div class="row">
-                            <div class="col-lg-12">
-                                <div id="accordion" class="mb-3">
-                                    <?php $i = 0; foreach ($district as $row) { $i++; 
-                                    $school = $this->Common->one_cond_select('schools','schoolName,district_id,schoolID,schoolType,recID,division_id','district_id',$row->id);
-                                    $cd = $this->Common->two_cond_count_row('users','position','district','d_id',$row->id);
-                                    ?>
-                                        <div class="card mb-0">
-                                            <div class="card-header" id="heading<?= $i; ?>">
-                                                <h6 class="m-0">
-                                                    <a href="#collapse<?= $i; ?>"
-                                                    class="text-dark <?= ($i != 1) ? 'collapsed' : ''; ?>"
-                                                    data-toggle="collapse"
-                                                    aria-expanded="<?= ($i == 1) ? 'true' : 'false'; ?>"
-                                                    aria-controls="collapse<?= $i; ?>">
-                                                        <?= $row->description; ?> <a href="<?= base_url(); ?>Pages/district_userlist_by_division/<?= $row->id; ?>" class="badge badge-success rounded-circle"><?= ($cd->num_rows() > 0) ? $cd->num_rows() : ''; ?></a>
-                                                    </a>
-                                                </h6>
-                                            </div>
-
-                                            <div id="collapse<?= $i; ?>"
-                                                class="collapse <?= ($i == 1) ? 'show' : ''; ?>"
-                                                aria-labelledby="heading<?= $i; ?>"
-                                                data-parent="#accordion">
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="table-responsive">
-                                                            <table class="table table-sm mb-0">
-                                                                <thead>
-                                                                    <tr>
-                                                                        <th>#</th>
-                                                                        <th>School ID</th>
-                                                                        <th>School Name</th>
-                                                                        <th>Action</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <?php 
-                                                                        $ivy=1; foreach($school as $row){
-                                                                        $user_check = $this->Common->one_cond_count_row('users','username',$row->schoolID);
-                                                                    ?>
-                                                                    <tr>
-                                                                        <th scope="row"><?= $ivy++; ?></th>
-                                                                        <td><?= $row->schoolID; ?></td>
-                                                                        <td><?= strtoupper($row->schoolName); ?></td>
-                                                                        <td>
-                                                                            <?php if($user_check->num_rows() == 0){?>
-                                                                                <a onclick="return confirm('Are you sure?');" href="<?= base_url(); ?>Pages/add_school_user/<?= $row->schoolID; ?>/<?= rawurlencode($row->schoolName); ?>/<?= $row->district_id; ?>/<?= $row->division_id; ?>" class="text-success"><i class="fab fa-mailchimp"></i> Add User</a> &nbsp; &nbsp;
-                                                                            <?php } ?>
-
-                                                                            <?php if($user_check->num_rows() != 0){?>
-                                                                                <a href="#" class="text-purple open-AddBookDialog" data-toggle="modal" data-target="#ivykate" data-id="<?= $row->schoolID; ?>"><i class="fas fa-lock "></i> Change Password</a> &nbsp; &nbsp;
-                                                                            <?php } ?>
-
-                                                                            <a href="<?=base_url(); ?>school/<?= $row->schoolID; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
-                                                                            <a href="<?=base_url(); ?>Pages/school_update/<?= $row->recID; ?>" class="text-warning"><i class="mdi mdi-pencil-outline"></i>edit</a> &nbsp; &nbsp;
-                                                                            <a onclick="return confirm('Are you sure?')" href="<?=base_url(); ?>Pages/school_delete/<?= $row->schoolID; ?>" class="text-danger"><i class="fas fa-trash-alt"></i>Delete</a> &nbsp; &nbsp;
-                                                                        </td>
-                                                                    </tr>
-                                                                    <?php } ?>
-                                                                   
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    <?php } ?>
+                        <div
+                            id="districtCollapse<?= $panel_number; ?>"
+                            class="collapse <?= $panel_number === 1 ? 'show' : ''; ?>"
+                            aria-labelledby="districtHeading<?= $panel_number; ?>"
+                            data-parent="#districtAccountsAccordion"
+                        >
+                            <div class="district-account-body">
+                                <div class="mb-2 text-right">
+                                    <a
+                                        href="<?= base_url(); ?>Pages/district_userlist_by_division/<?= $district_row->id; ?>"
+                                        class="btn btn-outline-primary btn-sm"
+                                    >
+                                        <i class="mdi mdi-account-supervisor-outline"></i> District Accounts
+                                    </a>
                                 </div>
-                            </div>
-                        </div>
-                        <!-- end row -->
-                         
 
-                        <div id="ivykate" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style="display: none;" aria-hidden="true">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-purple">
-                                                        <h5 class="modal-title text-white" id="myModalLabel">Change Password</h5>
-                                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <form action="<?= base_url('Pages/change_password_user_division') ?>" method="post">
-                                                            
-                                                            <input type="hidden" id="id" name="school_id">
-                                                            <div class="form-group row">
-                                                                <div class="col-lg-12">
-                                                                    
-                                                                    <div class="input-group">
-                                                                        <input type="password" 
-                                                                            class="form-control" 
-                                                                            name="password" 
-                                                                            id="password">
+                                <?php if (!empty($schools)) { ?>
+                                    <div class="table-responsive">
+                                        <table class="table school-account-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>No.</th>
+                                                    <th>School ID</th>
+                                                    <th>School Name</th>
+                                                    <th>Account</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($schools as $school_index => $school) :
+                                                    $school_id = (string) $school->schoolID;
+                                                    $has_account = !empty($school_usernames[$school_id]);
+                                                ?>
+                                                    <tr>
+                                                        <td><span class="school-sequence"><?= $school_index + 1; ?></span></td>
+                                                        <td><span class="school-id-text"><?= html_escape($school_id); ?></span></td>
+                                                        <td class="school-account-name"><?= html_escape(mb_convert_case($school->schoolName, MB_CASE_TITLE, 'UTF-8')); ?></td>
+                                                        <td>
+                                                            <span class="account-state <?= $has_account ? 'active' : 'missing'; ?>">
+                                                                <i class="mdi <?= $has_account ? 'mdi-check-circle-outline' : 'mdi-alert-circle-outline'; ?>"></i>
+                                                                <?= $has_account ? 'Active' : 'Not created'; ?>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="school-account-actions">
+                                                                <?php if (!$has_account) { ?>
+                                                                    <a
+                                                                        onclick="return confirm('Create an account for this school?');"
+                                                                        href="<?= base_url(); ?>Pages/add_school_user/<?= rawurlencode($school_id); ?>/<?= rawurlencode($school->schoolName); ?>/<?= $school->district_id; ?>/<?= $school->division_id; ?>"
+                                                                        class="btn btn-success btn-sm"
+                                                                    >
+                                                                        <i class="mdi mdi-account-plus-outline"></i> Add Account
+                                                                    </a>
+                                                                <?php } else { ?>
+                                                                    <a
+                                                                        href="#"
+                                                                        class="btn btn-warning btn-sm open-AddBookDialog"
+                                                                        data-toggle="modal"
+                                                                        data-target="#schoolPasswordModal"
+                                                                        data-id="<?= html_escape($school_id); ?>"
+                                                                    >
+                                                                        <i class="mdi mdi-lock-reset"></i> Password
+                                                                    </a>
+                                                                <?php } ?>
 
-                                                                        <div class="input-group-append">
-                                                                            <span class="input-group-text" 
-                                                                                onclick="togglePassword()" 
-                                                                                style="cursor: pointer;">
-                                                                                <i class="fa fa-eye" id="toggleIcon"></i>
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-
-                                                                </div>
+                                                                <a href="<?= base_url(); ?>school/<?= rawurlencode($school_id); ?>" class="btn btn-info btn-sm">
+                                                                    <i class="mdi mdi-eye-outline"></i> View
+                                                                </a>
+                                                                <a href="<?= base_url(); ?>Pages/school_update/<?= $school->recID; ?>" class="btn btn-primary btn-sm">
+                                                                    <i class="mdi mdi-pencil-outline"></i> Edit
+                                                                </a>
+                                                                <a
+                                                                    onclick="return confirm('Delete this school and its account?');"
+                                                                    href="<?= base_url(); ?>Pages/school_delete/<?= rawurlencode($school_id); ?>"
+                                                                    class="btn btn-danger btn-sm"
+                                                                >
+                                                                    <i class="mdi mdi-trash-can-outline"></i> Delete
+                                                                </a>
                                                             </div>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php } else { ?>
+                                    <div class="district-empty-state">
+                                        <i class="mdi mdi-school"></i>
+                                        No schools found in this district.
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </div>
+</div>
 
-                                                    </div>
+<div id="schoolPasswordModal" class="modal fade account-password-modal" tabindex="-1" role="dialog" aria-labelledby="schoolPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-white" id="schoolPasswordModalLabel">Change School Password</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">&times;</button>
+            </div>
+            <form action="<?= base_url('Pages/change_password_user_division'); ?>" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="id" name="school_id">
+                    <div class="form-group mb-0">
+                        <label for="schoolAccountPassword">New Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" name="password" id="schoolAccountPassword" required>
+                            <div class="input-group-append">
+                                <button class="btn btn-light border" type="button" onclick="toggleSchoolPassword()">
+                                    <i class="fa fa-eye" id="schoolPasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-                                                    <div class="modal-footer">
+<script>
+function toggleSchoolPassword() {
+    var password = document.getElementById('schoolAccountPassword');
+    var icon = document.getElementById('schoolPasswordIcon');
+    var showPassword = password.type === 'password';
 
-                                                        <button type="submit" 
-                                                                class="btn btn-purple waves-effect waves-light">
-                                                            Save
-                                                        </button>
-                                                    </div>
-
-                                                    </form>
-                                                <!-- /.modal-content -->
-                                            </div>
-                                            <!-- /.modal-dialog -->
-                                        </div>
-                                        <!-- /.modal -->
-
-                        
-
-
-                        
+    password.type = showPassword ? 'text' : 'password';
+    icon.classList.toggle('fa-eye', !showPassword);
+    icon.classList.toggle('fa-eye-slash', showPassword);
+}
+</script>
