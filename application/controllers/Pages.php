@@ -735,9 +735,21 @@ class Pages extends CI_Controller
         }
 
         $data['title'] = "School List";
+        $data['division_school_scope'] = false;
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.fy', 'a.school_id = b.schoolID', 'a.fy', $this->session->fy, 'a.district', $this->session->district, 'b.schoolName', 'ASC');
+        $school_ids = array_map(function ($school) {
+            return $school->schoolID;
+        }, $data['data']);
+
+        $data['submission_status'] = array(
+            'sgod_action_plan' => $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, $school_ids),
+            'sbm' => $this->Page_model->submission_school_ids('sbm', $this->session->fy, $school_ids),
+            'sbm_ta' => $this->Page_model->submission_school_ids('sbm_ta', $this->session->fy, $school_ids)
+        );
+        $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->session->district);
+        $data['selected_submission'] = 'sbm';
 
         //$data['data'] = $this->Page_model->schools_with_district($this->session->district);
 
@@ -759,10 +771,27 @@ class Pages extends CI_Controller
 
         $data['title'] = "School List";
         $table = $this->uri->segment(4);
+        $allowed_tables = array('sgod_action_plan', 'sbm', 'sbm_ta');
+
+        if (!in_array($table, $allowed_tables, true)) {
+            show_404();
+        }
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         //$data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
         $data['data'] = $this->Common->two_join_two_cond_gb($table, 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.district', $this->uri->segment(3), 'b.schoolName', 'ASC','a.school_id');
+        $school_ids = array_map(function ($school) {
+            return $school->schoolID;
+        }, $data['data']);
+
+        $data['submission_status'] = array(
+            'sgod_action_plan' => $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, $school_ids),
+            'sbm' => $this->Page_model->submission_school_ids('sbm', $this->session->fy, $school_ids),
+            'sbm_ta' => $this->Page_model->submission_school_ids('sbm_ta', $this->session->fy, $school_ids)
+        );
+        $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->uri->segment(3));
+        $data['selected_submission'] = $table;
+        $data['division_school_scope'] = true;
 
 
         $this->load->view('templates/header_dt');

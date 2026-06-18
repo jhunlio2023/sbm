@@ -409,6 +409,27 @@ public function district_submission_counts($table, $division, $fy){
     return $counts;
 }
 
+public function submission_school_ids($table, $fy, $school_ids){
+    $allowed_tables = array('sgod_action_plan', 'sbm', 'sbm_ta');
+
+    if (!in_array($table, $allowed_tables, true) || empty($school_ids)) {
+        return array();
+    }
+
+    $this->db->select('school_id');
+    $this->db->distinct();
+    $this->db->where('fy', $fy);
+    $this->db->where_in('school_id', $school_ids);
+    $query = $this->db->get($table);
+
+    $submitted = array();
+    foreach ($query->result() as $row) {
+        $submitted[(string) $row->school_id] = true;
+    }
+
+    return $submitted;
+}
+
 public function one_cond_loop_order_by($table,$col,$val,$orderby,$orderbyvalue){
     $this->db->where($col, $val);
     $this->db->order_by($orderby, $orderbyvalue);
@@ -821,15 +842,33 @@ public function sbm_cecklist_lock_unloc($stat){
         $region   = $this->session->region;
         $division = $this->session->division;
 
+        $select = array(
+            'tana_summary.school_id',
+            'tana_summary.fy',
+            'tana_summary.concern_id',
+            'tana_summary.average',
+            'tana_summary.sequence'
+        );
+
+        for ($i = 1; $i <= 42; $i++) {
+            $select[] = 'sbm_ta.q' . $i;
+        }
+
         return $this->db
+            ->select(implode(', ', $select))
             ->from('tana_summary')
-            ->where_in('sequence', [1, 2])
-            ->where('fy', $fy)
-            ->where('division', $division)
-            ->where('region', $region)
-            ->order_by('fy', 'ASC')
-            ->order_by('school_id', 'ASC')
-            ->order_by('sequence', 'ASC')
+            ->join(
+                'sbm_ta',
+                'sbm_ta.school_id = tana_summary.school_id AND sbm_ta.fy = tana_summary.fy',
+                'left'
+            )
+            ->where_in('tana_summary.sequence', [1, 2])
+            ->where('tana_summary.fy', $fy)
+            ->where('tana_summary.division', $division)
+            ->where('tana_summary.region', $region)
+            ->order_by('tana_summary.fy', 'ASC')
+            ->order_by('tana_summary.school_id', 'ASC')
+            ->order_by('tana_summary.sequence', 'ASC')
             ->get()
             ->result();
     }

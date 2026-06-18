@@ -17,17 +17,6 @@
                             </div>
                         </div>
                         <!-- end page title -->
-                         <?php 
-                            $ts = $this->Common->two_cond_order_by('tana_summary','school_id', $this->session->username,'fy',$this->session->fy,'sequence','ASC');
-                            $ta = $this->Common->two_cond_row('sbm_ta','school_id', $this->session->username,'fy',$this->session->fy);
-                         ?>
-
-                        
-
-                        
-
-                        
-
                         <?php if ($this->session->flashdata('success')) : ?>
 
                             <?= '<div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -69,8 +58,8 @@
                                                                             
                                                                             <tbody>
                                                                               <?php $ic=1; foreach($data as $row){
-                                                                                $ta = $this->Common->two_cond_row('sbm_ta','school_id', $row->school_id,'fy',$row->fy);
-                                                                                $text = $ta->{'q' . $row->concern_id};
+                                                                                $question = 'q' . $row->concern_id;
+                                                                                $text = isset($row->$question) ? $row->$question : '';
                                                                                 ?>
                                                                                 <tr>
                                                                                     <td><?= $ic++; ?></td>
