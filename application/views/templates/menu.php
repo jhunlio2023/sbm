@@ -156,15 +156,15 @@
 
                         <?php if ($this->session->position == 'division') { ?>
                             <!-- <li><a href="<?= base_url(); ?>pages/schools_division/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li> -->
-                            <li><a href="<?= base_url(); ?>pages/district_account/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>District</span></a></li>
-                            <li><a href="<?= base_url(); ?>pages/userlist_division" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
                             <li>
                                 <a href="javascript: void(0);" class="waves-effect">
-                                    <i class="mdi mdi-cog-outline"></i>
+                                    <i class="fas fa-cogs"></i>
                                     <span> Division Settings</span>
                                     <span class="menu-arrow"></span>
                                 </a>
                                 <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>pages/district_account/<?= $this->session->division; ?>">District</a></li>
+                                    <li><a href="<?= base_url(); ?>pages/userlist_division">Manage Users</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/division_setup">Division Setup</a></li>
                                 </ul>
                             </li>

@@ -500,6 +500,43 @@ public function division_sbm_completed_count($division_id, $fy){
     return $row ? (int) $row->total : 0;
 }
 
+public function division_completed_checklist_schools($division_id, $fy){
+    return $this->db
+        ->select("b.recID, b.schoolID, b.schoolName, d.description AS district_name, 'Finalized' AS detail_status", false)
+        ->from('sbm a')
+        ->join('schools b', 'a.school_id = b.schoolID', 'inner')
+        ->join('district d', 'd.id = b.district_id', 'left')
+        ->where('a.division', $division_id)
+        ->where('a.fy', $fy)
+        ->where('a.stat', 1)
+        ->group_by(array('b.recID', 'b.schoolID', 'b.schoolName', 'd.description'))
+        ->order_by('b.schoolName', 'ASC')
+        ->get()
+        ->result();
+}
+
+public function division_schools_by_sgc_status($division_id, $sgc_status){
+    $status_labels = array(
+        1 => 'Not Yet Organized',
+        2 => 'Organized, Not Functional',
+        3 => 'Functional'
+    );
+
+    $detail_status = isset($status_labels[(int) $sgc_status])
+        ? $status_labels[(int) $sgc_status]
+        : 'Unknown';
+
+    return $this->db
+        ->select('s.recID, s.schoolID, s.schoolName, d.description AS district_name, ' . $this->db->escape($detail_status) . ' AS detail_status', false)
+        ->from('schools s')
+        ->join('district d', 'd.id = s.district_id', 'left')
+        ->where('s.division_id', $division_id)
+        ->where('s.sgc', $sgc_status)
+        ->order_by('s.schoolName', 'ASC')
+        ->get()
+        ->result();
+}
+
 public function division_account_overview($division_id){
     $schools = $this->db
         ->select('schoolName, district_id, schoolID, schoolType, recID, division_id')

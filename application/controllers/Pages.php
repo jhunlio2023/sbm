@@ -28,6 +28,13 @@ class Pages extends CI_Controller
         }
     }
 
+    private function require_division_dashboard_access()
+    {
+        if (!$this->session->logged_in || $this->session->position !== 'division') {
+            show_error('Only division users can access this page.', 403);
+        }
+    }
+
     private function get_managed_user($id)
     {
         $user = $this->Page_model->one_cond_row('users', 'id', $id);
@@ -2287,6 +2294,72 @@ class Pages extends CI_Controller
         $this->Page_model->update_division_setup($division_id);
         $this->session->set_flashdata('success', 'Division setup updated successfully.');
         redirect(base_url() . 'pages/division_setup');
+    }
+
+    public function division_sgc_details()
+    {
+        $this->require_division_dashboard_access();
+
+        $status = (int) $this->uri->segment(3);
+        $status_labels = array(
+            1 => 'Not Yet Organized',
+            2 => 'Organized, Not Functional',
+            3 => 'Functional'
+        );
+
+        if (!isset($status_labels[$status])) {
+            show_404();
+        }
+
+        $page = "division_count_details";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = 'SGC Details';
+        $data['hero_title'] = $status_labels[$status] . ' Schools';
+        $data['hero_description'] = 'View schools in your division filtered by School Governance Council status.';
+        $data['detail_label'] = 'SGC Status';
+        $data['detail_badge'] = $status_labels[$status];
+        $data['detail_type'] = 'sgc';
+        $data['back_url'] = base_url();
+        $data['records'] = $this->Page_model->division_schools_by_sgc_status($this->session->division, $status);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function division_checklist_completed_details()
+    {
+        $this->require_division_dashboard_access();
+
+        $page = "division_count_details";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = 'Checklist Completion Details';
+        $data['hero_title'] = 'Completed Self-Assessment Checklists';
+        $data['hero_description'] = 'Review schools with finalized Self-Assessment Checklist submissions for the active fiscal year.';
+        $data['detail_label'] = 'Checklist Status';
+        $data['detail_badge'] = 'Fiscal Year ' . $this->session->fy;
+        $data['detail_type'] = 'checklist';
+        $data['back_url'] = base_url();
+        $data['records'] = $this->Page_model->division_completed_checklist_schools(
+            $this->session->division,
+            $this->session->fy
+        );
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
     }
 
     function sbm_checklist_unlock()

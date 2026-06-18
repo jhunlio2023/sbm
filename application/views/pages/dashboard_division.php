@@ -10,6 +10,14 @@ $signup_progress_width = min(100, max(0, $signup_rate));
 $completed_checklist_total = isset($completed_checklist_count) ? (int) $completed_checklist_count : 0;
 $checklist_completion_rate = isset($checklist_completion_percentage) ? (float) $checklist_completion_percentage : 0;
 $checklist_completion_width = min(100, max(0, $checklist_completion_rate));
+$division_accounts_url = base_url() . 'pages/district_account/' . rawurlencode($this->session->division);
+$division_setup_url = base_url() . 'pages/division_setup';
+$checklist_completion_url = base_url() . 'pages/division_checklist_completed_details';
+$sgc_detail_urls = array(
+    1 => base_url() . 'pages/division_sgc_details/1',
+    2 => base_url() . 'pages/division_sgc_details/2',
+    3 => base_url() . 'pages/division_sgc_details/3'
+);
 
 $sgc_percentages = array(
     1 => $school_total > 0 ? ($sgc_not_organized / $school_total) * 100 : 0,
@@ -87,6 +95,19 @@ $rate_details = array(
         margin-bottom: 22px;
     }
 
+    .dashboard-stat-link,
+    .dashboard-count-link {
+        display: block;
+        color: inherit;
+        text-decoration: none;
+    }
+
+    .dashboard-stat-link:hover,
+    .dashboard-count-link:hover {
+        color: inherit;
+        text-decoration: none;
+    }
+
     .dashboard-stat-card {
         height: calc(100% - 20px);
         margin-bottom: 20px;
@@ -95,6 +116,18 @@ $rate_details = array(
         border-radius: 16px;
         background: #fff;
         box-shadow: 0 8px 24px rgba(31, 45, 75, .06);
+    }
+
+    .dashboard-stat-link .dashboard-stat-card,
+    .dashboard-count-link .sgc-status {
+        transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+
+    .dashboard-stat-link:hover .dashboard-stat-card,
+    .dashboard-count-link:hover .sgc-status {
+        transform: translateY(-2px);
+        border-color: #d9dfee;
+        box-shadow: 0 14px 30px rgba(31, 45, 75, .10);
     }
 
     .dashboard-stat-top {
@@ -127,6 +160,18 @@ $rate_details = array(
         margin: 10px 0 0;
         color: var(--dashboard-muted);
         font-size: 13px;
+    }
+
+    .dashboard-link-hint {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 10px;
+        color: var(--dashboard-primary);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .02em;
+        text-transform: uppercase;
     }
 
     .dashboard-panel {
@@ -409,48 +454,60 @@ $rate_details = array(
 
     <div class="row dashboard-stats">
         <div class="col-md-6 col-xl-3">
-            <div class="dashboard-stat-card">
-                <div class="dashboard-stat-top">
-                    <div>
-                        <h3><?= $registered_school_total; ?></h3>
-                        <p>Schools signed up in the system</p>
+            <a href="<?= $division_accounts_url; ?>" class="dashboard-stat-link" title="View school signup details">
+                <div class="dashboard-stat-card">
+                    <div class="dashboard-stat-top">
+                        <div>
+                            <h3><?= $registered_school_total; ?></h3>
+                            <p>Schools signed up in the system</p>
+                            <span class="dashboard-link-hint"><i class="mdi mdi-arrow-right"></i> View details</span>
+                        </div>
+                        <span class="dashboard-stat-icon"><i class="mdi mdi-school-outline"></i></span>
                     </div>
-                    <span class="dashboard-stat-icon"><i class="mdi mdi-school-outline"></i></span>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="dashboard-stat-card">
-                <div class="dashboard-stat-top">
-                    <div>
-                        <h3><?= $encoded_school_total; ?></h3>
-                        <p>Encoded total number of schools</p>
+            <a href="<?= $division_setup_url; ?>" class="dashboard-stat-link" title="View division setup">
+                <div class="dashboard-stat-card">
+                    <div class="dashboard-stat-top">
+                        <div>
+                            <h3><?= $encoded_school_total; ?></h3>
+                            <p>Encoded total number of schools</p>
+                            <span class="dashboard-link-hint"><i class="mdi mdi-arrow-right"></i> View details</span>
+                        </div>
+                        <span class="dashboard-stat-icon"><i class="mdi mdi-clipboard-text-outline"></i></span>
                     </div>
-                    <span class="dashboard-stat-icon"><i class="mdi mdi-clipboard-text-outline"></i></span>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="dashboard-stat-card">
-                <div class="dashboard-stat-top">
-                    <div>
-                        <h3><?= number_format($signup_rate, 1); ?>%</h3>
-                        <p>Signup coverage</p>
+            <a href="<?= $division_accounts_url; ?>" class="dashboard-stat-link" title="View signup coverage details">
+                <div class="dashboard-stat-card">
+                    <div class="dashboard-stat-top">
+                        <div>
+                            <h3><?= number_format($signup_rate, 1); ?>%</h3>
+                            <p>Signup coverage</p>
+                            <span class="dashboard-link-hint"><i class="mdi mdi-arrow-right"></i> View details</span>
+                        </div>
+                        <span class="dashboard-stat-icon"><i class="mdi mdi-chart-donut"></i></span>
                     </div>
-                    <span class="dashboard-stat-icon"><i class="mdi mdi-chart-donut"></i></span>
                 </div>
-            </div>
+            </a>
         </div>
         <div class="col-md-6 col-xl-3">
-            <div class="dashboard-stat-card">
-                <div class="dashboard-stat-top">
-                    <div>
-                        <h3><?= (int) $district_count; ?></h3>
-                        <p>Districts in the division</p>
+            <a href="<?= $division_accounts_url; ?>" class="dashboard-stat-link" title="View district details">
+                <div class="dashboard-stat-card">
+                    <div class="dashboard-stat-top">
+                        <div>
+                            <h3><?= (int) $district_count; ?></h3>
+                            <p>Districts in the division</p>
+                            <span class="dashboard-link-hint"><i class="mdi mdi-arrow-right"></i> View details</span>
+                        </div>
+                        <span class="dashboard-stat-icon"><i class="mdi mdi-map-marker-multiple"></i></span>
                     </div>
-                    <span class="dashboard-stat-icon"><i class="mdi mdi-map-marker-multiple"></i></span>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -466,40 +523,46 @@ $rate_details = array(
         </div>
         <div class="dashboard-panel-body">
             <div class="sgc-status-grid">
-                <div class="sgc-status">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Signup Progress</h5>
-                            <small>
-                                <?= $encoded_school_total > 0 ? 'Based on encoded total schools' : 'Division total schools not yet encoded'; ?>
-                            </small>
+                <a href="<?= $division_accounts_url; ?>" class="dashboard-count-link" title="View signup progress details">
+                    <div class="sgc-status">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Signup Progress</h5>
+                                <small>
+                                    <?= $encoded_school_total > 0 ? 'Based on encoded total schools' : 'Division total schools not yet encoded'; ?>
+                                </small>
+                            </div>
+                            <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($signup_rate, 1); ?>%</span>
                         </div>
-                        <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($signup_rate, 1); ?>%</span>
+                        <div class="sgc-progress"><span style="width: <?= $signup_progress_width; ?>%; background:#8b1e3f;"></span></div>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= $signup_progress_width; ?>%; background:#8b1e3f;"></span></div>
-                </div>
+                </a>
 
-                <div class="sgc-status">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Signed-Up Schools</h5>
-                            <small>Current schools registered in the system</small>
+                <a href="<?= $division_accounts_url; ?>" class="dashboard-count-link" title="View signed-up schools">
+                    <div class="sgc-status">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Signed-Up Schools</h5>
+                                <small>Current schools registered in the system</small>
+                            </div>
+                            <span class="sgc-percentage" style="color:#1f4f8f;"><?= $registered_school_total; ?></span>
                         </div>
-                        <span class="sgc-percentage" style="color:#1f4f8f;"><?= $registered_school_total; ?></span>
+                        <div class="sgc-progress"><span style="width: <?= $encoded_school_total > 0 ? min(100, ($registered_school_total / $encoded_school_total) * 100) : 0; ?>%; background:#1f4f8f;"></span></div>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= $encoded_school_total > 0 ? min(100, ($registered_school_total / $encoded_school_total) * 100) : 0; ?>%; background:#1f4f8f;"></span></div>
-                </div>
+                </a>
 
-                <div class="sgc-status">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Encoded Total</h5>
-                            <small>Manual reference total from Division Setup</small>
+                <a href="<?= $division_setup_url; ?>" class="dashboard-count-link" title="View encoded total school setup">
+                    <div class="sgc-status">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Encoded Total</h5>
+                                <small>Manual reference total from Division Setup</small>
+                            </div>
+                            <span class="sgc-percentage" style="color:#16835a;"><?= $encoded_school_total; ?></span>
                         </div>
-                        <span class="sgc-percentage" style="color:#16835a;"><?= $encoded_school_total; ?></span>
+                        <div class="sgc-progress"><span style="width: <?= $encoded_school_total > 0 ? 100 : 0; ?>%; background:#16835a;"></span></div>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= $encoded_school_total > 0 ? 100 : 0; ?>%; background:#16835a;"></span></div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
@@ -514,38 +577,44 @@ $rate_details = array(
         </div>
         <div class="dashboard-panel-body">
             <div class="sgc-status-grid">
-                <div class="sgc-status sgc-one">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Not Yet Organized</h5>
-                            <small><?= $sgc_not_organized; ?> schools</small>
+                <a href="<?= $sgc_detail_urls[1]; ?>" class="dashboard-count-link" title="View schools that are not yet organized">
+                    <div class="sgc-status sgc-one">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Not Yet Organized</h5>
+                                <small><?= $sgc_not_organized; ?> schools</small>
+                            </div>
+                            <span class="sgc-percentage"><?= number_format($sgc_percentages[1], 1); ?>%</span>
                         </div>
-                        <span class="sgc-percentage"><?= number_format($sgc_percentages[1], 1); ?>%</span>
+                        <div class="sgc-progress"><span style="width: <?= min(100, $sgc_percentages[1]); ?>%;"></span></div>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= min(100, $sgc_percentages[1]); ?>%;"></span></div>
-                </div>
+                </a>
 
-                <div class="sgc-status sgc-two">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Organized, Not Functional</h5>
-                            <small><?= $sgc_not_functional; ?> schools</small>
+                <a href="<?= $sgc_detail_urls[2]; ?>" class="dashboard-count-link" title="View schools that are organized but not functional">
+                    <div class="sgc-status sgc-two">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Organized, Not Functional</h5>
+                                <small><?= $sgc_not_functional; ?> schools</small>
+                            </div>
+                            <span class="sgc-percentage"><?= number_format($sgc_percentages[2], 1); ?>%</span>
                         </div>
-                        <span class="sgc-percentage"><?= number_format($sgc_percentages[2], 1); ?>%</span>
+                        <div class="sgc-progress"><span style="width: <?= min(100, $sgc_percentages[2]); ?>%;"></span></div>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= min(100, $sgc_percentages[2]); ?>%;"></span></div>
-                </div>
+                </a>
 
-                <div class="sgc-status sgc-three">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Functional</h5>
-                            <small><?= $sgc_functional; ?> schools</small>
+                <a href="<?= $sgc_detail_urls[3]; ?>" class="dashboard-count-link" title="View schools with functional SGC">
+                    <div class="sgc-status sgc-three">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Functional</h5>
+                                <small><?= $sgc_functional; ?> schools</small>
+                            </div>
+                            <span class="sgc-percentage"><?= number_format($sgc_percentages[3], 1); ?>%</span>
                         </div>
-                        <span class="sgc-percentage"><?= number_format($sgc_percentages[3], 1); ?>%</span>
+                        <div class="sgc-progress"><span style="width: <?= min(100, $sgc_percentages[3]); ?>%;"></span></div>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= min(100, $sgc_percentages[3]); ?>%;"></span></div>
-                </div>
+                </a>
             </div>
         </div>
     </section>
@@ -563,19 +632,21 @@ $rate_details = array(
 
         <div class="dashboard-panel-body">
             <div class="checklist-summary">
-                <div class="sgc-status">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Checklist Completion</h5>
-                            <small>Finalized Self-Assessment Checklist submissions based on encoded total schools.</small>
+                <a href="<?= $checklist_completion_url; ?>" class="dashboard-count-link" title="View completed checklist details">
+                    <div class="sgc-status">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Checklist Completion</h5>
+                                <small>Finalized Self-Assessment Checklist submissions based on encoded total schools.</small>
+                            </div>
+                            <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($checklist_completion_rate, 1); ?>%</span>
                         </div>
-                        <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($checklist_completion_rate, 1); ?>%</span>
+                        <div class="sgc-progress"><span style="width: <?= $checklist_completion_width; ?>%; background:#8b1e3f;"></span></div>
+                        <small class="d-block mt-2 text-muted">
+                            <?= $completed_checklist_total; ?> completed schools out of <?= $encoded_school_total; ?> encoded schools for Fiscal Year <?= html_escape($this->session->fy); ?>.
+                        </small>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= $checklist_completion_width; ?>%; background:#8b1e3f;"></span></div>
-                    <small class="d-block mt-2 text-muted">
-                        <?= $completed_checklist_total; ?> completed schools out of <?= $encoded_school_total; ?> encoded schools for Fiscal Year <?= html_escape($this->session->fy); ?>.
-                    </small>
-                </div>
+                </a>
             </div>
 
             <div id="assessmentAccordion">
