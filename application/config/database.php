@@ -7,7 +7,7 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => '127.0.0.1:3307',
+	'hostname' => '127.0.0.1',
 	'username' => 'root',
 	'password' => 'moth34board',
 	'database' => 'depedmis_ftad',

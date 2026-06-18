@@ -488,6 +488,18 @@ public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
     return $counts;
 }
 
+public function division_sbm_completed_count($division_id, $fy){
+    $row = $this->db
+        ->select('COUNT(DISTINCT school_id) AS total', false)
+        ->where('division', $division_id)
+        ->where('fy', $fy)
+        ->where('stat', 1)
+        ->get('sbm')
+        ->row();
+
+    return $row ? (int) $row->total : 0;
+}
+
 public function division_account_overview($division_id){
     $schools = $this->db
         ->select('schoolName, district_id, schoolID, schoolType, recID, division_id')
@@ -529,6 +541,45 @@ public function division_account_overview($division_id){
         'district_user_counts' => $district_user_counts,
         'school_count' => count($schools)
     );
+}
+
+public function ensure_division_setup_schema(){
+    if (!$this->db->field_exists('total_schools', 'division')) {
+        $this->db->query("ALTER TABLE division ADD COLUMN total_schools INT DEFAULT NULL AFTER region_id");
+    }
+}
+
+public function get_division_setup($division_id){
+    $this->ensure_division_setup_schema();
+
+    return $this->db
+        ->where('id', $division_id)
+        ->get('division')
+        ->row();
+}
+
+public function update_division_setup($division_id){
+    $this->ensure_division_setup_schema();
+
+    $data = array(
+        'description' => trim($this->input->post('description')),
+        'total_schools' => (int) $this->input->post('total_schools')
+    );
+
+    $this->db->where('id', $division_id);
+    return $this->db->update('division', $data);
+}
+
+public function division_school_count($division_id){
+    return (int) $this->db
+        ->where('division_id', $division_id)
+        ->count_all_results('schools');
+}
+
+public function division_district_count($division_id){
+    return (int) $this->db
+        ->where('division_id', $division_id)
+        ->count_all_results('district');
 }
 
 public function division_names_by_ids($division_ids){
@@ -1257,4 +1308,3 @@ public function tana_summary_final(){
 
 
 }
-

@@ -160,6 +160,16 @@
                             <li><a href="<?= base_url(); ?>pages/userlist_division" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
                             <li>
                                 <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-cog-outline"></i>
+                                    <span> Division Settings</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/division_setup">Division Setup</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
                                     <i class="mdi mdi-format-list-checks"></i>
                                     <span> SBM</span>
                                     <span class="menu-arrow"></span>

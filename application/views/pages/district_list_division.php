@@ -1,6 +1,8 @@
 <?php
 $division_name = !empty($division) ? $division->description : 'Division';
 $district_total = count($district);
+$encoded_school_total = isset($encoded_total_schools) ? (int) $encoded_total_schools : 0;
+$signup_rate = isset($signup_percentage) ? (float) $signup_percentage : 0;
 ?>
 
 <style>
@@ -337,7 +339,15 @@ $district_total = count($district);
                     </span>
                     <span class="summary-pill">
                         <i class="mdi mdi-school-outline"></i>
-                        <?= (int) $school_count; ?> <?= (int) $school_count === 1 ? 'school' : 'schools'; ?>
+                        <?= (int) $school_count; ?> signed-up <?= (int) $school_count === 1 ? 'school' : 'schools'; ?>
+                    </span>
+                    <span class="summary-pill">
+                        <i class="mdi mdi-clipboard-text-outline"></i>
+                        <?= $encoded_school_total; ?> encoded total schools
+                    </span>
+                    <span class="summary-pill">
+                        <i class="mdi mdi-chart-donut"></i>
+                        <?= number_format($signup_rate, 1); ?>% signup coverage
                     </span>
                 </div>
             </div>

@@ -3,6 +3,13 @@ $sgc_not_organized = isset($sgc_counts[1]) ? $sgc_counts[1] : 0;
 $sgc_not_functional = isset($sgc_counts[2]) ? $sgc_counts[2] : 0;
 $sgc_functional = isset($sgc_counts[3]) ? $sgc_counts[3] : 0;
 $school_total = $sgc_not_organized + $sgc_not_functional + $sgc_functional;
+$registered_school_total = isset($registered_school_count) ? (int) $registered_school_count : 0;
+$encoded_school_total = isset($encoded_total_schools) ? (int) $encoded_total_schools : 0;
+$signup_rate = isset($signup_percentage) ? (float) $signup_percentage : 0;
+$signup_progress_width = min(100, max(0, $signup_rate));
+$completed_checklist_total = isset($completed_checklist_count) ? (int) $completed_checklist_count : 0;
+$checklist_completion_rate = isset($checklist_completion_percentage) ? (float) $checklist_completion_percentage : 0;
+$checklist_completion_width = min(100, max(0, $checklist_completion_rate));
 
 $sgc_percentages = array(
     1 => $school_total > 0 ? ($sgc_not_organized / $school_total) * 100 : 0,
@@ -168,6 +175,10 @@ $rate_details = array(
         border: 1px solid var(--dashboard-border);
         border-radius: 14px;
         background: #fbfcff;
+    }
+
+    .checklist-summary {
+        margin-bottom: 18px;
     }
 
     .sgc-status-heading {
@@ -397,18 +408,40 @@ $rate_details = array(
     </div>
 
     <div class="row dashboard-stats">
-        <div class="col-md-4">
+        <div class="col-md-6 col-xl-3">
             <div class="dashboard-stat-card">
                 <div class="dashboard-stat-top">
                     <div>
-                        <h3><?= $school_total; ?></h3>
-                        <p>Total schools monitored</p>
+                        <h3><?= $registered_school_total; ?></h3>
+                        <p>Schools signed up in the system</p>
                     </div>
                     <span class="dashboard-stat-icon"><i class="mdi mdi-school-outline"></i></span>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="dashboard-stat-card">
+                <div class="dashboard-stat-top">
+                    <div>
+                        <h3><?= $encoded_school_total; ?></h3>
+                        <p>Encoded total number of schools</p>
+                    </div>
+                    <span class="dashboard-stat-icon"><i class="mdi mdi-clipboard-text-outline"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="dashboard-stat-card">
+                <div class="dashboard-stat-top">
+                    <div>
+                        <h3><?= number_format($signup_rate, 1); ?>%</h3>
+                        <p>Signup coverage</p>
+                    </div>
+                    <span class="dashboard-stat-icon"><i class="mdi mdi-chart-donut"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
             <div class="dashboard-stat-card">
                 <div class="dashboard-stat-top">
                     <div>
@@ -419,18 +452,57 @@ $rate_details = array(
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="dashboard-stat-card">
-                <div class="dashboard-stat-top">
-                    <div>
-                        <h3><?= $sgc_functional; ?></h3>
-                        <p>Schools with functional SGC</p>
+    </div>
+
+    <section class="dashboard-panel">
+        <div class="dashboard-panel-header">
+            <div>
+                <h4>School Signup Coverage</h4>
+                <p>Actual school signups compared with the total number of schools encoded for the division.</p>
+            </div>
+            <small class="text-muted">
+                <?= $registered_school_total; ?> of <?= $encoded_school_total; ?> schools
+            </small>
+        </div>
+        <div class="dashboard-panel-body">
+            <div class="sgc-status-grid">
+                <div class="sgc-status">
+                    <div class="sgc-status-heading">
+                        <div>
+                            <h5>Signup Progress</h5>
+                            <small>
+                                <?= $encoded_school_total > 0 ? 'Based on encoded total schools' : 'Division total schools not yet encoded'; ?>
+                            </small>
+                        </div>
+                        <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($signup_rate, 1); ?>%</span>
                     </div>
-                    <span class="dashboard-stat-icon"><i class="mdi mdi-account-group-outline"></i></span>
+                    <div class="sgc-progress"><span style="width: <?= $signup_progress_width; ?>%; background:#8b1e3f;"></span></div>
+                </div>
+
+                <div class="sgc-status">
+                    <div class="sgc-status-heading">
+                        <div>
+                            <h5>Signed-Up Schools</h5>
+                            <small>Current schools registered in the system</small>
+                        </div>
+                        <span class="sgc-percentage" style="color:#1f4f8f;"><?= $registered_school_total; ?></span>
+                    </div>
+                    <div class="sgc-progress"><span style="width: <?= $encoded_school_total > 0 ? min(100, ($registered_school_total / $encoded_school_total) * 100) : 0; ?>%; background:#1f4f8f;"></span></div>
+                </div>
+
+                <div class="sgc-status">
+                    <div class="sgc-status-heading">
+                        <div>
+                            <h5>Encoded Total</h5>
+                            <small>Manual reference total from Division Setup</small>
+                        </div>
+                        <span class="sgc-percentage" style="color:#16835a;"><?= $encoded_school_total; ?></span>
+                    </div>
+                    <div class="sgc-progress"><span style="width: <?= $encoded_school_total > 0 ? 100 : 0; ?>%; background:#16835a;"></span></div>
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <section class="dashboard-panel">
         <div class="dashboard-panel-header">
@@ -482,12 +554,30 @@ $rate_details = array(
         <div class="dashboard-panel-header">
             <div>
                 <h4>Self-Assessment Checklist</h4>
-                <p>Select a principle to review division-wide manifestation results.</p>
+                <p>Select a principle to review division-wide manifestation results and checklist completion.</p>
             </div>
-            <small class="text-muted">Fiscal Year <?= html_escape($this->session->fy); ?></small>
+            <small class="text-muted">
+                <?= $completed_checklist_total; ?> of <?= $encoded_school_total; ?> schools completed
+            </small>
         </div>
 
         <div class="dashboard-panel-body">
+            <div class="checklist-summary">
+                <div class="sgc-status">
+                    <div class="sgc-status-heading">
+                        <div>
+                            <h5>Checklist Completion</h5>
+                            <small>Finalized Self-Assessment Checklist submissions based on encoded total schools.</small>
+                        </div>
+                        <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($checklist_completion_rate, 1); ?>%</span>
+                    </div>
+                    <div class="sgc-progress"><span style="width: <?= $checklist_completion_width; ?>%; background:#8b1e3f;"></span></div>
+                    <small class="d-block mt-2 text-muted">
+                        <?= $completed_checklist_total; ?> completed schools out of <?= $encoded_school_total; ?> encoded schools for Fiscal Year <?= html_escape($this->session->fy); ?>.
+                    </small>
+                </div>
+            </div>
+
             <div id="assessmentAccordion">
                 <?php foreach ($sbm as $principle) :
                     $principle_id = (string) $principle->id;

@@ -21,6 +21,13 @@ class Pages extends CI_Controller
         }
     }
 
+    private function require_division_settings_access()
+    {
+        if (!$this->session->logged_in || $this->session->position !== 'division') {
+            show_error('Only division users can access division settings.', 403);
+        }
+    }
+
     private function get_managed_user($id)
     {
         $user = $this->Page_model->one_cond_row('users', 'id', $id);
@@ -89,6 +96,21 @@ class Pages extends CI_Controller
             $data['district_count'] = count(
                 $this->Page_model->one_cond('district', 'division_id', $this->session->division)
             );
+            $data['division'] = $this->Page_model->get_division_setup($this->session->division);
+            $data['registered_school_count'] = $this->Page_model->division_school_count($this->session->division);
+            $data['completed_checklist_count'] = $this->Page_model->division_sbm_completed_count(
+                $this->session->division,
+                $this->session->fy
+            );
+            $data['encoded_total_schools'] = !empty($data['division']->total_schools)
+                ? (int) $data['division']->total_schools
+                : 0;
+            $data['signup_percentage'] = $data['encoded_total_schools'] > 0
+                ? ($data['registered_school_count'] / $data['encoded_total_schools']) * 100
+                : 0;
+            $data['checklist_completion_percentage'] = $data['encoded_total_schools'] > 0
+                ? ($data['completed_checklist_count'] / $data['encoded_total_schools']) * 100
+                : 0;
 
             $data['title'] = "Dashboard";
         } elseif ($this->session->position == 'region') {
@@ -2209,13 +2231,62 @@ class Pages extends CI_Controller
         $data['school_account_ids'] = $overview['school_account_ids'];
         $data['district_user_counts'] = $overview['district_user_counts'];
         $data['school_count'] = $overview['school_count'];
-        $data['division'] = $this->Page_model->one_cond_row('division', 'id', $this->session->division);
+        $data['division'] = $this->Page_model->get_division_setup($this->session->division);
+        $data['encoded_total_schools'] = !empty($data['division']->total_schools)
+            ? (int) $data['division']->total_schools
+            : 0;
+        $data['signup_percentage'] = $data['encoded_total_schools'] > 0
+            ? ($data['school_count'] / $data['encoded_total_schools']) * 100
+            : 0;
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
         $this->load->view('pages/' . $page, $data);
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
+    }
+
+    public function division_setup()
+    {
+        $this->require_division_settings_access();
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+        $this->form_validation->set_rules('description', 'Division Name', 'trim|required');
+        $this->form_validation->set_rules('total_schools', 'Total Number of Schools', 'trim|required|regex_match[/^[0-9]+$/]');
+
+        $page = "division_setup";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $division_id = (int) $this->session->division;
+        $data['division'] = $this->Page_model->get_division_setup($division_id);
+
+        if (!$data['division']) {
+            show_404();
+        }
+
+        $data['title'] = "Division Setup";
+        $data['region'] = $this->Page_model->one_cond_row('region', 'id', $data['division']->region_id);
+        $data['district_count'] = $this->Page_model->division_district_count($division_id);
+        $data['actual_school_count'] = $this->Page_model->division_school_count($division_id);
+
+        if ($this->form_validation->run() == FALSE) {
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+            return;
+        }
+
+        $this->Page_model->update_division_setup($division_id);
+        $this->session->set_flashdata('success', 'Division setup updated successfully.');
+        redirect(base_url() . 'pages/division_setup');
     }
 
     function sbm_checklist_unlock()
