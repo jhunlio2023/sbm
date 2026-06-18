@@ -53,6 +53,7 @@ $route['default_controller'] = 'pages/view';
 
 $route['log_in'] = 'pages/log_in';
 $route['signup'] = 'pages/signup';
+$route['signup_district'] = 'pages/signup_district';
 $route['logout'] = 'pages/logout';
 $route['lock'] = 'pages/lock';
 $route['homepage'] = 'pages/homepage';

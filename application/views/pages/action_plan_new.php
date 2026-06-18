@@ -84,7 +84,7 @@
                                                                 </div>
                                                                 <div class="form-group col-lg-4">
                                                                     <label for="userName">Budgetary Requirement</label>
-                                                                    <input type="text" name="bud_req" parsley-trigger="change"  class="form-control">
+                                                                    <input type="text" name="bud_req" parsley-trigger="change" oninput="this.value=this.value.replace(/[^0-9.]/g,'').replace(/(\..*)\./g,'$1');" class="form-control">
                                                                 </div>
                                                             </div>
 

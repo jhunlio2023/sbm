@@ -49,7 +49,8 @@
                                             '1'=>'Not Yet Manifested',
                                             '2'=>'Rarely Manifested',
                                             '3'=>'Frequently Manifested',
-                                            '4'=>'Always Manifested'
+                                            '4'=>'Always Manifested',
+                                            '5'=>'<span class="text-danger">No data</span>'
                                         );
                                         $cat = array(
                                             '1'=>'Technical', 
@@ -127,8 +128,8 @@
                                                                                        ?>    
                                                                                     
                                                                                     </td>
-                                                                                    <td><textarea class="form-control" name="q<?=$sub_row->i_no; ?>" rows="2" id="example-textarea"><?= $sbmc->$count; ?></textarea></td>
-                                                                                    <td><textarea class="form-control" name="qq<?=$sub_row->i_no; ?>" rows="2" id="example-textarea"><?= $sbmc->$count1; ?></textarea></td>
+                                                                                    <td><textarea class="form-control" name="q<?=$sub_row->i_no; ?>" <?php if($sbm->$sbm_col == 4){echo " readonly ";}?> rows="2" id="example-textarea"><?= $sbmc->$count; ?></textarea></td>
+                                                                                    <td><textarea class="form-control" name="qq<?=$sub_row->i_no; ?>" <?php if($sbm->$sbm_col != 4){echo " readonly ";}?> rows="2" id="example-textarea"><?= $sbmc->$count1; ?></textarea></td>
                                                                                     <td>
                                                                                     <select class="form-control" name="a<?=$sub_row->i_no; ?>" >
                                                                                         <option></option>
@@ -159,11 +160,10 @@
 
                                     <div class="form-group text-left mb-0">
 
-                                               <?php if($sbmc->stat == 0){?>
                                         <?php if($this->session->position == 'school'){ ?>
-                                               <input type="submit" name="submit" value="Update" class="btn btn-primary waves-effect waves-light mr-1">
+                                               <input type="submit" name="submit" value="Save Draft" class="btn btn-primary waves-effect waves-light mr-1">
                                                <a href="<?= base_url(); ?>Pages/sbm_ta_final/<?= $sbmc->id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Final</a>
-                                        <?php } }else{ ?>
+                                        <?php } else{ ?>
                                             <?php if($this->session->position == 'smme'){ ?>
                                             <a href="<?= base_url(); ?>Pages/sbm_ta_unlock/<?= $sbmc->id; ?>/<?= $sbmc->school_id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Unlock</a>
                                         <?php }} ?> 
@@ -176,7 +176,7 @@
                             </div>
                         </div>
                         <!-- end row -->
-                                                                                    </form>
+                        </form>
 
                     </div>
                     <!-- end container-fluid -->

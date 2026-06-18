@@ -567,6 +567,19 @@ class Common extends CI_Model
         return $query->result();
     }
 
+    public function two_join_two_cond_gb($t1, $t2, $select, $joinby, $col, $val, $col2, $val2, $ob, $obval,$gb)
+    {
+        $this->db->select($select);
+        $this->db->from($t1 . ' as a');
+        $this->db->join($t2 . ' as b', $joinby, 'left');
+        $this->db->where($col, $val);
+        $this->db->where($col2, $val2);
+        $this->db->group_by($gb);
+        $this->db->order_by($ob, $obval);
+        $query = $this->db->get();
+        return $query->result();
+    }
+
     public function two_join_seven_cond($t1, $t2, $select, $joinby, $col, $val, $col2, $val2,$col3, $val3,$col4, $val4,$col5, $val5,$col6, $val6,$col7, $val7,$ob,$obval)
     {
         $this->db->select($select);

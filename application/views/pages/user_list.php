@@ -2,7 +2,9 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
+                                    <?php if($this->session->position == 'admin'){ ?>
                                     <a class="btn btn-success" href="<?= base_url(); ?>pages/user_new">Add New</a>
+                                    <?php } ?>
                                     
 
                                 
@@ -64,12 +66,14 @@
                                                     <td><?= $row->username; ?></td>
                                                     <td><?= $row->position; ?></td>
                                                     <td>
-                                                        <a class="btn btn-primary btn-sm" href="<?= base_url(); ?>pages/user_update/<?= $row->id; ?>">Edit</a>
-                                                        <a href="#cp" class="open-AddBookDialog btn btn-warning btn-sm waves-effect waves-light" data-id="<?= $row->id; ?>" data-animation="newspaper" data-plugin="custommodal" data-overlayspeed="200" data-overlaycolor="#36404a">Change Password</a>
-                                                        <a href="#profile" class="open-AddBookDialog btn btn-primary btn-sm waves-effect waves-light" data-id="<?= $row->id; ?>" data-animation="slit" data-plugin="custommodal" data-overlayspeed="100" data-overlaycolor="#36404a">Change profile</a>
-                                                    
-                                                        
                                                         <?php if($this->session->position == 'admin'){ ?>
+                                                        <a class="btn btn-primary btn-sm" href="<?= base_url(); ?>pages/user_update/<?= $row->id; ?>">Edit</a>
+                                                        <a href="#profile" class="open-AddBookDialog btn btn-primary btn-sm waves-effect waves-light" data-id="<?= $row->id; ?>" data-animation="slit" data-plugin="custommodal" data-overlayspeed="100" data-overlaycolor="#36404a">Change profile</a>
+                                                        <?php } ?>
+
+                                                        <a href="#cp" class="open-AddBookDialog btn btn-warning btn-sm waves-effect waves-light" data-id="<?= $row->id; ?>" data-animation="newspaper" data-plugin="custommodal" data-overlayspeed="200" data-overlaycolor="#36404a">Change Password</a>
+                                                        
+                                                        <?php if($this->session->position == 'admin' || $this->session->position == 'division'){ ?>
                                                         <a onclick="return confirm('Are you sure?')" class="btn btn-danger btn-sm" href="<?= base_url(); ?>pages/user_delete/<?= $row->id; ?>">Delete</a>
                                                         <?php } ?>
                                                         

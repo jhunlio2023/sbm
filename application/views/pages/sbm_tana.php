@@ -1,10 +1,8 @@
-
-
-                        <!-- start page title -->
+<!-- start page title -->
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <h2 class="text-center">TECHNICAL ASSISSTANCE PROVISION REPORT FORM</h2>
+                                    <h2 class="text-center"><?= $title; ?></h2>
                                     <div class="clearfix"></div>
                                 </div>
                             </div>
@@ -37,7 +35,10 @@
                         <?php endif;  ?>
 
                         <?php $att = array('class' => 'parsley-examples'); ?>
-                        <?= form_open('Pages/tapr_district_update', $att); ?>
+                        <?= form_open('Pages/tana_form', $att); ?>
+
+                        <input type="hidden" name="district" value="<?= $this->session->district; ?>">
+
 
                         <div class="row">
                             <div class="col-12">
@@ -72,23 +73,23 @@
                                                                                     <th colspan='2'>SBM Indicator</th>
                                                                                     <th>Degree Of Manifestation</th>
                                                                                     <th>Concerns, Issues, Gaps, Problems and Bottlenecks (CIGPB s) Encountered</th>
-                                                                                    <th>Facilitating Factors for Indicators with always manifested </th>
-                                                                                    <th>Category (Technical, Institutional, Financial, Political, Infrastructure, Social, Gender)</th>
-                                                                                    <th>Proposed Resolutions/Commitment</th>
-                                                                                    <th>Significant Findings(this pertains to the unusual findings-it may be positive or negative that can give impact to organization)</th>
-                                                                                    <th>Remarks</th>
+                                                                                    <th>Strategic Importance </th>
+                                                                                    <th>Urgency</th>
+                                                                                    <th>Magnitude</th>
+                                                                                    <th>Feasibility</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             
                                                                             <tbody>
                                                                                 <?php 
-                                        
                                                                                     $dm = array(
                                                                                         '1'=>'Not Yet Manifested',
                                                                                         '2'=>'Rarely Manifested',
                                                                                         '3'=>'Frequently Manifested',
-                                                                                        '4'=>'Always Manifested'
+                                                                                        '4'=>'Always Manifested',
+                                                                                        '5'=>'<span class="text-danger">No data</span>'
                                                                                     );
+
                                                                                     $cat = array(
                                                                                         '1'=>'Technical', 
                                                                                         '2'=>'Institutional', 
@@ -99,56 +100,79 @@
                                                                                         '7'=>'Gender'
                                                                                     );
 
-
                                                                                     $question = $this->Common->one_cond('sbm_sub_indicator','priciple_id',$row->id);
                                                                                     $name = 'q'; 
 
                                                                                     $no = 1;
                                                                                     $c = 0;
+                                                                                    
                                                                                     foreach($question as $sub_row){
-                                                                                        
-                                                                                        $sbm = $this->Common->two_cond_row('sbm','school_id',$this->uri->segment(3),'fy',$this->session->fy);
-                                                                                        $sbm_col = 'q'.$sub_row->i_no;
+                                                                                        $sbmc = $this->Common->two_cond_row('sbm','school_id',$this->session->username,'fy',$this->session->fy);
+                                                                                        $ta = $this->Common->two_cond_row('sbm_ta','school_id',$this->session->username,'fy',$this->session->fy);
+                                                                                        $taq = 'q' . $sub_row->i_no;
 
-                                                                                        $count='q'.$sub_row->i_no;
-                                                                                        $count1='qq'.$sub_row->i_no;
-                                                                                        $count2='a'.$sub_row->i_no;
-                                                                                        $count3='f'.$sub_row->i_no;
-                                                                                        $count4='q'.$sub_row->i_no;
-                                                                                        $count5='fs'.$sub_row->i_no;
+                                                                                        $sbm_col = 'q'.$sub_row->i_no;
 
                                                                                 ?>
                                                                                 <tr <?php echo (++$c%2 ? "" : "class='table-active'"); ?>>
-                                                                                    <td><?= $sub_row->i_no; ?></td>
+                                                                                    <td><?= $sub_row->i_no; ?> </td>
                                                                                     <td><?= $sub_row->description; ?></td>
                                                                                     <td class="text-center">
                                                                                         <?php 
-                                                                                        if(!empty($sbmc)){
-                                                                                            foreach($dm as $key => $row){
-                                                                                                if($key == $sbm->$sbm_col){
-                                                                                                echo $row;
+                                                                                            if (!empty($sbmc) && isset($sbmc->$sbm_col)) {
+                                                                                                foreach($dm as $key => $row){
+                                                                                                    if($key == $sbmc->$sbm_col){
+                                                                                                        echo $row;
+                                                                                                    }
                                                                                                 }
+                                                                                            } else {
+                                                                                                echo '<span class="text-danger">No data</span>'; 
                                                                                             }
-                                                                                        }
-                                                                                       ?>    
+                                                                                        ?>
                                                                                     </td>
-                                                                                    <td><textarea class="form-control" name="q<?=$sub_row->i_no; ?>"  rows="2" id="example-textarea" readonly><?= $sbmc->$count; ?></textarea></td>
-                                                                                    <td><textarea class="form-control" name="qq<?=$sub_row->i_no; ?>" rows="2" id="example-textarea" readonly><?= $sbmc->$count1; ?></textarea></td>
+                                                                                    <td><textarea class="form-control" name="q<?=$sub_row->i_no; ?>"  rows="2" id="example-textarea" readonly><?= !empty($ta) ? $ta->$taq : '' ?></textarea></td>
                                                                                     <td>
-                                                                                    <select class="form-control" name="a<?=$sub_row->i_no; ?>" disabled>
-                                                                                        <option></option>
-                                                                                        <?php foreach($cat as $row){ ?>
-                                                                                            <option <?php if($sbmc->$count2 == $row){echo " selected ";}?> value="<?= $row; ?>"><?= $row; ?></option>
-                                                                                        <?php }?>
-                                                                                    </select>
+                                                                                        <select class="form-control" name="a<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
                                                                                     </td>
-                                                                                    <td><textarea class="form-control" name="f<?=$sub_row->i_no; ?>" rows="2" id="example-textarea" readonly><?= $sbmc->$count3; ?></textarea></td>
-                                                                                    <td><textarea class="form-control" name="fs<?=$sub_row->i_no; ?>" rows="2" id="example-textarea"><?= $sbm_remark->$count5; ?></textarea></td>
-                                                                                    <td><textarea class="form-control" name="r<?=$sub_row->i_no; ?>" rows="2" id="example-textarea"><?= $sbm_remark->$count4; ?></textarea></td>
+                                                                                    <td>
+                                                                                        <select class="form-control" name="b<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <select class="form-control" name="c<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <select class="form-control" name="d<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
+                                                                                    </td>
                                                                                 </tr>
                                                                                 <?php } ?>
-
-                                                                                
                                                                                 
                                                                             </tbody>
                                                                         </table>
@@ -159,26 +183,18 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <?php } ?>
-
-                                        <input type="hidden" name="school_id" value="<?= $this->uri->segment(3)?>">
-                                        <input type="hidden" name="id" value="<?= $sbm_remark->id; ?>">
+                                        <?php } ?> 
                                     
                                    
                                     </div>
 
 
                                     <div class="form-group text-left mb-0">
-                                              <?php if($sbmc->stat == 0){?>
-                                               <input type="submit" name="submit" value="Update" class="btn btn-primary waves-effect waves-light mr-1">   
-                                               <?php }else{ ?>
-                                               <?php if($this->session->position == 'division'){ ?>
-                                                <a href="<?= base_url(); ?>Pages/sbm_ta_unlock/<?= $sbmc->id; ?>/<?= $sbmc->school_id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Unlock</a>
-                                                <?php } ?> 
-                                               <?php } ?>
-                                               
+                                               <input type="submit" name="submit" value="Save Draft" class="btn btn-primary waves-effect waves-light mr-1">
+                                                
                                                
                                             </div>
+
                                     </div>
                                 </div>
                             </div>
@@ -191,9 +207,3 @@
 
                 </div>
                 <!-- end content -->
-
-                
-
-
-
-                                        

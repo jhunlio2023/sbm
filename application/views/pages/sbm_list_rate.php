@@ -52,6 +52,7 @@
                                                     <th>No.</th>
                                                     <th>School ID</th>
                                                     <th>School Name </th>
+                                                    <th>Division </th>
                                                     <th class="text-center">Action Plan</th>
                                                     <th class="text-center">Self-Assessment</th>
                                                     <th class="text-center">TA Form</th>
@@ -61,11 +62,13 @@
                                                     $c=1; foreach($data as $row){
                                                     $sbm_submit=$this->Page_model->two_cond_row_select('sbm','school_id,fy','school_id',$row->school_id,'fy',$this->session->fy);
                                                     $sbm_ta=$this->Page_model->two_cond_row_select('sbm_ta','school_id,fy','school_id',$row->school_id,'fy',$this->session->fy);
+                                                    $d=$this->Page_model->one_cond_row('division','id',$row->division_id);
                                                 ?>
                                                 <tr>
                                                     <td><?= $c++; ?></td>
                                                     <td><?= $row->school_id; ?></td>
                                                     <td><?= $row->schoolName; ?></td>
+                                                    <td><?= $d->description; ?></td>
                                                     <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/sbm_action_plan_pview_district/<?= $row->school_id; ?>" class="btn btn-success btn-sm">View</a></td>
                                                     <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/checklist_district/<?= $row->school_id; ?>" class="btn btn-success btn-sm">View</a></td>
                                                     <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/tapr_form_district/<?= $row->school_id; ?>" class="btn btn-success btn-sm">View</a></td>

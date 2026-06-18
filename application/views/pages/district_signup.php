@@ -81,12 +81,12 @@
                                 <?php endif; ?> 
                                 
                             <?= validation_errors(); ?>
-                                <?= form_open('Pages/signup') ?>
+                                <?= form_open('signup_district') ?>
 
                                 <div class="form-row">
                                     
                                     <div class="form-group col-md-6">
-                                        <label for="schoolID">School ID <i class="text-danger">(Your school ID serves as your username.)</i></label>
+                                        <label for="schoolID">Username</label>
                                         <input class="form-control" type="text" id="schoolID" required="" name="schoolID">
                                     </div>
 
@@ -109,12 +109,8 @@
                                 </div>
 
                                 <div class="form-row">
-                                    <div class="form-group col-md-6">
-                                        <label for="schoolName">School Name</label>
-                                        <input class="form-control" type="text" id="schoolName" required="" name="schoolName">
-                                    </div>
-                                    <div class="form-group col-md-6">
-                                        <label for="schoolName">School Email</label>
+                                    <div class="form-group col-md-12">
+                                        <label for="schoolName">Email</label>
                                         <input class="form-control" type="email" id="schoolEmail" name="schoolEmail" required="">
                                     </div>
                                     
@@ -141,41 +137,7 @@
                                     </div>
                                 </div>
 
-                                <div class="form-row">
-                                    <div class="form-group col-md-4">
-                                        <label for="schoolName">School Governance Council (SGC)</label>
-                                        <select name="sgc" id="sgc" required class="form-control">
-                                                <option disabled selected>Select</option>
-                                                    <option value="1">Not Yet Organized</option>
-                                                    <option value="2">Organized but not Functional</option>
-                                                    <option value="3">Functional</option>
-                                            </select>
-                                    </div>
-
-                                    <div class="form-group col-md-4">
-                                                    <label name="">Categories</label>
-                                                    <select class="form-control" required name='category'>
-                                                        <option disabled selected>Choose Offers</option>
-                                                        <?php $schoo_type = array('Elementary'=>1,'Integrated(Elem & JHS)'=>2,'Integrated(Elem, JHS, & SHS)'=>3,'Secondary(JHS only)'=>4,'Secondary(JHS & SHS)'=>5,'SHS - Stand Alone'=>6);
-
-                                                        foreach($schoo_type as $key => $row){
-                                                        ?>
-                                                        <option value="<?= $row; ?>"><?= $key; ?></option>
-                                                        <?php } ?>
-                                                    </select>
-                                    </div>
-
-                                    <div class="form-group col-md-4">
-                                        <label for="schoolName">Offerings</label>
-                                        <select name="schoolType" id="school_type" class="form-control">
-                                                <option disabled selected>Select Offerings</option>
-                                                    <option value="1">None</option>
-                                                    <option value="2">School-Based ALS Program</option>
-                                                    <option value="3">TLE-TVL Course Offerings </option>
-                                                    <option value="4">School-Based ALS Program and TLE-TVL Course Offerings </option>
-                                            </select>
-                                    </div>
-                                </div>
+                                
 
                                     
                                     <input type="hidden" valu="" name="renren">
@@ -287,7 +249,6 @@
             });
         });
         </script>
-
         <script>
         function togglePassword() {
             const password = document.getElementById("password");

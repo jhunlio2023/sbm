@@ -204,7 +204,45 @@ class Pages extends CI_Controller
 
         $data['title'] = "School List";
 
-        $data['data'] = $this->Common->two_join_one_cond_not_gb('schools','district', 'id,description,schoolID,schoolName,a.division_id,a.district_id','a.district_id = id', 'a.division_id', $this->uri->segment(3),'schoolName','ASC');
+        $data['data'] = $this->Common->two_join_one_cond_not_gb('schools','district', 'a.recID,id,description,schoolID,schoolName,a.division_id,a.district_id','a.district_id = id', 'a.division_id', $this->uri->segment(3),'schoolName','ASC');
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function schools_district()
+    {
+        $page = "schools";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "School List";
+
+        $data['data'] = $this->Common->two_join_one_cond_not_gb('schools','district', 'a.recID,id,description,schoolID,schoolName,a.division_id,a.district_id','a.district_id = id', 'a.district_id', $this->uri->segment(3),'schoolName','ASC');
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function schools_division()
+    {
+        $page = "schools";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "School List";
+
+        $data['data'] = $this->Common->two_join_one_cond_not_gb('schools','district', 'a.recID,id,description,schoolID,schoolName,a.division_id,a.district_id','a.district_id = id', 'a.division_id', $this->uri->segment(3),'schoolName','ASC');
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -250,7 +288,7 @@ class Pages extends CI_Controller
         $val = $this->uri->segment(4);
         $division = $this->session->division;
 
-        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'division',$division, 'b.schoolName', 'ASC');
+        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.division_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'division',$division, 'b.schoolName', 'ASC');
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -273,7 +311,7 @@ class Pages extends CI_Controller
         $val = $this->uri->segment(4);
         $region = $this->session->region;
 
-        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'region',$region, 'b.schoolName', 'ASC');
+        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.division_id,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'region',$region, 'b.schoolName', 'ASC');
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -365,7 +403,7 @@ class Pages extends CI_Controller
 
             $this->Page_model->user_update();
             $this->session->set_flashdata('success', 'Successfully saved.');
-            redirect(base_url() . 'pages/userlist');
+            redirect($_SERVER['HTTP_REFERER']);
         }
     }
 
@@ -375,7 +413,18 @@ class Pages extends CI_Controller
         $user = $this->Page_model->one_cond_row('users', 'id', $id);
         $this->Page_model->delete_with_attach('users', $id, $user->image);
         $this->session->set_flashdata('danger', 'Successfully deleted.');
-        redirect(base_url() . 'pages/userlist');
+        redirect($_SERVER['HTTP_REFERER']);
+    }
+
+    public function school_delete()
+    {
+        $id = $this->uri->segment(3);
+        // $user = $this->Page_model->one_cond_row('users', 'username', $id);
+        // $this->Page_model->delete_with_attach('users', $id, $user->image);
+        $this->Page_model->delete('schools', 'schoolID', 3);
+        $this->Page_model->delete('users', 'username', 3);
+        $this->session->set_flashdata('danger', 'Successfully deleted.');
+        redirect($_SERVER['HTTP_REFERER']);
     }
 
     public function confirm_signup()
@@ -390,24 +439,52 @@ class Pages extends CI_Controller
     {
         $this->Page_model->user_pass();
         $this->session->set_flashdata('success', 'Successfully updated.');
-        redirect(base_url() . 'pages/userlist');
+        redirect($_SERVER['HTTP_REFERER']);
     }
 
     public function profile()
     {
         $id = $this->input->post('id');
         $user = $this->Page_model->one_cond_row('users', 'id', $id);
-        $config['allowed_types'] = 'jpg|png';
+        $config['allowed_types'] = 'jpg|png|jpeg|gif|';
         $config['upload_path'] = './uploads/';
         $this->load->library('upload', $config);
 
         if ($this->upload->do_upload('file')) {
-            unlink("uploads/" . $user->image);
+            $file = "uploads/" . $user->image;
+
+            if (!empty($user->image) && file_exists($file)) {
+                unlink($file);
+            }
             $this->Page_model->user_update_profile();
             $this->session->set_flashdata('success', 'Successfully updated.');
-            redirect(base_url() . 'pages/userlist');
+            redirect($_SERVER['HTTP_REFERER']);
         } else {
             print_r($this->upload->display_errors());
+        }
+    }
+
+    public function user_profile()
+    {
+        $id = $this->session->username;
+        $user = $this->Page_model->one_cond_row('users', 'username', $id);
+        $config['allowed_types'] = 'jpg|png|jpeg|gif|';
+        $config['upload_path'] = './uploads/';
+        $config['max_size']      = 1024; // 1MB
+        $this->load->library('upload', $config);
+
+        if ($this->upload->do_upload('file')) {
+            $file = "uploads/" . $user->image;
+
+            if (!empty($user->image) && file_exists($file)) {
+                unlink($file);
+            }
+            $this->Page_model->users_update_profile();
+            $this->session->set_flashdata('success', 'Successfully updated.');
+            redirect($_SERVER['HTTP_REFERER']);
+        } else {
+            $this->session->set_flashdata('danger', $this->upload->display_errors());
+            redirect($_SERVER['HTTP_REFERER']);
         }
     }
 
@@ -434,6 +511,7 @@ class Pages extends CI_Controller
             if ($user_id) {
 
                 $user_data = array(
+                    'id' => $user_id['id'],
                     'username' => $user_id['username'],
                     'position' => $user_id['position'],
                     'user' => $user_id['fname'] . ' ' . $user_id['mname'] . ' ' . $user_id['lname'],
@@ -451,7 +529,7 @@ class Pages extends CI_Controller
                     . $this->session->position);
                 redirect(base_url());
             } else {
-                $this->session->set_flashdata('failed', 'Username/Password not match');
+                $this->session->set_flashdata('failed', 'Invalid login. Either your account is not verified (please check your email for the verification link) or your username or password is incorrect.”');
                 redirect(base_url() . 'log_in');
             }
         }
@@ -568,10 +646,11 @@ class Pages extends CI_Controller
         }
 
         $data['title'] = "School List";
+        $table = $this->uri->segment(4);
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         //$data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
-        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.district', $this->uri->segment(3), 'b.schoolName', 'ASC');
+        $data['data'] = $this->Common->two_join_two_cond_gb($table, 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.district', $this->uri->segment(3), 'b.schoolName', 'ASC','a.school_id');
 
 
         $this->load->view('templates/header_dt');
@@ -592,9 +671,11 @@ class Pages extends CI_Controller
 
         $data['title'] = "School List";
 
+        $table = $this->uri->segment(4);
+
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         //$data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
-        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.division', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.division', $this->uri->segment(3), 'b.schoolName', 'ASC');
+        $data['data'] = $this->Common->two_join_two_cond_gb($table, 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.division', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.division', $this->uri->segment(3), 'b.schoolName', 'ASC','a.school_id');
 
 
         $this->load->view('templates/header_dt');
@@ -856,7 +937,6 @@ class Pages extends CI_Controller
 
     public function tapr_form()
     {
-
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
@@ -901,12 +981,213 @@ class Pages extends CI_Controller
         redirect(base_url() . 'pages/tapr_form');
     }
 
+    public function tana_form()
+    {
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+
+        $this->form_validation->set_rules('district', 'District', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+
+            $data['tana'] = $this->Common->two_cond_row('tana', 'school_id', $this->session->username, 'fy', $this->session->fy);
+
+            $page = !$data['tana'] ? 'sbm_tana' : 'sbm_tana_update';
+
+
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $data['title'] = "Technical Assistance Needs Assessment Form";
+
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+            $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+        } else {
+            $this->Page_model->sbm_tana_insert();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url() . 'pages/tana_form');
+        }
+    }
+
+    public function tana_summary()
+    {
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+
+        $this->form_validation->set_rules('district', 'District', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+
+            //$data['tana'] = $this->Common->two_cond_row('tana', 'school_id', $this->session->username, 'fy', $this->session->fy);
+            //$data['indicator'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $page = 'sbm_tana_top_list';
+
+
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $data['title'] = "Technical Assistance Needs Assessment Priority Basis";
+
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+            $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $averages = $this->Page_model->get_averages($this->session->username, $this->session->fy);
+            arsort($averages);
+
+            // Keep only top 20
+            $top20 = array_slice($averages, 0, 20, true);
+
+            $data['averages'] = $top20;
+
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+        } else {
+            $this->Page_model->sbm_tana_summary_insert();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url() . 'pages/tana_summary');
+        }
+    }
+
+    public function tana_summary_division()
+    {
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+
+        $this->form_validation->set_rules('district', 'District', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+
+            //$data['tana'] = $this->Common->two_cond_row('tana', 'school_id', $this->session->username, 'fy', $this->session->fy);
+            //$data['indicator'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $page = 'sbm_tana_top_list_division';
+
+
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $data['title'] = "Technical Assistance Needs Assessment Priority Basis";
+            $data['data'] = $this->Page_model->get_seq_one_two();
+            $data['ivy'] = $this->Common->two_cond_order_by('division_tana','fy',$this->session->fy,'division',$this->session->division,'sequence','ASC');
+
+
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+        } else {
+            $this->Page_model->sbm_tana_summary_insert();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url() . 'pages/tana_summary');
+        }
+    }
+
+    public function tana_summary_region()
+    {
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+
+        $this->form_validation->set_rules('district', 'District', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+
+            //$data['tana'] = $this->Common->two_cond_row('tana', 'school_id', $this->session->username, 'fy', $this->session->fy);
+            //$data['indicator'] = $this->Common->no_cond('sbm_sub_indicator');
+
+            $page = 'tana_region';
+
+
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $data['title'] = "Technical Assistance Needs Assessment Priority Basis";
+            $data['data'] = $this->Page_model->two_cond('division_tana','region',$this->session->region, 'fy', $this->session->fy);
+            $data['ivy'] = $this->Common->two_cond_order_by('region_tana','fy',$this->session->fy,'region',$this->session->region,'sequence','ASC');
+
+
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+        } else {
+            $this->Page_model->sbm_tana_summary_region_insert();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url() . 'pages/tana_summary');
+        }
+    }
+
+    public function tana_summary_update()
+    {
+        $this->Page_model->delete_two_cond('tana_summary','fy',$this->session->fy,'school_id',$this->session->username);
+        $this->Page_model->sbm_tana_summary_insert();
+        $this->session->set_flashdata('success', 'Successfully saved.');
+        redirect(base_url() . 'pages/tana_summary');
+    }
+
+    public function tana_division()
+    {
+        $this->Page_model->tana_division_insert();
+        $this->session->set_flashdata('success', 'Successfully saved.');
+        redirect(base_url() . 'pages/tana_summary_division');
+    }
+
+    public function tana_region()
+    {
+        $this->Page_model->tana_region_insert();
+        $this->session->set_flashdata('success', 'Successfully saved.');
+        redirect(base_url() . 'pages/tana_summary_region');
+    }
+
+    public function tana_form_update()
+    {
+        $this->Page_model->sbm_tana_update();
+        $this->session->set_flashdata('success', 'Successfully saved.');
+        redirect(base_url() . 'pages/tana_form');
+    }
+
     function sbm_ta_final()
     {
         $this->Page_model->sbm_ta_lock_unloc(1);
         $this->session->set_flashdata('success', 'Saved successfully.');
         redirect(base_url() . 'Pages/tapr_form');
     }
+
 
 
 
@@ -938,6 +1219,8 @@ class Pages extends CI_Controller
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
             $data['sbmc_count'] = $this->Common->two_cond_count_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
             $data['sbmc'] = $this->Common->two_cond_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
+
+            //$data['lock'] = $this->Common->three_cond_count_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy,'stat',1);
 
 
 
@@ -1109,7 +1392,7 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['title'] = "School List";
+        $data['title'] = "List Of District";
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         $data['data'] = $this->Page_model->one_cond('district', 'division_id', $this->session->division);
@@ -1199,18 +1482,18 @@ class Pages extends CI_Controller
 
 
             $this->load->view('pages/' . $page, $data);
-        } else {
+            } else {
 
-            $recaptcha = $this->input->post('g-recaptcha-response');
-            $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
+                $recaptcha = $this->input->post('g-recaptcha-response');
+                $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
 
-            $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
-            $responseKeys = json_decode($response, true);
+                $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
+                $responseKeys = json_decode($response, true);
 
-            if (!$responseKeys["success"]) {
-                $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
-                redirect(base_url() . 'log_in');
-            }
+                if (!$responseKeys["success"]) {
+                    $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
+                    redirect(base_url() . 'log_in');
+                }
 
 
             $renren = $this->input->post('renren');
@@ -1219,6 +1502,7 @@ class Pages extends CI_Controller
             $ic = $this->input->post('ic');
 
             $schoolID = $this->input->post('schoolID');
+            $user_email = $this->input->post('schoolEmail');
 
             if (!empty($renren) || !empty($ivykate) || !empty($ivankyle) || !empty($ic)) {
                 $this->session->set_flashdata('danger', 'I Got you');
@@ -1226,10 +1510,12 @@ class Pages extends CI_Controller
             }
 
             $check = $this->Common->one_cond_count_row('schools', 'schoolID', $schoolID)->num_rows();
+            $user_check = $this->Common->one_cond_count_row('users', 'email', $user_email)->num_rows();
 
-            if ($check == 0) {
+            if ($check == 0 && $user_check == 0) {
                 $this->Page_model->insert_school();
                 $this->Page_model->insert_user();
+                $pass = base_url() . 'Pages/confirm_signup/' . $this->db->insert_id();
             } else {
                 $this->session->set_flashdata('failed', 'Duplicate entry found. The record already exists.');
                 redirect(base_url() . 'log_in');
@@ -1239,7 +1525,7 @@ class Pages extends CI_Controller
             $name = $this->input->post('schoolName');
             $username = $this->input->post('schoolID');
             $pn = $this->input->post('password');
-            $pass = base_url() . 'Pages/confirm_signup/' . $this->db->insert_id();
+            
 
             //Email Notification
             $this->load->config('email');
@@ -1263,7 +1549,7 @@ class Pages extends CI_Controller
                         overflow: hidden;
                         }
                         .email-header {
-                        background-color: #0d6efd;
+                        background-color: #a00000;
                         color: white;
                         padding: 20px;
                         text-align: center;
@@ -1283,14 +1569,14 @@ class Pages extends CI_Controller
                         .credentials-box {
                         background-color: #e9f2ff;
                         padding: 15px;
-                        border-left: 4px solid #0d6efd;
+                        border-left: 4px solid #a00000;
                         margin: 20px 0;
                         border-radius: 6px;
                         }
                         .credentials-box p {
                         margin: 0;
                         font-weight: bold;
-                        color: #0d3f8f;
+                        color: #a00000;
                         }
                         .email-footer {
                         background-color: #f7f7f7;
@@ -1298,6 +1584,17 @@ class Pages extends CI_Controller
                         text-align: center;
                         font-size: 14px;
                         color: #666666;
+                        }
+                        .cb{
+                            margin-top:20px;
+                            background-color:#a00000;
+                            color:#ffffff !important;
+                            padding:7px 15px;
+                            text-decoration:none;
+                            border-radius:6px;
+                            font-size:16px;
+                            font-weight:bold;
+                            display:inline-block;
                         }
                     </style>
                     </head>
@@ -1308,18 +1605,18 @@ class Pages extends CI_Controller
                         </div>
                         <div class="email-body">
                         <p>Dear ' . htmlspecialchars($name) . ',</p>
-                        <p>Your profile has been successfully encoded into the <strong>DepEd MIS</strong> system. Please find your login credentials below:</p>
+                        <p>Your profile has been successfully encoded into the <strong>FTAD OneView</strong> system. Please find your login credentials below:</p>
 
                         <div class="credentials-box">
                             <p>Username: ' . htmlspecialchars($username) . '</p>
                             <p>Password: ' . htmlspecialchars($pn) . '</p>
-                            <p>Confirm Signup Link: ' . htmlspecialchars($pass) . '</p>
+                            <a class="cb" href="' . htmlspecialchars($pass) . '">' . 'Confirm' . '</a>
                         </div>
 
                         <p>Kindly keep this information secure and do not share it with anyone.</p>
                         <p>Should you have any issues accessing your account, please contact your system administrator.</p>
 
-                        <p style="margin-top: 30px;">Thanks & Regards,<br><strong>DepEd MIS Team</strong></p>
+                        <p style="margin-top: 30px;">Thanks & Regards,<br><strong>FTAD OneView Team</strong></p>
                         </div>
                         <div class="email-footer">
                         © ' . date('Y') . ' Department of Education
@@ -1328,13 +1625,196 @@ class Pages extends CI_Controller
                     </body>
                     </html>';
 
-            $this->email->from('no-reply@lxeinfotechsolutions.com', 'DepEd MIS Team')
+            $this->email->from('no-reply@lxeinfotechsolutions.com', 'FTAD OneView Team')
                 ->to($email)
                 ->subject('Account Created')
                 ->message($mail_message);
             $this->email->send();
 
-            $this->session->set_flashdata('success', 'School account has been registered successfully. Your username and password have been sent to your email.');
+            //$this->session->set_flashdata('success', 'School account has been registered successfully. Your username and password have been sent to your email.');
+            $this->session->set_flashdata('success', 'The school account has been successfully registered. You may now sign in using your credentials.');
+            redirect(base_url() . 'log_in');
+        }
+    }
+
+
+    public function signup_district()
+    {
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        ', '</div>');
+        $this->form_validation->set_rules('schoolID', 'Username', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+
+            $page = "district_signup";
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+            $data['division'] = $this->Page_model->one_cond('division', 'region_id', 12);
+
+
+            $this->load->view('pages/' . $page, $data);
+            } else {
+
+                $recaptcha = $this->input->post('g-recaptcha-response');
+                $secret = trim('6LedsqorAAAAAJLksDbaUK9OIhlM-6bNeR52eXbo');
+
+                $response = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$secret}&response={$recaptcha}");
+                $responseKeys = json_decode($response, true);
+
+                if (!$responseKeys["success"]) {
+                    $this->session->set_flashdata('danger', 'reCAPTCHA verification failed. Please try again.');
+                    redirect(base_url() . 'log_in');
+                }
+
+
+            $renren = $this->input->post('renren');
+            $ivykate = $this->input->post('ivykate');
+            $ivankyle = $this->input->post('ivankyle');
+            $ic = $this->input->post('ic');
+
+            $districtID = $this->input->post('d_id');
+            $username = $this->input->post('schoolID');
+
+            if (!empty($renren) || !empty($ivykate) || !empty($ivankyle) || !empty($ic)) {
+                $this->session->set_flashdata('danger', 'I Got you');
+                redirect(base_url() . 'private');
+            }
+
+            $user = $this->Common->one_cond_count_row('users', 'username', $username)->num_rows();
+
+            if ($user > 0) { 
+                $this->session->set_flashdata('failed', 'Duplicate entry found. The record already exists.');
+                redirect(base_url('log_in'));
+            }
+
+            $check = $this->Common->two_cond_count_row('users', 'd_id', $districtID,'position','district')->num_rows();
+
+            if ($check == 0) {
+                $this->Page_model->insert_district_user(); 
+                $pass = base_url() . 'Pages/confirm_signup/' . $this->db->insert_id();
+            } else {
+                $this->session->set_flashdata('failed', 'Duplicate entry found. The record already exists.');
+                redirect(base_url() . 'log_in');
+            }
+
+            $district = $this->Common->one_cond_row('district', 'id',$this->input->post('d_id'));
+
+            $email = $this->input->post('schoolEmail');
+            $name = $district->description;
+            $username = $this->input->post('schoolID');
+            $pn = $this->input->post('password');
+            
+
+            //Email Notification
+            $this->load->config('email');
+            $this->load->library('email');
+            $mail_message = '
+                    <html>
+                    <head>
+                    <style>
+                        body {
+                        font-family: "Segoe UI", Roboto, Arial, sans-serif;
+                        background-color: #f0f4f8;
+                        margin: 0;
+                        padding: 20px;
+                        }
+                        .email-wrapper {
+                        max-width: 600px;
+                        margin: auto;
+                        background-color: #ffffff;
+                        border-radius: 10px;
+                        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+                        overflow: hidden;
+                        }
+                        .email-header {
+                        background-color: #a00000;
+                        color: white;
+                        padding: 20px;
+                        text-align: center;
+                        }
+                        .email-header h2 {
+                        margin: 0;
+                        font-size: 24px;
+                        }
+                        .email-body {
+                        padding: 30px 25px;
+                        color: #333333;
+                        }
+                        .email-body p {
+                        font-size: 16px;
+                        line-height: 1.6;
+                        }
+                        .credentials-box {
+                        background-color: #e9f2ff;
+                        padding: 15px;
+                        border-left: 4px solid #a00000;
+                        margin: 20px 0;
+                        border-radius: 6px;
+                        }
+                        .credentials-box p {
+                        margin: 0;
+                        font-weight: bold;
+                        color: #a00000;
+                        }
+                        .email-footer {
+                        background-color: #f7f7f7;
+                        padding: 15px;
+                        text-align: center;
+                        font-size: 14px;
+                        color: #666666;
+                        }
+                        .cb{
+                            margin-top:20px;
+                            background-color:#a00000;
+                            color:#ffffff !important;
+                            padding:7px 15px;
+                            text-decoration:none;
+                            border-radius:6px;
+                            font-size:16px;
+                            font-weight:bold;
+                            display:inline-block;
+                        }
+                    </style>
+                    </head>
+                    <body>
+                    <div class="email-wrapper">
+                        <div class="email-header">
+                        <h2>Welcome to FTAD OneView</h2>
+                        </div>
+                        <div class="email-body">
+                        <p>Dear ' . htmlspecialchars($name) . ',</p>
+                        <p>Your profile has been successfully encoded into the <strong>FTAD OneView</strong> system. Please find your login credentials below:</p>
+
+                        <div class="credentials-box">
+                            <p>Username: ' . htmlspecialchars($username) . '</p>
+                            <p>Password: ' . htmlspecialchars($pn) . '</p>
+                            <a class="cb" href="' . htmlspecialchars($pass) . '">' . 'Confirm' . '</a>
+                        </div>
+
+                        <p>Kindly keep this information secure and do not share it with anyone.</p>
+                        <p>Should you have any issues accessing your account, please contact your system administrator.</p>
+
+                        <p style="margin-top: 30px;">Thanks & Regards,<br><strong>FTAD OneView Team</strong></p>
+                        </div>
+                        <div class="email-footer">
+                        © ' . date('Y') . ' Department of Education
+                        </div>
+                    </div>
+                    </body>
+                    </html>';
+
+            $this->email->from('no-reply@lxeinfotechsolutions.com', 'FTAD OneView Team')
+                ->to($email)
+                ->subject('Account Created')
+                ->message($mail_message);
+            $this->email->send();
+
+            //$this->session->set_flashdata('success', 'School account has been registered successfully. Your username and password have been sent to your email.');
+            $this->session->set_flashdata('success', 'The district account has been successfully registered. You may now sign in using your credentials.');
             redirect(base_url() . 'log_in');
         }
     }
@@ -1360,6 +1840,9 @@ class Pages extends CI_Controller
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_basic');
     }
+
+    
+
 
     function homepage()
     {
@@ -1401,4 +1884,206 @@ class Pages extends CI_Controller
         $this->load->view('templates/nav');
         $this->load->view($page, $data);
     }
+
+    public function tana_division_delete()
+    {
+        $this->Page_model->delete('division_tana', 'id', 3);
+        $this->session->set_flashdata('danger', 'Successfully deleted.');
+        redirect(base_url() . 'pages/tana_summary_division');
+    }
+
+    public function tana_region_delete()
+    {
+        $this->Page_model->delete('region_tana', 'id', 3);
+        $this->session->set_flashdata('danger', 'Successfully deleted.');
+        redirect(base_url() . 'pages/tana_summary_region');
+    }
+
+    public function forgot_password()
+    {
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        ', '</div>');
+        $this->form_validation->set_rules('email', 'Email', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+
+            $page = "fp";
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $this->load->view('pages/' . $page);
+        } else {
+            
+            $email_check = $this->Common->one_cond_count_row('users', 'email', $this->input->post('email'));
+            
+            if ($email_check->num_rows() == 0) {
+                $this->session->set_flashdata('failed', 'We could not find your email address.');
+                redirect(base_url() . 'Pages/forgot_password');
+            } else {
+                $this->Page_model->update_request_password();
+                $this->session->set_flashdata('success', 'The new password has been sent to your email.');
+
+                redirect(base_url() . 'log_in');
+            }
+        }
+    }
+
+    public function school_update()
+    {
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+        $this->form_validation->set_rules('schoolName', 'School Name', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+
+            $page = "school_update";
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $data['title'] = "Update Action Plan for Implementation of SBM";
+            $data['data'] = $this->Common->one_cond_row('schools', 'recID', $this->uri->segment(3));
+            $data['division'] = $this->Page_model->one_cond('division', 'region_id', 12);
+            $data['districts'] = $this->Page_model->get_districts_by_division($data['data']->division_id);
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+        } else {
+
+            $this->Page_model->school_updates();
+            $this->Page_model->update_district_id();
+            $this->Page_model->user_updates();
+            $this->Page_model->dd_updates();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url() . 'school/'. $this->session->username);
+        }
+    }
+
+    public function district_account()
+    {
+
+        $page = "district_list_division";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "Profile List";
+
+        $data['district'] = $this->Page_model->one_cond('district','division_id',$this->session->division);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    function sbm_checklist_unlock()
+	{
+		$this->Page_model->sbm_cecklist_lock_unloc(0);
+		$this->session->set_flashdata('success', 'Saved successfully.');
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+    public function district_userlist_by_division()
+    {
+
+        $page = "user_list";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "User List";
+        $id = $this->uri->segment(3);
+
+        $data['users'] = $this->Page_model->two_cond('users','position','district','d_id',$id);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    function sbm_ta_unlock()
+	{
+		$this->Page_model->sbm_ta_lock_unloc(0);
+		$this->session->set_flashdata('success', 'Saved successfully.');
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+    function update_tana_summary()
+	{
+		$this->Page_model->tana_summary_del();
+		$this->session->set_flashdata('success', 'Saved successfully.');
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+    function final_tana_summary()
+	{
+		$this->Page_model->tana_summary_final();
+		$this->session->set_flashdata('success', 'Saved successfully.');
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+     function change_password_user()
+	{
+		$this->Page_model->user_password_change();
+		$this->session->set_flashdata('success', 'Password successfully changed.');
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+    function change_password_user_division()
+	{
+		$this->Page_model->division_user_password_change();
+		$this->session->set_flashdata('success', 'Password successfully changed.');
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+
+    function add_school_user()
+	{
+        $schoolName = rawurldecode($this->uri->segment(4));
+        $school_id = $this->uri->segment(3);
+        $district = $this->uri->segment(5);
+        $division = $this->uri->segment(6);
+        
+		$this->Page_model->add_school_user($school_id,$schoolName,$district,$division);
+		$this->session->set_flashdata('success', 'Password successfully changed.');
+		redirect($_SERVER['HTTP_REFERER']);
+	}
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

@@ -58,9 +58,9 @@
                                         </div>
                                         <div class="col-sm-6">
                                             <div class="text-right">
-                                                <button type="button" class="btn btn-success waves-effect waves-light">
+                                                <a href="<?= base_url(); ?>Pages/school_update/<?= $data->recID; ?>" class="btn btn-success waves-effect waves-light">
                                                     <i class="mdi mdi-account-settings-variant mr-1"></i> Edit Profile
-                                                </button>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -89,7 +89,7 @@
                                                             <tbody>
                                                                 <tr>
                                                                     <th scope="row">School Head</th>
-                                                                    <td><?= $data->schoolName; ?></td>
+                                                                    <td><?= $data->adminFName; ?> <?= $data->adminMName; ?> <?= $data->adminLName; ?></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <th scope="row">School Head Designation</th>
@@ -104,9 +104,10 @@
                                                                     <td><?= $data->schoolEmail; ?></td>
                                                                 </tr>
                                                                 <tr>
-                                                                    <th scope="row">School Email</th>
-                                                                    <td><?= $data->schoolEmail; ?></td>
+                                                                    <th scope="row">Contact Number/s</th>
+                                                                    <td><?= $data->adminMobile; ?></td>
                                                                 </tr>
+                                                             
                                                                 
                                                             </tbody>
                                                         </table>

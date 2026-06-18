@@ -23,6 +23,18 @@ public function profile_insert(){
     
 }
 
+function random_password(){
+    $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+    $password = array(); 
+    $alpha_length = strlen($alphabet) - 1; 
+    for ($i = 0; $i < 8; $i++) 
+    {
+        $n = rand(0, $alpha_length);
+        $password[] = $alphabet[$n];
+    }
+    return implode($password); 
+}
+
 
 public function user_insert(){
     $file = $this->upload->data();
@@ -64,11 +76,39 @@ public function insert_user(){
     'r_id' => 12,
     'p_id' => $this->input->post('division_id'),
     'd_id' => $this->input->post('d_id'),
-    'virified' => 1
+    'email' => $this->input->post('schoolEmail'),
+    //'virified' => 1
+    'virified' => 0
     ); 
 
-    return $this->db->insert('users', $data);
+    $this->db->insert('users', $data);
+    return $this->db->insert_id();
     
+}
+
+public function insert_district_user(){
+
+    $district = $this->Common->one_cond_row('district', 'id',$this->input->post('d_id'));
+
+
+    $password = $this->input->post('password');
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    
+    $data = array(
+    'username' => $this->input->post('schoolID'),
+    'password' => $hash,
+    'position' => 'district',
+    'fname' => $district->description,
+    'r_id' => 12,
+    'p_id' => $this->input->post('division_id'),
+    'd_id' => $this->input->post('d_id'),
+    'email' => $this->input->post('schoolEmail'),
+    //'virified' => 1
+    'virified' => 0
+    ); 
+
+    $this->db->insert('users', $data);
+    return $this->db->insert_id(); 
 }
 
 public function confirm_signup(){
@@ -97,6 +137,59 @@ public function user_update(){
     $this->db->where('id', $id);
     return $this->db->update('users', $data);
 }
+
+public function add_school_user($school_id,$schoolName,$district,$division){
+
+
+    $password = 'school112';
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    
+    $data = array(
+    'username' => $school_id,
+    'password' => $hash,
+    'position' => 'school',
+    'fname' => $schoolName,
+    'r_id' => 12,
+    'p_id' => $division,
+    'd_id' => $district,
+    'email' => "",
+    'virified' => 0
+    ); 
+
+    $this->db->insert('users', $data);
+    return $this->db->insert_id();
+    
+}
+
+public function user_password_change(){
+
+    $password = $this->input->post('password');
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    
+    $data = array(
+    'password' => $hash,
+    ); 
+
+    $this->db->where('id', $this->session->id);
+    return $this->db->update('users', $data);
+    
+}
+
+public function division_user_password_change(){
+
+    $password = $this->input->post('password');
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+    
+    $data = array(
+    'password' => $hash,
+    ); 
+
+    $this->db->where('username', $this->input->post('school_id'));
+    return $this->db->update('users', $data);
+    
+}
+
+
 public function user_pass(){
 
     $id = $this->input->post('id'); 
@@ -127,11 +220,27 @@ public function user_update_profile(){
     return $this->db->update('users', $data);
 }
 
+public function users_update_profile(){
+
+    $id = $this->session->id;
+
+    $file = $this->upload->data();
+    $filename = $file['file_name']; 
+
+    $data = array(
+        'image' => $filename
+        );
+
+    $this->db->where('id', $id);
+    return $this->db->update('users', $data);
+}
+
 public function login(){
 
     $password = $this->input->post('password');
     
     $this->db->where('username', $this->input->post('username', true));
+    $this->db->where('virified', 0);
     //$this->db->where('status', 0);
     //$this->db->where('Password', $this->input->post('Password', true));
     $result = $this->db->get('users');
@@ -299,6 +408,13 @@ public function delete($table,$col_id,$segment){
     return true;
 }
 
+public function delete_two_cond($table,$col,$val,$col2,$val2){
+    $this->db->where($col,$val);
+    $this->db->where($col2,$val2);
+    $this->db->delete($table);
+    return true;
+}
+
 function delete_with_attach($table,$segment,$attach){
     $this->db->where('id', $segment);
     unlink("uploads/".$attach);
@@ -405,7 +521,7 @@ public function sbm_cecklist_lock_unloc($stat){
 	return $this->db->update('sbm', $data);
 }
 
-public function sbm_ta_insert()
+    public function sbm_ta_insert()
 	{
 		$data = [];
 
@@ -427,11 +543,32 @@ public function sbm_ta_insert()
 		return $this->db->insert('sbm_ta', $data);
 	}
 
+    public function sbm_tana_insert()
+	{
+		$data = [];
+
+		foreach (['a', 'b', 'c', 'd'] as $prefix) {
+			for ($i = 1; $i <= 42; $i++) {
+				$data["{$prefix}{$i}"] = $this->input->post("{$prefix}{$i}");
+			}
+		}
+
+		$data['school_id'] = $this->session->username;
+		$data['fy'] = $this->session->fy;
+		$data['district'] = $this->session->district;
+        $data['region'] = $this->session->region;
+        $data['division'] = $this->session->division;
+        $data['stat'] = 0;
+
+		return $this->db->insert('tana', $data);
+	}
+
+    
+
 	public function sbm_ta_update()
 	{
 		$data = [];
 
-		// Collect data for 'q', 'qq', 'a', and 'f' fields
 		foreach (['q', 'qq', 'a', 'f'] as $prefix) {
 			for ($i = 1; $i <= 42; $i++) {
 				$data["{$prefix}{$i}"] = $this->input->post("{$prefix}{$i}");
@@ -440,6 +577,20 @@ public function sbm_ta_insert()
 
 		$this->db->where('id', $this->input->post('id'));
 		return $this->db->update('sbm_ta', $data);
+	}
+
+    public function sbm_tana_update()
+	{
+		$data = [];
+
+		foreach (['a', 'b', 'c', 'd'] as $prefix) {
+			for ($i = 1; $i <= 42; $i++) {
+				$data["{$prefix}{$i}"] = $this->input->post("{$prefix}{$i}");
+			}
+		}
+
+		$this->db->where('id', $this->input->post('id'));
+		return $this->db->update('tana', $data);
 	}
 
     public function sbm_ta_lock_unloc($stat)
@@ -456,17 +607,14 @@ public function sbm_ta_insert()
 	{
 		$data = [];
 
-		// Collect data for questions
 		for ($i = 1; $i <= 42; $i++) {
 			$data["q$i"] = $this->input->post("r$i");
 		}
 
-		// Collect data for forms
 		for ($i = 1; $i <= 42; $i++) {
 			$data["fs$i"] = $this->input->post("fs$i");
 		}
 
-		// Additional data
 		$data['school_id'] = $this->input->post('school_id');
 		$data['fy'] = date('Y');
 
@@ -477,17 +625,14 @@ public function sbm_ta_insert()
 	{
 		$data = [];
 
-		// Collect data for questions
 		for ($i = 1; $i <= 42; $i++) {
 			$data["q$i"] = $this->input->post("r$i");
 		}
 
-		// Collect data for forms
 		for ($i = 1; $i <= 42; $i++) {
 			$data["fs$i"] = $this->input->post("fs$i");
 		}
 
-		// Additional data
 
         $this->db->where('id', $this->input->post('id'));
 		return $this->db->update('sbm_remark_admin', $data);
@@ -538,9 +683,10 @@ public function sbm_ta_insert()
 			'division_id' => $this->input->post('division_id'),
 			'district_id' => $this->input->post('d_id'),
             'region_id' => 12,
-			'course' => $this->input->post('course'),
 			'schoolEmail' => $this->input->post('schoolEmail'),
-            'schoolType' => 0,
+            'schoolType' => $this->input->post('schoolType'),
+            'category' => $this->input->post('category'),
+            'sgc' => $this->input->post('sgc'),
 			'schoolLogo' => 'logo.png'
 		);
 
@@ -557,8 +703,347 @@ public function sbm_ta_insert()
         }
 
         $query = $this->db->get();
-        return $query->num_rows() > 0; // true if all q1..q42 > 0
+        return $query->num_rows() > 0; 
     }
+
+
+    public function get_averages($school_id, $fy) {
+        $this->db->where('school_id', $school_id);
+        $this->db->where('fy', $fy);
+        $query = $this->db->get('tana');
+
+        if ($query->num_rows() > 0) {
+            $row = $query->row();
+
+            $averages = [];
+            for ($i = 1; $i <= 42; $i++) {
+                $a = "a$i";
+                $b = "b$i";
+                $c = "c$i";
+                $d = "d$i";
+
+                $averages[$i] = ($row->$a + $row->$b + $row->$c + $row->$d) / 4;
+            }
+
+            return $averages;
+        }
+
+        return [];
+    }
+
+    public function sbm_tana_summary_insert()
+    {
+        $concern_id = $this->input->post('concern_id'); 
+        $average    = $this->input->post('average');
+        $sequence   = $this->input->post('sequence');
+
+        if (!is_array($concern_id) || !is_array($average) || !is_array($sequence)) {
+            return 0;
+        }
+
+        $fy       = $this->session->fy;
+        $school   = $this->session->username;
+        $region   = $this->session->region;
+        $division = $this->session->division;
+        $district = $this->session->district;
+
+        $rows  = [];
+        $count = min(count($concern_id), count($average), count($sequence));
+
+        for ($i = 0; $i < $count; $i++) {
+            if ($concern_id[$i] === '' || $average[$i] === '' || $average[$i] === null) {
+                continue;
+            }
+            $rows[] = [
+                'fy'         => $fy,
+                'school_id'  => $school,
+                'region'     => $region,
+                'division'   => $division,
+                'district'   => $district,
+                'stat'       => 0,
+                'concern_id' => $concern_id[$i],
+                'average'    => $average[$i],
+                'sequence'   => ($sequence[$i] === '' ? null : (int)$sequence[$i]),
+            ];
+        }
+
+        if (empty($rows)) return 0;
+
+        $this->db->trans_start();
+        $this->db->insert_batch('tana_summary', $rows);
+        $this->db->trans_complete();
+
+        return $this->db->trans_status() ? $this->db->affected_rows() : 0;
+    }
+
+    public function get_seq_one_two()
+    {
+        $fy       = $this->session->fy;
+        $region   = $this->session->region;
+        $division = $this->session->division;
+
+        return $this->db
+            ->from('tana_summary')
+            ->where_in('sequence', [1, 2])
+            ->where('fy', $fy)
+            ->where('division', $division)
+            ->where('region', $region)
+            ->order_by('fy', 'ASC')
+            ->order_by('school_id', 'ASC')
+            ->order_by('sequence', 'ASC')
+            ->get()
+            ->result();
+    }
+
+    public function tana_division_insert(){
+            $fy       = $this->session->fy;
+            $region   = $this->session->region;
+            $division = $this->session->division;
+        
+            $data = array(
+                'tana' => $this->input->post('tana'), 
+                'sequence' => $this->input->post('sequence'), 
+                'region' => $region,
+                'division' => $division, 
+                'fy' => $fy
+            ); 
+
+        return $this->db->insert('division_tana', $data);
+    }
+
+    public function tana_region_insert(){
+            $fy       = $this->session->fy;
+            $region   = $this->session->region;
+            $division = $this->session->division;
+        
+            $data = array(
+                'tana' => $this->input->post('tana'), 
+                'sequence' => $this->input->post('sequence'), 
+                'region' => $region,
+                'fy' => $fy
+            ); 
+
+        return $this->db->insert('region_tana', $data);
+    }
+
+public function school_updates()
+	{
+
+		$data = array(
+			'schoolName' => $this->input->post('schoolName'),
+            'adminFName' => $this->input->post('adminFName'),
+            'adminMName' => $this->input->post('adminMName'),
+            'adminLName' => $this->input->post('adminLName'),
+            'adminDesignation' => $this->input->post('adminDesignation'),
+            'schoolEmail' => $this->input->post('schoolEmail'),
+            'adminEmail' => $this->input->post('adminEmail'),
+            'adminMobile' => $this->input->post('adminMobile'),
+            'sgc' => $this->input->post('sgc'),
+            'category' => $this->input->post('category'),
+            'schoolType' => $this->input->post('schoolType'),
+            'province' => $this->input->post('province'),
+            'city' => $this->input->post('city'),
+            'brgy' => $this->input->post('brgy'),
+            'sitio' => $this->input->post('sitio'),
+            'division_id' => $this->input->post('division_id'),
+            'district_id' => $this->input->post('d_id'),
+
+		);
+
+		$this->db->where('recID', $this->input->post('recID'));
+		return $this->db->update('schools', $data);
+}
+
+public function update_district_id()
+{
+    $tables = ['tana', 'sbm_ta', 'sbm','tana_summary'];
+
+    $this->db->trans_start();
+
+    foreach ($tables as $table) {
+        $this->db->where('school_id', $this->session->username);
+        $this->db->update($table, [
+            'district' => $this->input->post('d_id'),
+            'division' => $this->input->post('division')
+        ]);
+    }
+
+    $this->db->trans_complete();
+
+    if ($this->db->trans_status() === FALSE) {
+        return false;
+    }
+
+    return true;
+}
+
+public function sgc_count($c)
+	{
+$this->db->where('sgc', $c);
+$this->db->where('division_id', $this->session->division);
+$this->db->from('schools');
+return $this->db->count_all_results();
+}
+
+public function sgc_count_region($c)
+	{
+$this->db->where('sgc', $c);
+$this->db->where('region_id', $this->session->region);
+$this->db->from('schools');
+return $this->db->count_all_results();
+}
+
+public function sgc_count_district($c)
+	{
+$this->db->where('sgc', $c);
+$this->db->where('district_id', $this->session->district);
+$this->db->from('schools');
+return $this->db->count_all_results();
+}
+
+
+
+
+public function update_request_password(){
+    
+    $email = $this->input->post('email');
+    $user = $this->Common->one_cond_row('users','email',$email);
+        
+       
+    $password = $this->Page_model->random_password();
+
+    $fname = 'Maam/Sir';
+
+                //Email Notification
+                $this->load->config('email');
+                $this->load->library('email');
+                $mail_message = '
+                <!doctype html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width,initial-scale=1">
+                </head>
+                <body style="margin:0; padding:0; background:#f3f5f7; font-family:Arial, Helvetica, sans-serif;">
+                  <div style="padding:24px 12px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="max-width:640px; margin:0 auto; background:#ffffff; border-radius:14px; overflow:hidden; box-shadow:0 10px 30px rgba(15,23,42,.10);">
+                      
+                      <!-- Header -->
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#a00000,#b90404); padding:22px 26px; color:#ffffff;">
+                          <div style="font-size:18px; font-weight:700; letter-spacing:.2px;">DepEd FTAD - Online</div>
+                          <div style="font-size:13px; opacity:.95; margin-top:4px;">Password Reset Notification</div>
+                        </td>
+                      </tr>
+
+                      <!-- Body -->
+                      <tr>
+                        <td style="padding:26px;">
+                          <div style="font-size:15px; color:#111827; line-height:1.6;">
+                            <div style="font-size:16px; font-weight:700; margin-bottom:10px;">Dear '.$fname.',</div>
+
+                            <p style="margin:0 0 14px 0;">
+                              You have successfully reset your password. Please use the temporary password below to log in.
+                            </p>
+
+                            <div style="margin:18px 0; padding:16px; border:1px solid #e5e7eb; border-radius:12px; background:#f9fafb;">
+                              <div style="font-size:12px; color:#6b7280; margin-bottom:6px;">Temporary Password</div>
+                              <div style="font-size:20px; font-weight:800; color:#dc2626; letter-spacing:.8px;">'.$password.'</div>
+                            </div>
+
+                            <p style="margin:0 0 14px 0; color:#374151;">
+                              For your security, please change your password immediately after logging in.
+                            </p>
+
+                            <div style="margin-top:18px; padding-top:16px; border-top:1px solid #e5e7eb; color:#111827;">
+                              <div style="font-weight:700;">Thanks &amp; Regards,</div>
+                              <div>DepEd FTAD - Online</div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Footer -->
+                      <tr>
+                        <td style="padding:16px 26px; background:#f9fafb; color:#6b7280; font-size:12px; line-height:1.5;">
+                          This email was generated automatically. If you did not request a password reset, please contact your system administrator immediately.
+                        </td>
+                      </tr>
+
+                    </table>
+                  </div>
+                </body>
+                </html>
+                ';
+
+                $this->email->from('no-reply@ftad.depedmis.com', 'FTAD')
+                    ->to($email)
+                    ->subject('Password Changed')
+                    ->message($mail_message);
+                $this->email->send();
+
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+
+    $data = array(
+        'Password' => $hash
+
+    );
+
+    $this->db->where('email', $email);
+    return $this->db->update('users', $data);
+}
+
+public function user_updates(){
+    $data = array(
+        'p_id' => $this->input->post('division_id'),
+        'd_id' => $this->input->post('d_id'),
+    );
+
+    $this->db->where('username', $this->input->post('schoolID'));
+    return $this->db->update('users', $data);
+}
+
+public function dd_updates()
+{
+    $data = [
+        'division' => $this->input->post('division_id'),
+        'district' => $this->input->post('d_id'),
+    ];
+
+    $schoolID = $this->input->post('schoolID');
+    $tables = ['sgod_action_plan', 'sbm', 'sbm_ta', 'tana'];
+
+    $this->db->trans_start();
+
+    foreach ($tables as $table) {
+        $this->db->where('school_id', $schoolID)->update($table, $data);
+    }
+
+    $this->db->trans_complete();
+
+    return $this->db->trans_status();
+}
+
+public function tana_summary_del(){
+    $this->db->where('school_id',$this->session->username);
+    $this->db->delete('tana_summary');
+    return true;
+}
+
+
+public function tana_summary_final(){
+    $data = array(
+        'stat' => 1
+    );
+
+    $this->db->where('school_id', $this->session->username);
+    return $this->db->update('tana_summary', $data);
+}
+
+
+
+
+
 
     
 

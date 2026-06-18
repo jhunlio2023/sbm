@@ -11,7 +11,11 @@
 
                 <li class="dropdown notification-list">
                     <a class="nav-link dropdown-toggle nav-user mr-0 waves-effect" data-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
-                        <img src="<?= base_url(); ?>assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
+                        <?php $image = $this->Common->one_cond_row_select('users','username,image','username',$this->session->username); if (empty($image->image ?? null)) {?>
+                            <img src="<?= base_url(); ?>assets/images/users/avatar-1.jpg" alt="user-image" class="rounded-circle">
+                        <?php }else{ ?>
+                            <img src="<?= base_url(); ?>uploads/<?= $image->image; ?>" alt="user-image" class="rounded-circle">
+                        <?php } ?>
                         <span class="pro-user-name ml-1">
                             <?= $this->session->user; ?> <i class="mdi mdi-chevron-down"></i>
                         </span>
@@ -30,6 +34,12 @@
                         <?php } ?>
                             <i class="mdi mdi-account-outline"></i>
                             <span>Profile</span>
+                        </a>
+
+                        <!-- item-->
+                        <a href="<?= base_url(); ?>lock" class="dropdown-item notify-item" data-toggle="modal" data-target="#ivankylecrodua">
+                            <i class="mdi mdi-lock-outline"></i>
+                            <span>Change Profile Image</span>
                         </a>
 
 
@@ -58,9 +68,9 @@
 
             <!-- LOGO -->
             <div class="logo-box">
-                <a href="index.html" class="logo text-center logo-dark">
+                <a href="<?= base_url(); ?>" class="logo text-center logo-dark">
                     <span class="logo-lg">
-                        <img src="<?= base_url(); ?>assets/images/logo-dark.png" alt="" height="70">
+                        <img src="<?= base_url(); ?>assets/images/ftad.png" alt="" height="50">
                         <!-- <span class="logo-lg-text-dark">Velonic</span> -->
                     </span>
                     <span class="logo-sm">
@@ -69,9 +79,9 @@
                     </span>
                 </a>
 
-                <a href="index.html" class="logo text-center logo-light">
+                <a href="<?= base_url(); ?>" class="logo text-center logo-light">
                     <span class="logo-lg">
-                        <img src="<?= base_url(); ?>assets/images/logo-light.png" alt="" height="70">
+                        <img src="<?= base_url(); ?>assets/images/ftad.png" alt="" height="50">
                         <!-- <span class="logo-lg-text-dark">Velonic</span> -->
                     </span>
                     <span class="logo-sm">
@@ -108,6 +118,7 @@
 
                         <li><a href="<?= base_url(); ?>" class="waves-effect"><i class="mdi mdi-view-dashboard"></i><span> Dashboard </span></a></li>
                         <?php if ($this->session->position == 'district') { ?>
+                            <li><a href="<?= base_url(); ?>pages/schools_district/<?= $this->session->district; ?>" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li>
                             <li>
                                 <a href="<?= base_url(); ?>Pages/school_list" class="waves-effect">
                                     <i class="fas fa-book-reader"></i>
@@ -122,6 +133,7 @@
                                 </a>
 
                             </li>
+                            <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
                         <?php } ?>
 
                         <?php if ($this->session->position == 'school') { ?>
@@ -136,31 +148,46 @@
                                     <li><a href="<?= base_url(); ?>Pages/sbm_action_plan">Action Plan</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/sbm_checklist">Self-Assessment</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/tapr_form">TA Form</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/tana_form">TANA Form</a></li>
                                 </ul>
                             </li>
+                            <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
                         <?php } ?>
 
                         <?php if ($this->session->position == 'division') { ?>
-
+                            <!-- <li><a href="<?= base_url(); ?>pages/schools_division/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li> -->
+                            <li><a href="<?= base_url(); ?>pages/district_account/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>District</span></a></li>
                             <li>
-                                <a href="<?= base_url(); ?>Pages/district_list" class="waves-effect">
-                                    <i class="fas fa-book-reader"></i>
-                                    <span> SBM </span>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-format-list-checks"></i>
+                                    <span> SBM</span>
+                                    <span class="menu-arrow"></span>
                                 </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/district_list">District List</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/tana_summary_division">TANA</a></li>
+                                </ul>
 
                             </li>
+                            <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
 
                         <?php } ?>
 
                         <?php if ($this->session->position == 'region') { ?>
 
                             <li>
-                                <a href="<?= base_url(); ?>Pages/division_list" class="waves-effect">
-                                    <i class="fas fa-book-reader"></i>
-                                    <span> SBM </span>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-format-list-checks"></i>
+                                    <span> SBM</span>
+                                    <span class="menu-arrow"></span>
                                 </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/division_list">Division List</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/tana_summary_region">TANA</a></li>
+                                </ul>
 
                             </li>
+                            <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
 
                         <?php } ?>
 

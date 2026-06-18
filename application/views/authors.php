@@ -163,7 +163,7 @@
         <div class="profile-card">
           <img src="<?= base_url(); ?>assets/images/authors/alan.jpg" alt="Dev 4">
           <h5>Alan D. Limbadan</h5>
-          <span>Senior Education Program Specialist <br />Division of Davao Oriental</span>
+          <span>Education Program Supervisor <br>Division of Davao Oriental</span>
           <div class="social-icons">
             <a href="#"><i class="bi bi-linkedin"></i></a>
             <a href="#"><i class="bi bi-envelope"></i></a>

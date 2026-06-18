@@ -59,6 +59,7 @@
                                             <tbody>
                                                 <?php 
                                                     $c=1; foreach($data as $row){
+                                                    $plan=$this->Page_model->two_cond_row_select('sgod_action_plan','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);    
                                                     $sbm_submit=$this->Page_model->two_cond_row_select('sbm','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
                                                     $sbm_ta=$this->Page_model->two_cond_row_select('sbm_ta','school_id,fy','school_id',$row->schoolID,'fy',$this->session->fy);
                                                 ?>
@@ -66,9 +67,21 @@
                                                     <td><?= $c++; ?></td>
                                                     <td><?= $row->schoolID; ?></td>
                                                     <td><?= $row->schoolName; ?></td>
-                                                    <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/sbm_action_plan_pview_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a></td>
-                                                    <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/checklist_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a></td>
-                                                    <td class="text-center"><a target="_blank" href="<?= base_url(); ?>Pages/tapr_form_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a></td>
+                                                    <td class="text-center">
+                                                        <?php if(!empty($plan)){?>
+                                                        <a target="_blank" href="<?= base_url(); ?>Pages/sbm_action_plan_pview_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a>
+                                                        <?php } ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <?php if(!empty($sbm_submit)){?>
+                                                        <a target="_blank" href="<?= base_url(); ?>Pages/checklist_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a>
+                                                        <?php } ?>
+                                                    </td>
+                                                    <td class="text-center">
+                                                        <?php if(!empty($sbm_ta)){?>
+                                                        <a target="_blank" href="<?= base_url(); ?>Pages/tapr_form_district/<?= $row->schoolID; ?>" class="btn btn-success btn-sm">View</a>
+                                                        <?php } ?>
+                                                    </td>
                                                 </tr>
                                                 <?php } ?>
 

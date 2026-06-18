@@ -35,9 +35,9 @@
                         <?php endif;  ?>
 
                         <?php $att = array('class' => 'parsley-examples'); ?>
-                        <?= form_open('Pages/tapr_form', $att); ?>
+                        <?= form_open('Pages/tana_form_update', $att); ?>
 
-                        <input type="hidden" name="district" value="<?= $this->session->district; ?>">
+                        <input type="hidden" name="id" value="<?= $tana->id; ?>">
 
 
                         <div class="row">
@@ -73,9 +73,11 @@
                                                                                     <th colspan='2'>SBM Indicator</th>
                                                                                     <th>Degree Of Manifestation</th>
                                                                                     <th>Concerns, Issues, Gaps, Problems and Bottlenecks (CIGPB s) Encountered</th>
-                                                                                    <th>Facilitating Factors for Indicators with always manifested </th>
-                                                                                    <th>Category (Technical, Institutional, Financial, Political, Infrastructure, Social, Gender)</th>
-                                                                                    <th>Proposed Resolutions/Commitment</th>
+                                                                                    <th>Strategic Importance </th>
+                                                                                    <th>Urgency</th>
+                                                                                    <th>Magnitude</th>
+                                                                                    <th>Feasibility</th>
+                                                                                    <th>Average</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             
@@ -106,7 +108,13 @@
                                                                                     $c = 0;
                                                                                     
                                                                                     foreach($question as $sub_row){
-                                                                                        $renren = $this->Common->two_cond_row('sbm','school_id',$this->session->username,'fy',$this->session->fy);
+                                                                                        $sbmc = $this->Common->two_cond_row('sbm','school_id',$this->session->username,'fy',$this->session->fy);
+                                                                                        $ta = $this->Common->two_cond_row('sbm_ta','school_id',$this->session->username,'fy',$this->session->fy);
+                                                                                        $taq = 'q' . $sub_row->i_no;
+                                                                                        $aq = 'a' . $sub_row->i_no;
+                                                                                        $bq = 'b' . $sub_row->i_no;
+                                                                                        $cq = 'c' . $sub_row->i_no;
+                                                                                        $dq = 'd' . $sub_row->i_no;
 
                                                                                         $sbm_col = 'q'.$sub_row->i_no;
 
@@ -116,9 +124,9 @@
                                                                                     <td><?= $sub_row->description; ?></td>
                                                                                     <td class="text-center">
                                                                                         <?php 
-                                                                                            if (!empty($renren) && isset($renren->$sbm_col)) {
+                                                                                            if (!empty($sbmc) && isset($sbmc->$sbm_col)) {
                                                                                                 foreach($dm as $key => $row){
-                                                                                                    if($key == $renren->$sbm_col){
+                                                                                                    if($key == $sbmc->$sbm_col){
                                                                                                         echo $row;
                                                                                                     }
                                                                                                 }
@@ -127,17 +135,56 @@
                                                                                             }
                                                                                         ?>
                                                                                     </td>
-                                                                                    <td><textarea class="form-control" <?php if (!empty($renren) && isset($renren->$sbm_col)) {if($renren->$sbm_col == 4){echo " readonly ";}}?> name="q<?=$sub_row->i_no; ?>"  rows="2" id="example-textarea"></textarea></td>
-                                                                                    <td><textarea class="form-control" <?php if (!empty($renren) && isset($renren->$sbm_col)) {if($renren->$sbm_col != 4){echo " readonly ";}}?> name="qq<?=$sub_row->i_no; ?>" rows="2" id="example-textarea"></textarea></td>
+                                                                                    <td><textarea class="form-control" name="q<?=$sub_row->i_no; ?>"  rows="2" id="example-textarea" readonly><?= $ta->$taq; ?></textarea></td>
                                                                                     <td>
-                                                                                    <select class="form-control" name="a<?=$sub_row->i_no; ?>" >
-                                                                                        <option></option>
-                                                                                        <?php foreach($cat as $key => $row){ ?>
-                                                                                            <option value="<?= $key; ?>"><?= $row; ?></option>
-                                                                                        <?php }?>
-                                                                                    </select>
+                                                                                        <select class="form-control" name="a<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option ";
+                                                                                                if($i == $tana->$aq){echo " selected ";}
+                                                                                                echo " value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
                                                                                     </td>
-                                                                                    <td><textarea class="form-control" name="f<?=$sub_row->i_no; ?>" rows="2" id="example-textarea"></textarea></td>
+                                                                                    <td>
+                                                                                        <select class="form-control" name="b<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option ";
+                                                                                                if($i == $tana->$bq){echo " selected ";}
+                                                                                                echo " value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <select class="form-control" name="c<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option ";
+                                                                                                if($i == $tana->$cq){echo " selected ";}
+                                                                                                echo " value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                        <select class="form-control" name="d<?=$sub_row->i_no; ?>">
+                                                                                            <option value=""></option>
+                                                                                            <?php
+                                                                                            for ($i = 1; $i <= 5; $i++) {
+                                                                                                echo "<option ";
+                                                                                                if($i == $tana->$dq){echo " selected ";}
+                                                                                                echo " value=\"$i\">$i</option>";
+                                                                                            }
+                                                                                            ?>
+                                                                                        </select>
+                                                                                    </td>
+                                                                                    <td><?= (($tana->$aq + $tana->$bq + $tana->$cq + $tana->$dq) / 4) ?: '' ?></td>
                                                                                 </tr>
                                                                                 <?php } ?>
                                                                                 
@@ -158,6 +205,7 @@
 
                                     <div class="form-group text-left mb-0">
                                                <input type="submit" name="submit" value="Save Draft" class="btn btn-primary waves-effect waves-light mr-1">
+                                               <a href="<?= base_url(); ?>Pages/tana_summary" class="btn btn-success waves-effect waves-light mr-1">TANA Summary</a>
                                                 
                                                
                                             </div>

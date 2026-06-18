@@ -17,7 +17,6 @@
 
                                     <div class="card-body">
 
-                                        <?= $this->session->region; ?>
                                         <p class="text-justify">
                                             The SBM Self-Assessment Checklist provides a comprehensive understanding of the status of continuous improvement in the various areas of school operation. The school assesses the six (6) SBM Dimensions and determines the degree of manifestation for each SBM Indicator.
                                             These indicators are listed as observable school practices and attainable learning outcomes. The extent by which the indicators are manifested is describe as follows: <i>not yet manifested</i>, <i>rarely manifested</i>, <i>frequently manifested</i>, and <i>always manifested</i>.
@@ -30,6 +29,8 @@
                                 </div>
                             </div>
                         </div>
+
+                        <?php $school = $this->Common->one_cond_row_select('schools','schoolID,schoolType,category','schoolID',$this->session->username);  ?>
 
 
                         
@@ -95,6 +96,7 @@
                                                                                     <?php if($this->session->position == 'District' || $this->session->position == 'smme'){?><th rowspan="2" class="text-center">Remarks</th><?php } ?>
                                                                                 </tr>
                                                                                 <tr>
+                                                                                    <th class="text-center" style="white-space: nowrap;">N/A</th>
                                                                                     <th class="text-center">Not Yet Manifested</th>
                                                                                     <th class="text-center">Rarely Manifested</th>
                                                                                     <th class="text-center">Frequently Manifested</th>
@@ -114,6 +116,7 @@
                                                                                 <tr <?php echo (++$c%2 ? "" : "class='table-active'"); ?>>
                                                                                     <td><?= $sub_row->i_no; ?></td>
                                                                                     <td><?= $sub_row->description; ?></td>
+                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="5" ></td>
                                                                                     <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="1" ></td>
                                                                                     <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="2" ></td>
                                                                                     <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="3" ></td>
@@ -125,6 +128,8 @@
                                                                             </tbody>
                                                                         </table>
                                                                     </div>
+
+                                                                    
                                                                     
 
 

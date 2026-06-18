@@ -114,6 +114,10 @@
             border-color: #fff;
         }
 
+        .hero-section .btn-outline-light:hover {
+            color: #800000;
+        }
+
         .hero-section .btn-light {
             background-color: #fff;
             color: var(--primary-color);
@@ -139,7 +143,11 @@
             /* Example: Bootstrap warning yellow */
             font-weight: bold;
         }
+        
 
+        .dropdown-menu-light a {
+            color:#800000;
+        }
         @media (max-width: 768px) {
             .hero-section {
                 text-align: center;

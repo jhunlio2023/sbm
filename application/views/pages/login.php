@@ -15,6 +15,34 @@
         <link href="<?= base_url(); ?>assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" id="bootstrap-stylesheet" />
         <link href="<?= base_url(); ?>assets/css/icons.min.css" rel="stylesheet" type="text/css" />
         <link href="<?= base_url(); ?>assets/css/app.min.css" rel="stylesheet" type="text/css" id="app-stylesheet" />
+        <style>
+        .password-wrapper{
+            position: relative;
+        }
+
+        .password-input{
+            padding-right: 45px;
+        }
+
+        .toggle-password{
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            color: #6c757d;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .toggle-password:focus{
+            outline: none;
+            box-shadow: none;
+        }
+        </style>
 
     </head>
 
@@ -26,7 +54,7 @@
                     <div class="col-md-8 col-lg-6 col-xl-5">
                         <div class="card mt-4">
                             <div class="card-header p-4" style="background:#a00000">
-                                <h4 class="text-white text-center mb-0 mt-0"><a href="<?= base_url(); ?>"><img src="<?= base_url(); ?>assets/images/ftad-logo.png" width="30%" alt=""></a></h4>
+                                <h4 class="text-white text-center mb-0 mt-0"><a href="<?= base_url(); ?>"><img src="<?= base_url(); ?>assets/images/ftad.png" width="40%" alt=""></a></h4>
                             </div>
                             <div class="card-body">
                             <?php if($this->session->flashdata('failed')) : ?>
@@ -58,14 +86,39 @@
                                         <input class="form-control" type="text" id="Username" name="username"  autocomplete="off" >
                                     </div>
 
+                                    <!-- <div class="form-group mb-3">
+                                        <label for="password">Password :</label>
+                                        <div class="input-group">
+                                            <input class="form-control" type="password" required name="password" id="password" autocomplete="off">
+                                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div> -->
+
                                     <div class="form-group mb-3">
                                         <label for="password">Password :</label>
-                                        <input class="form-control" type="password" required="" name="password"  autocomplete="off" >
+                                        
+                                        <div class="password-wrapper">
+                                            <input 
+                                                id="password"
+                                                class="form-control password-input" 
+                                                type="password" 
+                                                required 
+                                                name="password" 
+                                                autocomplete="off"
+                                            >
+                                            <button type="button" class="toggle-password" onclick="togglePassword()">
+                                                <i class="fa fa-eye" id="toggleIcon"></i>
+                                            </button>
+                                        </div>
                                     </div>
+
+
 
                                     <div class="form-group mb-3">
                                         <div class="checkbox checkbox-success">
-                                           <!-- <a href="Pages/register" class="text-muted float-right"><i class="ion ion-md-person-add"></i> Register &nbsp;</a> -->
+                                           <a href="Pages/forgot_password" class="text-muted float-left">Forgot Password &nbsp;</a>
                                            
                                         </div>
                                     </div>
@@ -103,6 +156,22 @@
 
         <!-- App js -->
         <script src="<?= base_url(); ?>assets/js/app.min.js"></script>
+        <script>
+        function togglePassword() {
+            const password = document.getElementById("password");
+            const icon = document.getElementById("toggleIcon");
+
+            if (password.type === "password") {
+                password.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                password.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+        </script>
 
     </body>
 

@@ -31,7 +31,14 @@
                                 </div>
                             </div>
                         </div>
-
+                        <?php 
+                            if($this->session->position == 'school'){
+                                $school = $this->Common->one_cond_row_select('schools','schoolID,schoolType,category','schoolID',$this->session->username);  
+                            }else{
+                                $school = $this->Common->one_cond_row_select('schools','schoolID,schoolType,category','schoolID',$this->uri->segment(3));  
+                            }
+                            
+                         ?>
 
                         
 
@@ -93,6 +100,7 @@
                                                                                     <th colspan="4" class="text-center">Degree of Manifestation<br /><cite title="Source Title">(Please tick the box that best describes your school)</cite></th>
                                                                                 </tr>
                                                                                 <tr>
+                                                                                    <th class="text-center" style="white-space: nowrap;">N/A</th>
                                                                                     <th class="text-center">Not Yet Manifested</th>
                                                                                     <th class="text-center">Rarely Manifested</th>
                                                                                     <th class="text-center">Frequently Manifested</th>
@@ -113,11 +121,13 @@
                                                                                 ?>
                                                                                 <tr <?php echo (++$c%2 ? "" : "class='table-active'"); ?>>
                                                                                     <td><?= $sub_row->i_no; ?></td>
-                                                                                    <td><?= $sub_row->description; ?></td>
-                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" <?php if($sbmc->$name == 1){echo " checked ";} ?> value="1" ></td>
-                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" <?php if($sbmc->$name == 2){echo " checked ";} ?> value="2" ></td>
-                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" <?php if($sbmc->$name == 3){echo " checked ";} ?> value="3" ></td>
-                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" <?php if($sbmc->$name == 4){echo " checked ";} ?> value="4" ></td>
+                                                                                    <td><?= $sub_row->description; ?> </td>
+                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="5" <?php if($sbmc->$name == 5){echo " checked ";} ?> ></td>
+                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="1" <?php if($sbmc->$name == 1){echo " checked ";} ?> ></td>
+                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="2" <?php if($sbmc->$name == 2){echo " checked ";} ?> ></td>
+                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="3" <?php if($sbmc->$name == 3){echo " checked ";} ?> ></td>
+                                                                                    <td class="text-center"><input type="radio" name="q<?=$sub_row->i_no; ?>" value="4" <?php if($sbmc->$name == 4){echo " checked ";} ?> ></td>
+                                                                                    <?php if($this->session->position == 'District' || $this->session->position == 'smme'){?><td><textarea class="form-control" name="remarks" rows="2" id="example-textarea"></textarea></td><?php } ?>
                                                                                 </tr>
                                                                                 <?php } ?>
                                                                                 
@@ -169,3 +179,5 @@
 
                 </div>
                 <!-- end content -->
+
+                

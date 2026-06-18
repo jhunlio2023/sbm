@@ -10,16 +10,34 @@
         <div class="col-lg-6">
           <h1>FTAD <span class="highlight-text">OneView v1.0</span></h1>
           <p>FTAD OneView is a monitoring and knowledge management initiative of the Field Technical Assistance Division (FTAD) that unifies school data and insights into a single platform. It is a comprehensive tool for tracking progress, ensuring accountability, and delivering evidence-based technical assistance to support continuous school improvement.</p>
+          
           <div class="mt-4 d-flex gap-3 flex-wrap">
             <a href="<?= base_url('log_in'); ?>" class="btn btn-light">
               <i class="bi bi-flag-fill me-2"></i>Login To Get Started
             </a>
 
-            <a href="<?= base_url('signup'); ?>" class="btn btn-outline-light">
-              <i class="bi bi-life-preserver me-2"></i>Create an Account
-            </a>
+              <button type="button" class="btn btn-outline-light dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-life-preserver me-2"></i>Create Account
+              </button>
+              <ul class="dropdown-menu dropdown-menu-light">
+                <li>
+                  <a class="dropdown-item" href="<?= base_url('signup'); ?>">
+                    School Account
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="<?= base_url('signup_district'); ?>">
+                    District Account
+                  </a>
+                </li>
+              </ul>
+
 
           </div>
+
+        
+
+          
         </div>
         <div class="col-lg-6 text-center">
           <!-- <img src="<?= base_url(); ?>assets/images/wel.png" alt="Students working" class="img-fluid rounded"> -->

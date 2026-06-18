@@ -2,7 +2,9 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <a class="btn btn-success" href="<?= base_url(); ?>pages/school_new">Add New</a>
+                                <?php if($this->session->position == 'Admin'){?>    
+                                <a class="btn btn-success" href="<?= base_url(); ?>pages/school_new">Add New</a>
+                                <?php } ?>
                                     
 
                                 
@@ -65,8 +67,10 @@
                                                     <td><?= strtoupper($row->schoolName); ?></td>
                                                     <td><?= $row->description; ?></td>
                                                     <td>
-                                                        <a href="<?=base_url(); ?>Page/schoolProfile?schoolid=<?php echo $row->schoolID; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
-                                                        <a href="<?=base_url(); ?>Page/schoolInfo?schoolid=<?php echo $row->schoolID; ?>" class="text-warning"><i class="mdi mdi-pencil-outline"></i>edit</a> 
+                                                        <a href="<?=base_url(); ?>school/<?= $row->schoolID; ?>" class="text-success"><i class="mdi mdi-file-document-box-check-outline"></i>View</a> &nbsp; &nbsp;
+                                                        <a href="<?=base_url(); ?>Pages/school_update/<?= $row->recID; ?>" class="text-warning"><i class="mdi mdi-pencil-outline"></i>edit</a> &nbsp; &nbsp;
+                                                        <a onclick="return confirm('Are you sure?')" href="<?=base_url(); ?>Pages/school_delete/<?= $row->schoolID; ?>" class="text-danger"><i class="fas fa-trash-alt"></i>Delete</a> &nbsp; &nbsp;
+                                                        
                                                     </td>
                                                 </tr>
                                                 <?php } ?>

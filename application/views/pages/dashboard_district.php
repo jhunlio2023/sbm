@@ -7,7 +7,8 @@
                                         <ol class="breadcrumb p-0 m-0">
                                             <li class="breadcrumb-item"><a href="#" data-toggle="modal" data-target="#myModal">Current Fiscal Year : <span class="badge badge-success"><?= $this->session->fy; ?></span></a></li>
                                         </ol>
-                                    </div>
+                                    </div><br />
+                                    <img class="img-fluid logo" src="<?= base_url(); ?>assets/images/renren.jpeg" alt="renrenguapo" width="100%">
                                     
                                     <div class="clearfix"></div>
                                 </div>
@@ -15,50 +16,73 @@
                         </div>
                         <!-- end page title -->
 
-                        <div class="row">
-                            
+                        <?php 
+                                $sgc1 = $this->Page_model->sgc_count_district(1); 
+                                $sgc2 = $this->Page_model->sgc_count_district(2); 
+                                $sgc3 = $this->Page_model->sgc_count_district(3); 
+                                $total = $sgc1 + $sgc2 + $sgc3;
 
-                            <div class="col-xl-6 col-sm-6">
-                                <div class="card bg-info">
-                                    <div class="card-body widget-style-2">
-                                        <div class="text-white media">
-                                            <div class="media-body align-self-center">
-                                                <h2 class="my-0 text-white"><span data-plugin="counterup">123</span></h2>
-                                                <p class="mb-0">Profile</p>
+                                $sgc1_percent = ($total > 0) ? ($sgc1 / $total) * 100 : 0;
+                                $sgc2_percent = ($total > 0) ? ($sgc2 / $total) * 100 : 0;
+                                $sgc3_percent = ($total > 0) ? ($sgc3 / $total) * 100 : 0;
+
+                            ?>
+
+                        <div class="row">
+                            <div class="col-lg-12">
+
+                                <div class="card">
+                                    <div class="card-header py-3 bg-transparent">
+                                        <div class="card-widgets">
+                                            <a href="javascript:;" data-toggle="reload"><i class="mdi mdi-refresh"></i></a>
+                                            <a data-toggle="collapse" href="#cardCollpase2" role="button" aria-expanded="false" aria-controls="cardCollpase2"><i class="mdi mdi-minus"></i></a>
+                                            <a href="#" data-toggle="remove"><i class="mdi mdi-close"></i></a>
+                                        </div>
+                                        <h5 class="header-title mb-2"> School Governance Council (SGC)</h5>
+                                    </div>
+                                    <div id="cardCollpase2" class="collapse show">
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-md-12">
+
+                                                    <div class="pl-xl-4">
+                                                        <p class="mb-1">Not Yet Organized - <span class="text-purple"><?= number_format($sgc1_percent, 2); ?>%</span></p>
+                                                        <div class="progress mb-5" style="height: 7px;">
+                                                            <div class="progress-bar bg-purple progress-animated wow animated" role="progressbar" aria-valuenow="<?= number_format($sgc1_percent); ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= number_format($sgc1_percent); ?>%">
+                                                            </div>
+                                                            <!-- /.progress-bar .progress-bar-danger -->
+                                                        </div>
+                                                        <!-- /.progress .no-rounded -->
+                                                        <p class="mb-1">Organized but not Functional - <span class="text-warning"><?=number_format($sgc2_percent, 2); ?>%</span></p>
+                                                        <div class="progress mb-5" style="height: 7px;">
+                                                            <div class="progress-bar bg-warning progress-animated wow animated" role="progressbar" aria-valuenow="<?= number_format($sgc2_percent); ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= number_format($sgc2_percent); ?>%">
+                                                            </div>
+                                                            <!-- /.progress-bar .progress-bar-warning -->
+                                                        </div>
+                                                        <!-- /.progress .no-rounded -->
+                                                        <p class="mb-1">Functional - <span class="text-success"><?= number_format($sgc3_percent, 2); ?>%</span></p>
+                                                        <div class="progress mb-5" style="height: 7px;">
+                                                            <div class="progress-bar bg-success progress-animated wow animated" role="progressbar" aria-valuenow="<?= number_format($sgc3_percent); ?>" aria-valuemin="0" aria-valuemax="100" style="width: <?= number_format($sgc3_percent); ?>%">
+                                                            </div>
+                                                            <!-- /.progress-bar .progress-bar-success -->
+                                                        </div>
+                                                        
+                                                    </div>
+
+                                                </div>
                                             </div>
-                                            <i class="ion-ios-pricetag"></i>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                                <!-- end card-->
 
-                            <div class="col-xl-6 col-sm-6">
-                                <div class="card bg-success">
-                                    <div class="card-body widget-style-2">
-                                        <div class="text-white media">
-                                            <div class="media-body align-self-center">
-                                                <h2 class="my-0 text-white"><span data-plugin="counterup">145</span></h2>
-                                                <p class="mb-0">New Users</p>
-                                            </div>
-                                            <i class="mdi mdi-comment-multiple"></i>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
+                            <!-- end col -->
+
                         </div>
+                        <!-- End row -->
 
-
-                        <!-- start page title -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="page-title-box">
-                                    <h4 class="page-title">Self-Assessment Checklist</h4>
-                                   
-                                    <div class="clearfix"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- end page title -->
+                        
 
                          
                        
@@ -66,7 +90,17 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="card">
+                                    
                                     <div class="card-body table-responsive">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <div class="page-title-box">
+                                                    <h4 class="page-title">Self-Assessment Checklist</h4>
+                                                
+                                                    <div class="clearfix"></div>
+                                                </div>
+                                            </div>
+                                        </div>
                                         
                                     <div id="accordion" class="mb-3">
 

@@ -16,6 +16,7 @@
         <link href="https://db.onlinewebfonts.com/a/0nH393RJctHgt1f2YvZvyruY" rel="stylesheet" type="text/css"/>
 
     </head>
+    <?php $div = $this->Common->one_cond_row('division','id',$school->division_id); ?>
 
 
     <body>
@@ -25,8 +26,8 @@
                     <span class="rp">Republic of the Philippines</span>
                         <span class="de">Department of Education</span>
                         <span class="r">Region XI</span>
-                        <span class="r">School Division of Davao Oriental</span>
-                        <span class="r">Mati City</span>
+                        <span class="r">School Division of <?= $div->description; ?></span>
+                        <span class="r">Region Office Address</span>
                     </p>
 
                     <p style="margin:20px 0; font-weight:bold">ACTION PLAN</p>

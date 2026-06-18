@@ -2,21 +2,46 @@
                         <div class="row">
                             <div class="col-12">
                                 <div class="page-title-box">
-                                    <h4 class="page-title"><?= $title; ?></h4>
+                                    <?php if($this->session->flashdata('success')) : ?>
+
+                                        <?= '<br /><div class="alert alert-success alert-dismissible fade show" role="alert">
+                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>'
+                                                .$this->session->flashdata('success'). 
+                                            '</div>'; 
+                                        ?>
+                                        <?php endif; ?>
+
+                                        <?php if($this->session->flashdata('danger')) : ?>
+                                        <?= '<br /><div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>'
+                                                .$this->session->flashdata('danger'). 
+                                            '</div>'; 
+                                        ?>
+                                        <?php endif;  ?>
+                                    <!-- <h4 class="page-title"><?= $title; ?></h4> -->
                                     <div class="page-title-right">
                                         <ol class="breadcrumb p-0 m-0">
                                             <li class="breadcrumb-item"><a href="#" data-toggle="modal" data-target="#myModal">Current Fiscal Year : <span class="badge badge-success"><?= $this->session->fy; ?></span></a></li>
                                         </ol>
                                     </div>
+                                    <br /><br />
+                                    <img class="img-fluid logo" src="<?= base_url(); ?>assets/images/renren.jpeg" alt="renrenguapo" width="100%">
                                     
                                     <div class="clearfix"></div>
+                                    
                                 </div>
                             </div>
                         </div>
                         <!-- end page title -->
 
+                        
 
-                        <div class="row">
+
+                        <!-- <div class="row">
                             
 
                             <div class="col-xl-6 col-sm-6">
@@ -46,7 +71,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
 
                          
                         </div>

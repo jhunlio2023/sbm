@@ -15,6 +15,8 @@
 
                         
 
+                        
+
                         <?php if ($this->session->flashdata('success')) : ?>
 
                             <?= '<div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -109,7 +111,7 @@
                                                                                     $c = 0;
                                                                                     foreach($question as $sub_row){
                                                                                         
-                                                                                        $sbm = $this->Common->two_cond_row('sbm','school_id',$this->uri->segment(3),'fy',$this->session->fy);
+                                                                                        $renren = $this->Common->two_cond_row('sbm','school_id',$this->uri->segment(3),'fy',$this->session->fy);
                                                                                         $sbm_col = 'q'.$sub_row->i_no;
 
                                                                                         $count='q'.$sub_row->i_no;
@@ -123,10 +125,20 @@
                                                                                     <td><?= $sub_row->i_no; ?></td>
                                                                                     <td><?= $sub_row->description; ?></td>
                                                                                     <td class="text-center">
-                                                                                        <?= $dm[$sbm->$sbm_col]; ?>    
+                                                                                        <?php 
+                                                                                            if (!empty($renren) && isset($renren->$sbm_col)) {
+                                                                                                foreach($dm as $key => $row){
+                                                                                                    if($key == $renren->$sbm_col){
+                                                                                                        echo $row;
+                                                                                                    }
+                                                                                                }
+                                                                                            } else {
+                                                                                                echo '<span class="text-danger">No data</span>'; 
+                                                                                            }
+                                                                                        ?>
                                                                                     </td>
-                                                                                    <td><textarea class="form-control" name="q<?=$sub_row->i_no; ?>"  rows="2" id="example-textarea" readonly><?php if($sbmc_count->num_rows() >= 1){echo $sbmc->$count;} ?></textarea></td>
-                                                                                    <td><textarea class="form-control" name="qq<?=$sub_row->i_no; ?>" rows="2" id="example-textarea" readonly><?php if($sbmc_count->num_rows() >= 1){echo $sbmc->$count1;} ?></textarea></td>
+                                                                                    <td><textarea class="form-control popup-textarea" name="q<?=$sub_row->i_no; ?>"  rows="2" id="example-textarea" readonly><?php if($sbmc_count->num_rows() >= 1){echo $sbmc->$count;} ?></textarea></td>
+                                                                                    <td><textarea class="form-control popup-textarea" name="qq<?=$sub_row->i_no; ?>" rows="2" id="example-textarea" readonly><?php if($sbmc_count->num_rows() >= 1){echo $sbmc->$count1;} ?></textarea></td>
                                                                                     <td>
                                                                                     <select class="form-control" name="a<?=$sub_row->i_no; ?>" disabled>
                                                                                         <option></option>
@@ -163,7 +175,7 @@
                                     <div class="form-group text-left mb-0">
                                                <input type="submit" name="submit" value="Submit" class="btn btn-primary waves-effect waves-light mr-1">
                                                <!-- <?php if($sbmc->stat == 1){?>
-                                            <?php if($this->session->position == 'smme'){ ?>
+                                            <?php if($this->session->position == 'division'){ ?>
                                             <a href="<?= base_url(); ?>/Page/sbm_ta_unlock/<?= $sbmc->id; ?>/<?= $sbmc->school_id; ?>" onclick="return confirm('Are you sure?')" class="btn btn-success waves-effect waves-light mr-1">Unlock</a>
                                         <?php }} ?>  -->
                                             </div>
