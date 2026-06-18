@@ -447,6 +447,67 @@ public function division_sgc_counts($division_id){
     return $counts;
 }
 
+public function region_division_count($region_id){
+    return (int) $this->db
+        ->where('region_id', $region_id)
+        ->count_all_results('division');
+}
+
+public function region_district_count($region_id){
+    $row = $this->db
+        ->select('COUNT(d.id) AS total', false)
+        ->from('district d')
+        ->join('division v', 'v.id = d.division_id', 'inner')
+        ->where('v.region_id', $region_id)
+        ->get()
+        ->row();
+
+    return $row ? (int) $row->total : 0;
+}
+
+public function region_school_count($region_id){
+    return (int) $this->db
+        ->where('region_id', $region_id)
+        ->count_all_results('schools');
+}
+
+public function region_user_count($region_id){
+    return (int) $this->db
+        ->where('r_id', $region_id)
+        ->count_all_results('users');
+}
+
+public function region_division_setup_summary($region_id){
+    $row = $this->db
+        ->select('SUM(COALESCE(total_schools, 0)) AS encoded_total_schools', false)
+        ->select('SUM(CASE WHEN total_schools IS NOT NULL AND total_schools > 0 THEN 1 ELSE 0 END) AS configured_division_count', false)
+        ->where('region_id', $region_id)
+        ->get('division')
+        ->row();
+
+    return array(
+        'encoded_total_schools' => $row ? (int) $row->encoded_total_schools : 0,
+        'configured_division_count' => $row ? (int) $row->configured_division_count : 0,
+    );
+}
+
+public function region_sgc_counts($region_id){
+    $this->db->select('sgc, COUNT(*) AS total', false);
+    $this->db->where('region_id', $region_id);
+    $this->db->group_by('sgc');
+    $query = $this->db->get('schools');
+
+    $counts = array(1 => 0, 2 => 0, 3 => 0);
+    foreach ($query->result() as $row) {
+        $status = (int) $row->sgc;
+        if (isset($counts[$status])) {
+            $counts[$status] = (int) $row->total;
+        }
+    }
+
+    return $counts;
+}
+
 public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
     if (empty($indicator_numbers)) {
         return array();
@@ -488,10 +549,63 @@ public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
     return $counts;
 }
 
+public function region_sbm_rate_counts($region_id, $fy, $indicator_numbers){
+    if (empty($indicator_numbers)) {
+        return array();
+    }
+
+    $select = array();
+    foreach ($indicator_numbers as $indicator_number) {
+        $indicator_number = (int) $indicator_number;
+        if ($indicator_number < 1) {
+            continue;
+        }
+
+        for ($rate = 1; $rate <= 4; $rate++) {
+            $alias = 'q' . $indicator_number . '_r' . $rate;
+            $select[] = 'SUM(CASE WHEN q' . $indicator_number . ' = ' . $rate . ' THEN 1 ELSE 0 END) AS ' . $alias;
+        }
+    }
+
+    if (empty($select)) {
+        return array();
+    }
+
+    $row = $this->db
+        ->select(implode(', ', $select), false)
+        ->where('region', $region_id)
+        ->where('fy', $fy)
+        ->get('sbm')
+        ->row();
+
+    $counts = array();
+    foreach ($indicator_numbers as $indicator_number) {
+        $indicator_number = (int) $indicator_number;
+        for ($rate = 1; $rate <= 4; $rate++) {
+            $alias = 'q' . $indicator_number . '_r' . $rate;
+            $counts[$indicator_number][$rate] = $row && isset($row->$alias) ? (int) $row->$alias : 0;
+        }
+    }
+
+    return $counts;
+}
+
 public function division_sbm_completed_count($division_id, $fy){
     $row = $this->db
         ->select('COUNT(DISTINCT school_id) AS total', false)
         ->where('division', $division_id)
+        ->where('fy', $fy)
+        ->where('stat', 1)
+        ->get('sbm')
+        ->row();
+
+    return $row ? (int) $row->total : 0;
+}
+
+public function region_sbm_completed_count($region_id, $fy){
+    $row = $this->db
+        ->select('COUNT(DISTINCT school_id) AS total', false)
+        ->where('region', $region_id)
         ->where('fy', $fy)
         ->where('stat', 1)
         ->get('sbm')

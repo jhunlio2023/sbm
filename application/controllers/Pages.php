@@ -100,6 +100,46 @@ class Pages extends CI_Controller
 
         if ($this->session->position == 'admin') {
             $page = "dashboard";
+            $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+            $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+            $indicator_numbers = array_map(function ($indicator) {
+                return (int) $indicator->i_no;
+            }, $data['sbm_sub']);
+
+            $data['sbm_sub_by_principle'] = array();
+            foreach ($data['sbm_sub'] as $indicator) {
+                $data['sbm_sub_by_principle'][(string) $indicator->priciple_id][] = $indicator;
+            }
+
+            $region_id = (int) $this->session->region;
+            $setup_summary = $this->Page_model->region_division_setup_summary($region_id);
+
+            $data['division_count'] = $this->Page_model->region_division_count($region_id);
+            $data['district_count'] = $this->Page_model->region_district_count($region_id);
+            $data['registered_school_count'] = $this->Page_model->region_school_count($region_id);
+            $data['user_count'] = $this->Page_model->region_user_count($region_id);
+            $data['sgc_counts'] = $this->Page_model->region_sgc_counts($region_id);
+            $data['sbm_rate_counts'] = $this->Page_model->region_sbm_rate_counts(
+                $region_id,
+                $this->session->fy,
+                $indicator_numbers
+            );
+            $data['completed_checklist_count'] = $this->Page_model->region_sbm_completed_count(
+                $region_id,
+                $this->session->fy
+            );
+            $data['encoded_total_schools'] = isset($setup_summary['encoded_total_schools'])
+                ? (int) $setup_summary['encoded_total_schools']
+                : 0;
+            $data['configured_division_count'] = isset($setup_summary['configured_division_count'])
+                ? (int) $setup_summary['configured_division_count']
+                : 0;
+            $data['signup_percentage'] = $data['encoded_total_schools'] > 0
+                ? ($data['registered_school_count'] / $data['encoded_total_schools']) * 100
+                : 0;
+            $data['checklist_completion_percentage'] = $data['encoded_total_schools'] > 0
+                ? ($data['completed_checklist_count'] / $data['encoded_total_schools']) * 100
+                : 0;
             $data['title'] = "Dashboard";
         } elseif ($this->session->position == 'division') {
             $page = "dashboard_division";
@@ -144,6 +184,44 @@ class Pages extends CI_Controller
             $page = "dashboard_region";
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+            $indicator_numbers = array_map(function ($indicator) {
+                return (int) $indicator->i_no;
+            }, $data['sbm_sub']);
+
+            $data['sbm_sub_by_principle'] = array();
+            foreach ($data['sbm_sub'] as $indicator) {
+                $data['sbm_sub_by_principle'][(string) $indicator->priciple_id][] = $indicator;
+            }
+
+            $region_id = (int) $this->session->region;
+            $setup_summary = $this->Page_model->region_division_setup_summary($region_id);
+
+            $data['division_count'] = $this->Page_model->region_division_count($region_id);
+            $data['district_count'] = $this->Page_model->region_district_count($region_id);
+            $data['registered_school_count'] = $this->Page_model->region_school_count($region_id);
+            $data['user_count'] = $this->Page_model->region_user_count($region_id);
+            $data['sgc_counts'] = $this->Page_model->region_sgc_counts($region_id);
+            $data['sbm_rate_counts'] = $this->Page_model->region_sbm_rate_counts(
+                $region_id,
+                $this->session->fy,
+                $indicator_numbers
+            );
+            $data['completed_checklist_count'] = $this->Page_model->region_sbm_completed_count(
+                $region_id,
+                $this->session->fy
+            );
+            $data['encoded_total_schools'] = isset($setup_summary['encoded_total_schools'])
+                ? (int) $setup_summary['encoded_total_schools']
+                : 0;
+            $data['configured_division_count'] = isset($setup_summary['configured_division_count'])
+                ? (int) $setup_summary['configured_division_count']
+                : 0;
+            $data['signup_percentage'] = $data['encoded_total_schools'] > 0
+                ? ($data['registered_school_count'] / $data['encoded_total_schools']) * 100
+                : 0;
+            $data['checklist_completion_percentage'] = $data['encoded_total_schools'] > 0
+                ? ($data['completed_checklist_count'] / $data['encoded_total_schools']) * 100
+                : 0;
 
             $data['title'] = "Dashboard";
         } elseif ($this->session->position == 'district') {
