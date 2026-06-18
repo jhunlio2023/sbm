@@ -1278,8 +1278,53 @@ class Pages extends CI_Controller
     function sbm_checklist_final()
     {
         $this->Page_model->sbm_cecklist_lock_unloc(1);
-        $this->session->set_flashdata('success', 'Saved successfully.');
-        redirect(base_url() . 'Pages/sbm_checklist');
+        $this->session->set_flashdata('success', 'Checklist finalized. PDF download is starting.');
+        redirect(base_url() . 'Pages/sbm_checklist_pdf');
+    }
+
+    public function sbm_checklist_pdf()
+    {
+        $page = 'sbm_checklist_pdf';
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $position = strtolower(trim((string) $this->session->position));
+        $is_school_user = $position === 'school';
+        $view_school_id = $is_school_user ? (string) $this->session->username : (string) $this->uri->segment(3);
+
+        if ($view_school_id === '') {
+            show_404();
+        }
+
+        $data['sbmc'] = $this->Common->two_cond_row('sbm', 'school_id', $view_school_id, 'fy', $this->session->fy);
+
+        if (!$data['sbmc'] || !isset($data['sbmc']->stat) || (int) $data['sbmc']->stat !== 1) {
+            $this->session->set_flashdata('danger', 'Finalize the checklist first before generating its PDF.');
+
+            if ($is_school_user) {
+                redirect(base_url() . 'Pages/sbm_checklist');
+            } else {
+                redirect(base_url() . 'Pages/checklist_district/' . rawurlencode($view_school_id));
+            }
+
+            return;
+        }
+
+        $data['title'] = 'SBM Checklist PDF';
+        $data['view_school_id'] = $view_school_id;
+        $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $view_school_id);
+        $data['division'] = ($data['school'] && !empty($data['school']->division_id))
+            ? $this->Page_model->one_cond_row('division', 'id', $data['school']->division_id)
+            : null;
+        $data['district'] = ($data['school'] && !empty($data['school']->district_id))
+            ? $this->Page_model->one_cond_row('district', 'id', $data['school']->district_id)
+            : null;
+        $data['sbm'] = $this->Common->no_cond('sbm_indicator');
+        $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+
+        $this->load->view('pages/' . $page, $data);
     }
 
     public function tapr_form()

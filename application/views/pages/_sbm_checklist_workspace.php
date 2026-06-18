@@ -153,6 +153,9 @@ $ta_url = $is_school_user
     ? base_url() . 'Pages/tapr_form'
     : base_url() . 'Pages/tapr_form_district/' . rawurlencode($view_school_id);
 $tana_url = $is_school_user ? base_url() . 'Pages/tana_summary' : $profile_url;
+$checklist_pdf_url = $is_school_user
+    ? base_url() . 'Pages/sbm_checklist_pdf'
+    : base_url() . 'Pages/sbm_checklist_pdf/' . rawurlencode($view_school_id);
 $fiscal_year_label = 'Fiscal Year ' . $this->session->fy;
 
 $next_step = array(
@@ -1125,6 +1128,71 @@ if ($checklist_record && !$all_answered && $can_edit) {
         line-height: 1.7;
     }
 
+    .sbm-checklist-page .pdf-link-panel {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-top: 16px;
+        padding: 16px 18px;
+        border: 1px solid rgba(194, 65, 12, .16);
+        border-radius: 16px;
+        background: linear-gradient(135deg, rgba(255, 247, 237, .95), #fff);
+    }
+
+    .sbm-checklist-page .pdf-link-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        flex-shrink: 0;
+        color: #fff;
+        background: linear-gradient(135deg, #c2410c, #ea580c);
+        font-size: 20px;
+        box-shadow: 0 10px 18px rgba(194, 65, 12, .18);
+    }
+
+    .sbm-checklist-page .pdf-link-copy {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .sbm-checklist-page .pdf-link-copy strong {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--checklist-ink);
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .sbm-checklist-page .pdf-link-copy p {
+        margin: 0 0 8px;
+        color: var(--checklist-muted);
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .sbm-checklist-page .pdf-link-url {
+        display: block;
+        padding: 10px 12px;
+        border: 1px solid rgba(234, 88, 12, .16);
+        border-radius: 12px;
+        color: #9a3412;
+        background: rgba(255, 255, 255, .92);
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 1.55;
+        word-break: break-all;
+        overflow-wrap: anywhere;
+        text-decoration: none !important;
+    }
+
+    .sbm-checklist-page .pdf-link-url:hover {
+        color: #7c2d12;
+        background: #fff;
+    }
+
     .sbm-checklist-page .empty-state {
         display: flex;
         flex-direction: column;
@@ -1237,6 +1305,10 @@ if ($checklist_record && !$all_answered && $can_edit) {
         .sbm-checklist-page .workspace-actions {
             flex-direction: column;
             align-items: stretch;
+        }
+
+        .sbm-checklist-page .pdf-link-panel {
+            padding: 14px;
         }
 
         .sbm-checklist-page .hero-button,
@@ -1567,6 +1639,13 @@ if ($checklist_record && !$all_answered && $can_edit) {
                             </a>
                         <?php endif; ?>
 
+                        <?php if ($checklist_record && $is_finalized) : ?>
+                            <a href="<?= $checklist_pdf_url; ?>" target="_blank" class="workspace-button workspace-button-secondary">
+                                <i class="mdi mdi-file-pdf-box"></i>
+                                Download PDF
+                            </a>
+                        <?php endif; ?>
+
                         <a href="<?= $dashboard_url; ?>" class="workspace-button workspace-button-secondary">
                             <i class="mdi mdi-view-dashboard-outline"></i>
                             Back to Dashboard
@@ -1582,6 +1661,19 @@ if ($checklist_record && !$all_answered && $can_edit) {
                             This checklist is currently in read-only mode for review purposes.
                         <?php endif; ?>
                     </p>
+
+                    <?php if ($checklist_record && $is_finalized) : ?>
+                        <div class="pdf-link-panel">
+                            <span class="pdf-link-icon">
+                                <i class="mdi mdi-link-variant"></i>
+                            </span>
+                            <div class="pdf-link-copy">
+                                <strong>PDF Link</strong>
+                                <p>Open or copy this direct link to generate the finalized checklist PDF.</p>
+                                <a href="<?= $checklist_pdf_url; ?>" target="_blank" class="pdf-link-url"><?= $escape($checklist_pdf_url); ?></a>
+                            </div>
+                        </div>
+                    <?php endif; ?>
 
                     </form>
                 </div>
