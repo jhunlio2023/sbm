@@ -20,8 +20,10 @@ $table_definitions = array(
 );
 $submission_counts_by_division = array();
 $summary_totals = array_fill_keys(array_keys($table_definitions), 0);
+$division_submission_totals = array();
 
 foreach ($data as $row) {
+    $row_total = 0;
     foreach ($table_definitions as $table => $definition) {
         $count = $this->Common->two_cond_count_row_gb(
             $table,
@@ -34,8 +36,13 @@ foreach ($data as $row) {
 
         $submission_counts_by_division[(string) $row->id][$table] = $count;
         $summary_totals[$table] += $count;
+        $row_total += $count;
     }
+
+    $division_submission_totals[(string) $row->id] = $row_total;
 }
+
+$overall_submission_total = array_sum($summary_totals);
 ?>
 
 <style>
@@ -110,7 +117,7 @@ foreach ($data as $row) {
 
     .division-summary-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         gap: 16px;
         margin-bottom: 22px;
     }
@@ -143,6 +150,7 @@ foreach ($data as $row) {
     .division-summary-card.summary-action strong { color: #16835a; }
     .division-summary-card.summary-checklist strong { color: #17718d; }
     .division-summary-card.summary-ta strong { color: #4a56c7; }
+    .division-summary-card.summary-overall strong { color: #8b1e3f; }
 
     .directory-card {
         border: 1px solid var(--directory-border);
@@ -195,13 +203,28 @@ foreach ($data as $row) {
         padding: 8px 24px 24px;
     }
 
-    .division-directory-page table {
-        margin: 0;
+    .division-directory-page .dataTables_wrapper .row:first-child {
+        align-items: center;
+        padding: 12px 0 6px;
     }
 
-    .division-directory-page table thead th {
+    .division-directory-page .dataTables_filter input,
+    .division-directory-page .dataTables_length select {
+        min-height: 38px;
+        border: 1px solid #dce2ee;
+        border-radius: 9px;
+        box-shadow: none;
+    }
+
+    .division-directory-page table.dataTable {
+        margin-top: 12px !important;
+        border-collapse: separate !important;
+        border-spacing: 0 8px !important;
+    }
+
+    .division-directory-page table.dataTable thead th {
         padding: 11px 14px;
-        border-top: 0;
+        border: 0;
         color: #687086;
         font-size: 10px;
         font-weight: 700;
@@ -210,9 +233,26 @@ foreach ($data as $row) {
         white-space: nowrap;
     }
 
-    .division-directory-page table tbody td {
+    .division-directory-page table.dataTable tbody td {
         padding: 14px;
+        border-top: 1px solid var(--directory-border);
+        border-bottom: 1px solid var(--directory-border);
         vertical-align: middle;
+        background: #fff;
+    }
+
+    .division-directory-page table.dataTable tbody td:first-child {
+        border-left: 1px solid var(--directory-border);
+        border-radius: 11px 0 0 11px;
+    }
+
+    .division-directory-page table.dataTable tbody td:last-child {
+        border-right: 1px solid var(--directory-border);
+        border-radius: 0 11px 11px 0;
+    }
+
+    .division-directory-page table.dataTable tbody tr:hover td {
+        background: #fff7f9;
     }
 
     .directory-sequence {
@@ -296,6 +336,19 @@ foreach ($data as $row) {
         background: #eef0ff;
     }
 
+    .overall-submission-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        color: var(--directory-primary-dark);
+        background: #f9e9ee;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
     .directory-empty {
         padding: 48px 24px;
         color: var(--directory-muted);
@@ -346,6 +399,28 @@ foreach ($data as $row) {
         .directory-table-wrap {
             padding: 8px 14px 18px;
         }
+
+        .division-directory-page .dataTables_wrapper .row:first-child > div {
+            width: 100%;
+            max-width: 100%;
+            flex: 0 0 100%;
+        }
+
+        .division-directory-page .dataTables_filter,
+        .division-directory-page .dataTables_length {
+            text-align: left;
+        }
+
+        .division-directory-page .dataTables_filter input {
+            width: calc(100% - 58px);
+            margin-left: 6px;
+        }
+
+        .division-directory-page .dataTables_info,
+        .division-directory-page .dataTables_paginate {
+            text-align: center !important;
+            white-space: normal;
+        }
     }
 </style>
 
@@ -361,6 +436,10 @@ foreach ($data as $row) {
                     <span class="directory-pill">
                         <i class="mdi mdi-format-list-bulleted-square"></i>
                         <?= $division_total; ?> <?= $division_total === 1 ? 'division' : 'divisions'; ?>
+                    </span>
+                    <span class="directory-pill">
+                        <i class="mdi mdi-chart-box-outline"></i>
+                        <?= $overall_submission_total; ?> total submissions
                     </span>
                     <a href="<?= $dashboard_url; ?>" class="directory-back-link">
                         <i class="mdi mdi-arrow-left"></i> Back to Dashboard
@@ -393,6 +472,10 @@ foreach ($data as $row) {
             <span>Divisions</span>
             <strong><?= $division_total; ?></strong>
         </div>
+        <div class="division-summary-card summary-overall">
+            <span>Overall Submissions</span>
+            <strong><?= $overall_submission_total; ?></strong>
+        </div>
         <div class="division-summary-card summary-action">
             <span>Action Plan Submissions</span>
             <strong><?= $summary_totals['sgod_action_plan']; ?></strong>
@@ -423,7 +506,7 @@ foreach ($data as $row) {
 
                     <?php if (!empty($data)) { ?>
                         <div class="directory-table-wrap table-responsive">
-                            <table class="table mb-0">
+                            <table id="datatable" class="table dt-responsive" style="width: 100%;">
                                 <thead>
                                     <tr>
                                         <th>No.</th>
@@ -431,6 +514,7 @@ foreach ($data as $row) {
                                         <th class="text-center">Action Plan</th>
                                         <th class="text-center">Self-Assessment</th>
                                         <th class="text-center">TA Form</th>
+                                        <th class="text-center">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -461,6 +545,11 @@ foreach ($data as $row) {
                                                     </a>
                                                 </td>
                                             <?php endforeach; ?>
+                                            <td class="text-center">
+                                                <span class="overall-submission-badge">
+                                                    <?= isset($division_submission_totals[(string) $row->id]) ? $division_submission_totals[(string) $row->id] : 0; ?>
+                                                </span>
+                                            </td>
                                         </tr>
                                     <?php } ?>
                                 </tbody>

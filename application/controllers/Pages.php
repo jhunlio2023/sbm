@@ -1000,10 +1000,29 @@ class Pages extends CI_Controller
         $data['title'] = "School List";
 
         $table = $this->uri->segment(4);
+        $allowed_tables = array('sgod_action_plan', 'sbm', 'sbm_ta');
+
+        if (!in_array($table, $allowed_tables, true)) {
+            show_404();
+        }
+
+        $division_id = (int) $this->uri->segment(3);
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
         //$data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
-        $data['data'] = $this->Common->two_join_two_cond_gb($table, 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.division', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.division', $this->uri->segment(3), 'b.schoolName', 'ASC','a.school_id');
+        $data['data'] = $this->Common->two_join_two_cond_gb($table, 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.division', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.division', $division_id, 'b.schoolName', 'ASC','a.school_id');
+        $school_ids = array_map(function ($school) {
+            return $school->schoolID;
+        }, $data['data']);
+
+        $data['submission_status'] = array(
+            'sgod_action_plan' => $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, $school_ids),
+            'sbm' => $this->Page_model->submission_school_ids('sbm', $this->session->fy, $school_ids),
+            'sbm_ta' => $this->Page_model->submission_school_ids('sbm_ta', $this->session->fy, $school_ids)
+        );
+        $data['selected_submission'] = $table;
+        $data['division'] = $this->Page_model->one_cond_row('division', 'id', $division_id);
+        $data['districts'] = $this->Page_model->get_districts_by_division($division_id);
 
 
         $this->load->view('templates/header_dt');
@@ -1304,6 +1323,13 @@ class Pages extends CI_Controller
 
     public function tapr_form_update()
     {
+        $record = $this->Common->two_cond_row('sbm_ta', 'school_id', $this->session->username, 'fy', $this->session->fy);
+        if ($record && isset($record->stat) && (int) $record->stat === 1) {
+            $this->session->set_flashdata('danger', 'This TA form is finalized and locked. Coordinate with your division reviewer if revisions are needed.');
+            redirect(base_url() . 'pages/tapr_form');
+            return;
+        }
+
         $this->Page_model->sbm_ta_update();
         $this->session->set_flashdata('success', 'Successfully saved.');
         redirect(base_url() . 'pages/tapr_form');
@@ -1833,7 +1859,15 @@ class Pages extends CI_Controller
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         ', '</div>');
+        $this->form_validation->set_rules('schoolID', 'School ID', 'trim|required');
+        $this->form_validation->set_rules('password', 'Password', 'trim|required');
         $this->form_validation->set_rules('schoolName', 'school Name', 'required');
+        $this->form_validation->set_rules('schoolEmail', 'School Email', 'trim|required|valid_email');
+        $this->form_validation->set_rules('division_id', 'Division', 'trim|required');
+        $this->form_validation->set_rules('d_id', 'District/Cluster', 'trim|required');
+        $this->form_validation->set_rules('sgc', 'School Governance Council', 'trim|required');
+        $this->form_validation->set_rules('category', 'Category', 'trim|required');
+        $this->form_validation->set_rules('schoolType', 'Offerings', 'trim|required');
 
         if ($this->form_validation->run() == FALSE) {
 
@@ -1843,6 +1877,10 @@ class Pages extends CI_Controller
                 show_404();
             }
             $data['division'] = $this->Page_model->one_cond('division', 'region_id', 12);
+            $selected_division_id = (int) $this->input->post('division_id');
+            $data['districts'] = $selected_division_id > 0
+                ? $this->Page_model->get_districts_by_division($selected_division_id)
+                : array();
 
 
             $this->load->view('pages/' . $page, $data);
