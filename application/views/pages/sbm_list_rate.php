@@ -8,6 +8,8 @@ $rate_labels = array(
 $rate_label = isset($rate_labels[$rate_value]) ? $rate_labels[$rate_value] : 'Rating';
 $indicator_number = (int) substr($rate_question, 1);
 $result_count = count($data);
+$indicator_description = isset($rate_indicator_description) ? trim((string) $rate_indicator_description) : '';
+$indicator_principle = isset($rate_indicator_principle) ? trim((string) $rate_indicator_principle) : '';
 $back_url = $rate_scope === 'division'
     ? base_url()
     : 'javascript:history.back()';
@@ -243,6 +245,39 @@ $back_url = $rate_scope === 'division'
         box-shadow: 0 6px 18px rgba(31, 45, 75, .07);
     }
 
+    .rate-indicator-detail {
+        margin-top: 16px;
+        padding: 16px 18px;
+        border: 1px solid rgba(255, 255, 255, .2);
+        border-radius: 14px;
+        background: rgba(255, 255, 255, .12);
+        backdrop-filter: blur(6px);
+        max-width: 780px;
+    }
+
+    .rate-indicator-detail strong {
+        display: block;
+        margin-bottom: 6px;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .rate-indicator-detail h5 {
+        margin: 0 0 6px;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+    }
+
+    .rate-indicator-detail p {
+        margin: 0;
+        color: rgba(255, 255, 255, .9);
+        line-height: 1.65;
+    }
+
     @media (max-width: 767.98px) {
         .rate-results-hero {
             align-items: flex-start;
@@ -302,6 +337,17 @@ $back_url = $rate_scope === 'division'
                 <div>
                     <h2><i class="mdi mdi-chart-bar mr-2"></i>SBM Rating Results</h2>
                     <p>Schools reporting “<?= html_escape($rate_label); ?>” for SBM Indicator <?= $indicator_number; ?>.</p>
+                    <?php if ($indicator_description !== '' || $indicator_principle !== '') : ?>
+                        <div class="rate-indicator-detail">
+                            <strong>Indicator Details</strong>
+                            <?php if ($indicator_principle !== '') : ?>
+                                <h5><?= html_escape($indicator_principle); ?></h5>
+                            <?php endif; ?>
+                            <?php if ($indicator_description !== '') : ?>
+                                <p><?= html_escape($indicator_description); ?></p>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
                 <div class="rate-hero-actions">
                     <span class="rate-result-count">
@@ -362,20 +408,26 @@ $back_url = $rate_scope === 'division'
                             <tbody>
                                 <?php foreach ($data as $row) :
                                     $school_id = (string) $row->school_id;
+                                    $school_name = isset($row->schoolName) && trim((string) $row->schoolName) !== ''
+                                        ? (string) $row->schoolName
+                                        : 'Unnamed School';
                                     $division_name = isset($division_names[(string) $row->division_id])
                                         ? $division_names[(string) $row->division_id]
+                                        : 'Division';
+                                    $division_label = trim((string) $division_name) !== ''
+                                        ? (string) $division_name
                                         : 'Division';
                                 ?>
                                     <tr>
                                         <td>
                                             <div class="rate-school-cell">
                                                 <span class="rate-school-icon"><i class="mdi mdi-school-outline"></i></span>
-                                                <span class="rate-school-name"><?= html_escape(mb_convert_case($row->schoolName, MB_CASE_TITLE, 'UTF-8')); ?></span>
+                                                <span class="rate-school-name"><?= html_escape(mb_convert_case($school_name, MB_CASE_TITLE, 'UTF-8')); ?></span>
                                             </div>
                                         </td>
                                         <td><span class="rate-school-id"><?= html_escape($school_id); ?></span></td>
                                         <td>
-                                            <span class="division-label"><?= html_escape(mb_convert_case($division_name, MB_CASE_TITLE, 'UTF-8')); ?></span>
+                                            <span class="division-label"><?= html_escape(mb_convert_case($division_label, MB_CASE_TITLE, 'UTF-8')); ?></span>
                                         </td>
                                         <td>
                                             <div class="document-actions">

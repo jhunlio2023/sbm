@@ -1,11 +1,36 @@
 <?php
-$concern_count = count($data);
-$analysis_count = count($ivy);
+$priority_rows = array();
+$analysis_rows = array();
 $used_sequences = array();
+
+foreach ($data as $row) {
+    $question = 'q' . $row->concern_id;
+    $text = isset($row->$question) ? trim((string) $row->$question) : '';
+
+    if ($text === '') {
+        continue;
+    }
+
+    $priority_rows[] = array(
+        'row' => $row,
+        'text' => $text
+    );
+}
 
 foreach ($ivy as $analysis) {
     $used_sequences[(int) $analysis->sequence] = true;
+
+    $analysis_text = isset($analysis->tana) ? trim((string) $analysis->tana) : '';
+
+    if ($analysis_text === '') {
+        continue;
+    }
+
+    $analysis_rows[] = $analysis;
 }
+
+$concern_count = count($priority_rows);
+$analysis_count = count($analysis_rows);
 ?>
 
 <style>
@@ -81,6 +106,27 @@ foreach ($ivy as $analysis) {
 
     .tana-add-button:hover {
         color: var(--tana-primary);
+        transform: translateY(-1px);
+    }
+
+    .tana-auto-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 11px 16px;
+        border: 1px solid rgba(255, 255, 255, .28);
+        border-radius: 10px;
+        color: #fff;
+        background: rgba(255, 255, 255, .14);
+        font-size: 12px;
+        font-weight: 700;
+        backdrop-filter: blur(5px);
+    }
+
+    .tana-auto-button:hover {
+        color: #fff;
+        text-decoration: none;
+        background: rgba(255, 255, 255, .24);
         transform: translateY(-1px);
     }
 
@@ -265,6 +311,7 @@ foreach ($ivy as $analysis) {
         }
 
         .tana-count,
+        .tana-auto-button,
         .tana-add-button {
             justify-content: center;
             flex: 1 1 auto;
@@ -351,6 +398,13 @@ foreach ($ivy as $analysis) {
                         <i class="mdi mdi-alert-circle-outline"></i>
                         <?= $concern_count; ?> <?= $concern_count === 1 ? 'concern' : 'concerns'; ?>
                     </span>
+                    <a
+                        href="<?= base_url(); ?>Pages/tana_division_autogenerate"
+                        class="tana-auto-button"
+                        onclick="return confirm('Auto-generate thematic analysis from the current priority concerns with values? This will replace the existing thematic analysis list for this division.');"
+                    >
+                        <i class="mdi mdi-auto-fix"></i> Auto-Generate Analysis
+                    </a>
                     <button type="button" class="tana-add-button" data-toggle="modal" data-target="#tanaAnalysisModal">
                         <i class="mdi mdi-plus-circle-outline"></i> Add Analysis
                     </button>
@@ -388,7 +442,7 @@ foreach ($ivy as $analysis) {
             </span>
         </div>
 
-        <?php if (!empty($data)) { ?>
+        <?php if (!empty($priority_rows)) { ?>
             <div class="tana-table-wrap table-responsive">
                 <table class="table tana-table">
                     <thead>
@@ -398,14 +452,11 @@ foreach ($ivy as $analysis) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($data as $index => $row) :
-                            $question = 'q' . $row->concern_id;
-                            $text = isset($row->$question) ? $row->$question : '';
-                        ?>
+                        <?php foreach ($priority_rows as $index => $entry) : ?>
                             <tr>
                                 <td data-label="No."><span class="tana-sequence"><?= $index + 1; ?></span></td>
                                 <td class="tana-text-cell" data-label="Concern">
-                                    <div class="tana-concern"><?= html_escape($text); ?></div>
+                                    <div class="tana-concern"><?= html_escape($entry['text']); ?></div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -424,7 +475,7 @@ foreach ($ivy as $analysis) {
         <div class="tana-panel-header">
             <div>
                 <h4>Thematic Analysis</h4>
-                <p>Division-level themes arranged according to their priority sequence.</p>
+                <p>Division-level themes arranged according to their priority sequence. Auto-generation uses recurring priority concerns with values only.</p>
             </div>
             <span class="tana-panel-badge">
                 <i class="mdi mdi-format-list-numbered"></i>
@@ -432,7 +483,7 @@ foreach ($ivy as $analysis) {
             </span>
         </div>
 
-        <?php if (!empty($ivy)) { ?>
+        <?php if (!empty($analysis_rows)) { ?>
             <div class="tana-table-wrap table-responsive">
                 <table class="table tana-table">
                     <thead>
@@ -443,7 +494,7 @@ foreach ($ivy as $analysis) {
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($ivy as $analysis) { ?>
+                        <?php foreach ($analysis_rows as $analysis) { ?>
                             <tr>
                                 <td data-label="Priority"><span class="tana-sequence"><?= (int) $analysis->sequence; ?></span></td>
                                 <td class="tana-text-cell" data-label="Analysis">

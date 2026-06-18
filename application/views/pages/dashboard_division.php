@@ -459,7 +459,7 @@ $rate_details = array(
                     <div class="dashboard-stat-top">
                         <div>
                             <h3><?= $registered_school_total; ?></h3>
-                            <p>Schools signed up in the system</p>
+                            <p>School Signup</p>
                             <span class="dashboard-link-hint"><i class="mdi mdi-arrow-right"></i> View details</span>
                         </div>
                         <span class="dashboard-stat-icon"><i class="mdi mdi-school-outline"></i></span>
@@ -473,7 +473,7 @@ $rate_details = array(
                     <div class="dashboard-stat-top">
                         <div>
                             <h3><?= $encoded_school_total; ?></h3>
-                            <p>Encoded total number of schools</p>
+                            <p>Total Schools</p>
                             <span class="dashboard-link-hint"><i class="mdi mdi-arrow-right"></i> View details</span>
                         </div>
                         <span class="dashboard-stat-icon"><i class="mdi mdi-clipboard-text-outline"></i></span>

@@ -13,7 +13,7 @@
     .school-update-page .school-hero {
         position: relative;
         overflow: hidden;
-        margin: 0 0 1.5rem;
+        margin: 1rem 0 1.5rem;
         padding: 1.75rem 2rem;
         border-radius: 18px;
         color: #fff;

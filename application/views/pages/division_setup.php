@@ -12,12 +12,18 @@ $signup_rate = !empty($encoded_total) ? ((int) $actual_school_count / (int) $enc
         --setup-muted: #6b7280;
     }
 
+    .division-setup-page .page-title-box {
+        min-height: 0;
+        margin-bottom: 8px;
+        padding: 0;
+    }
+
     .division-setup-hero {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 24px;
-        margin: 18px 0 22px;
+        margin: 8px 0 22px;
         padding: 28px;
         border-radius: 18px;
         color: #fff;
@@ -148,13 +154,6 @@ $signup_rate = !empty($encoded_total) ? ((int) $actual_school_count / (int) $enc
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb p-0 m-0">
-                        <li class="breadcrumb-item"><a href="<?= base_url(); ?>">Dashboard</a></li>
-                        <li class="breadcrumb-item active"><?= html_escape($title); ?></li>
-                    </ol>
-                </div>
-
                 <?php if ($this->session->flashdata('success')) : ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close">

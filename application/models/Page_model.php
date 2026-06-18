@@ -1097,6 +1097,95 @@ public function sbm_cecklist_lock_unloc($stat){
         return $this->db->insert('division_tana', $data);
     }
 
+    public function tana_division_autogenerate()
+    {
+        $fy       = $this->session->fy;
+        $region   = $this->session->region;
+        $division = $this->session->division;
+        $source_rows = $this->get_seq_one_two();
+        $themes = array();
+        $source_count = 0;
+        $order = 0;
+
+        foreach ($source_rows as $row) {
+            $question = 'q' . $row->concern_id;
+            $text = isset($row->$question) ? trim((string) $row->$question) : '';
+
+            if ($text === '') {
+                continue;
+            }
+
+            $text = preg_replace('/\s+/', ' ', $text);
+            $key = strtolower($text);
+            $source_count++;
+
+            if (!isset($themes[$key])) {
+                $themes[$key] = array(
+                    'tana' => $text,
+                    'count' => 0,
+                    'order' => $order,
+                );
+                $order++;
+            }
+
+            $themes[$key]['count']++;
+        }
+
+        if (empty($themes)) {
+            return array(
+                'status' => false,
+                'count' => 0,
+                'truncated' => false,
+                'message' => 'No priority concerns with values were found for auto-generation.',
+            );
+        }
+
+        $theme_rows = array_values($themes);
+
+        usort($theme_rows, function ($a, $b) {
+            if ($a['count'] === $b['count']) {
+                return $a['order'] <=> $b['order'];
+            }
+
+            return $b['count'] <=> $a['count'];
+        });
+
+        $rows = array();
+        $sequence = 1;
+
+        foreach ($theme_rows as $theme) {
+            if ($sequence > 20) {
+                break;
+            }
+
+            $rows[] = array(
+                'tana' => $theme['tana'],
+                'sequence' => $sequence,
+                'region' => $region,
+                'division' => $division,
+                'fy' => $fy,
+            );
+
+            $sequence++;
+        }
+
+        $this->db->trans_start();
+        $this->db->where('fy', $fy);
+        $this->db->where('region', $region);
+        $this->db->where('division', $division);
+        $this->db->delete('division_tana');
+        $this->db->insert_batch('division_tana', $rows);
+        $this->db->trans_complete();
+
+        return array(
+            'status' => $this->db->trans_status(),
+            'count' => count($rows),
+            'truncated' => count($theme_rows) > count($rows),
+            'source_count' => $source_count,
+            'message' => $this->db->trans_status() ? '' : 'Unable to save the auto-generated thematic analysis.',
+        );
+    }
+
     public function tana_region_insert(){
             $fy       = $this->session->fy;
             $region   = $this->session->region;

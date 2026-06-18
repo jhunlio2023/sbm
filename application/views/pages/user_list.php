@@ -1,4 +1,10 @@
-                        <?php if (!empty($division_scope)) { ?>
+                        <?php
+                            $themed_user_scope = !empty($division_scope) || !empty($district_user_scope);
+                            $district_name = !empty($district) ? mb_convert_case($district->description, MB_CASE_TITLE, 'UTF-8') : 'District';
+                            $district_user_back_url = !empty($district_user_back_url) ? $district_user_back_url : base_url();
+                        ?>
+
+                        <?php if ($themed_user_scope) { ?>
                         <style>
                             .division-users-page {
                                 --du-primary: #8b1e3f;
@@ -31,6 +37,33 @@
                             .division-users-hero p {
                                 margin: 0;
                                 color: rgba(255, 255, 255, .82);
+                            }
+
+                            .division-users-hero-actions {
+                                display: flex;
+                                align-items: center;
+                                flex-wrap: wrap;
+                                gap: 10px;
+                            }
+
+                            .division-users-hero-pill {
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 7px;
+                                padding: 10px 14px;
+                                border: 1px solid rgba(255, 255, 255, .24);
+                                border-radius: 999px;
+                                color: #fff;
+                                background: rgba(255, 255, 255, .14);
+                                font-size: 12px;
+                                font-weight: 700;
+                                backdrop-filter: blur(5px);
+                            }
+
+                            .division-users-hero-pill.division-users-hero-link:hover {
+                                color: var(--du-primary-dark);
+                                background: #fff;
+                                text-decoration: none;
                             }
 
                             .division-users-hero .btn-add-user {
@@ -216,6 +249,15 @@
                                     border-radius: 14px;
                                 }
 
+                                .division-users-hero-actions {
+                                    width: 100%;
+                                }
+
+                                .division-users-hero-pill {
+                                    justify-content: center;
+                                    flex: 1 1 auto;
+                                }
+
                                 .division-users-hero .btn-add-user {
                                     width: 100%;
                                     text-align: center;
@@ -260,11 +302,32 @@
                         </style>
                         <?php } ?>
 
-                        <div class="<?= !empty($division_scope) ? 'division-users-page' : ''; ?>">
+                        <div class="<?= $themed_user_scope ? 'division-users-page' : ''; ?>">
                         <!-- start page title -->
                         <div class="row">
                             <div class="col-12">
-                                <?php if (!empty($division_scope)) { ?>
+                                <?php if (!empty($district_user_scope)) { ?>
+                                <div class="division-users-hero">
+                                    <div>
+                                        <h2><i class="mdi mdi-account-network-outline mr-2"></i>District User Accounts</h2>
+                                        <p>Manage district user accounts assigned to <?= html_escape($district_name); ?>.</p>
+                                    </div>
+                                    <div class="division-users-hero-actions">
+                                        <span class="division-users-hero-pill">
+                                            <i class="mdi mdi-map-marker-outline"></i>
+                                            <?= html_escape($district_name); ?>
+                                        </span>
+                                        <span class="division-users-hero-pill">
+                                            <i class="mdi mdi-account-key-outline"></i>
+                                            <?= count($users); ?> <?= count($users) === 1 ? 'account' : 'accounts'; ?>
+                                        </span>
+                                        <a class="division-users-hero-pill division-users-hero-link" href="<?= $district_user_back_url; ?>">
+                                            <i class="mdi mdi-arrow-left"></i>
+                                            Back to Districts
+                                        </a>
+                                    </div>
+                                </div>
+                                <?php } elseif (!empty($division_scope)) { ?>
                                 <div class="division-users-hero">
                                     <div>
                                         <h2><i class="mdi mdi-account-group-outline mr-2"></i>Manage Users</h2>
@@ -316,9 +379,21 @@
 
                         <div class="row">
                             <div class="col-12">
-                                <div class="card <?= !empty($division_scope) ? 'division-users-card' : ''; ?>">
+                                <div class="card <?= $themed_user_scope ? 'division-users-card' : ''; ?>">
                                     <div class="card-body">
-                                        <?php if (!empty($division_scope)) { ?>
+                                        <?php if (!empty($district_user_scope)) { ?>
+                                        <div class="division-users-toolbar">
+                                            <div>
+                                                <h4><?= html_escape($district_name); ?> District Accounts</h4>
+                                                <small class="text-muted">Review and manage district-level user access for this district.</small>
+                                            </div>
+                                            <span class="division-users-count">
+                                                <i class="mdi mdi-account-multiple-outline"></i>
+                                                <?= count($users); ?> <?= count($users) === 1 ? 'account' : 'accounts'; ?>
+                                            </span>
+                                        </div>
+                                        <div class="division-users-table-wrap table-responsive">
+                                        <?php } elseif (!empty($division_scope)) { ?>
                                         <div class="division-users-toolbar">
                                             <div>
                                                 <h4>Division Accounts</h4>
@@ -335,13 +410,13 @@
                                             <h4 class="m-t-0 header-title mb-4"><?= $title; ?></h4>
                                         <?php } ?>
 
-                                        <table id="datatable" class="table <?= !empty($division_scope) ? 'dt-responsive' : 'table-bordered dt-responsive nowrap'; ?>" style="width: 100%;">
+                                        <table id="datatable" class="table <?= $themed_user_scope ? 'dt-responsive' : 'table-bordered dt-responsive nowrap'; ?>" style="width: 100%;">
 
                                             <thead>
                                                 <tr>
-                                                    <th><?= !empty($division_scope) ? 'Account' : 'Fullname'; ?></th>
+                                                    <th><?= $themed_user_scope ? 'Account' : 'Fullname'; ?></th>
                                                     <th>Username</th>
-                                                    <th><?= !empty($division_scope) ? 'Acct. Level' : 'Position'; ?></th>
+                                                    <th><?= $themed_user_scope ? 'Acct. Level' : 'Position'; ?></th>
                                                     <th>Manage</th>
                                                 </tr>
                                             </thead>
@@ -350,7 +425,7 @@
                                                 <?php foreach($users as $row){?>
                                                 <tr>
                                                     <td data-label="Account">
-                                                        <?php if (!empty($division_scope)) {
+                                                        <?php if ($themed_user_scope) {
                                                             $display_name = mb_convert_case(
                                                                 trim((!empty($row->lname) ? $row->lname . ', ' : '') . $row->fname . (!empty($row->mname) ? ' ' . substr($row->mname, 0, 1) . '.' : '')),
                                                                 MB_CASE_TITLE,
@@ -366,10 +441,10 @@
                                                         <?= !empty($row->lname) ? $row->lname . ', ' : '' ?> <?= $row->fname; ?> <?php if(!empty($row->mname)){echo substr($row->mname, 0, 1).'.';} ?>
                                                         <?php } ?>
                                                     </td>
-                                                    <td data-label="Username"><span class="<?= !empty($division_scope) ? 'username-text' : ''; ?>"><?= html_escape($row->username); ?></span></td>
-                                                    <td data-label="Acct. Level"><span class="<?= !empty($division_scope) ? 'account-level' : ''; ?>"><?= html_escape($row->position); ?></span></td>
+                                                    <td data-label="Username"><span class="<?= $themed_user_scope ? 'username-text' : ''; ?>"><?= html_escape($row->username); ?></span></td>
+                                                    <td data-label="Acct. Level"><span class="<?= $themed_user_scope ? 'account-level' : ''; ?>"><?= html_escape($row->position); ?></span></td>
                                                     <td>
-                                                        <div class="<?= !empty($division_scope) ? 'user-actions' : ''; ?>">
+                                                        <div class="<?= $themed_user_scope ? 'user-actions' : ''; ?>">
                                                         <?php if(in_array($this->session->position, array('admin', 'division', 'ict'), true)){ ?>
                                                         <a class="btn btn-primary btn-sm" href="<?= base_url(); ?>pages/user_update/<?= $row->id; ?>"><i class="mdi mdi-pencil-outline"></i> Edit</a>
                                                         <?php } ?>

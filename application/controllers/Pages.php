@@ -35,6 +35,26 @@ class Pages extends CI_Controller
         }
     }
 
+    private function get_rate_indicator_context($question_key)
+    {
+        $indicator_number = (int) preg_replace('/\D+/', '', (string) $question_key);
+        $indicator = $indicator_number > 0
+            ? $this->Page_model->one_cond_row('sbm_sub_indicator', 'i_no', $indicator_number)
+            : null;
+        $principle = ($indicator && !empty($indicator->priciple_id))
+            ? $this->Page_model->one_cond_row('sbm_indicator', 'id', $indicator->priciple_id)
+            : null;
+
+        return array(
+            'rate_indicator_description' => ($indicator && !empty($indicator->description))
+                ? $indicator->description
+                : '',
+            'rate_indicator_principle' => ($principle && !empty($principle->indicator))
+                ? $principle->indicator
+                : '',
+        );
+    }
+
     private function get_managed_user($id)
     {
         $user = $this->Page_model->one_cond_row('users', 'id', $id);
@@ -384,6 +404,7 @@ class Pages extends CI_Controller
         $data['rate_scope'] = 'district';
         $data['rate_question'] = $q;
         $data['rate_value'] = (int) $val;
+        $data = array_merge($data, $this->get_rate_indicator_context($q));
         $data['division_names'] = $this->Page_model->division_names_by_ids(array_map(function ($row) {
             return $row->division_id;
         }, $data['data']));
@@ -417,6 +438,7 @@ class Pages extends CI_Controller
         $data['rate_scope'] = 'division';
         $data['rate_question'] = $q;
         $data['rate_value'] = (int) $val;
+        $data = array_merge($data, $this->get_rate_indicator_context($q));
         $division_row = $this->Page_model->one_cond_row('division', 'id', $division);
         $data['division_names'] = array(
             (string) $division => $division_row ? $division_row->description : 'Division'
@@ -451,6 +473,7 @@ class Pages extends CI_Controller
         $data['rate_scope'] = 'region';
         $data['rate_question'] = $q;
         $data['rate_value'] = (int) $val;
+        $data = array_merge($data, $this->get_rate_indicator_context($q));
         $data['division_names'] = $this->Page_model->division_names_by_ids(array_map(function ($row) {
             return $row->division_id;
         }, $data['data']));
@@ -1391,6 +1414,25 @@ class Pages extends CI_Controller
     {
         $this->Page_model->tana_division_insert();
         $this->session->set_flashdata('success', 'Successfully saved.');
+        redirect(base_url() . 'pages/tana_summary_division');
+    }
+
+    public function tana_division_autogenerate()
+    {
+        $result = $this->Page_model->tana_division_autogenerate();
+
+        if (!empty($result['status'])) {
+            $message = 'Successfully generated ' . $result['count'] . ' thematic ' . ($result['count'] === 1 ? 'analysis' : 'analyses') . ' from ' . $result['source_count'] . ' priority ' . ($result['source_count'] === 1 ? 'concern' : 'concerns') . '.';
+
+            if (!empty($result['truncated'])) {
+                $message .= ' Only the top 20 recurring concerns were kept.';
+            }
+
+            $this->session->set_flashdata('success', $message);
+        } else {
+            $this->session->set_flashdata('danger', !empty($result['message']) ? $result['message'] : 'Unable to auto-generate thematic analysis.');
+        }
+
         redirect(base_url() . 'pages/tana_summary_division');
     }
 
@@ -2371,6 +2413,7 @@ class Pages extends CI_Controller
 
     public function district_userlist_by_division()
     {
+        $this->require_user_manager();
 
         $page = "user_list";
 
@@ -2378,9 +2421,19 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['title'] = "User List";
         $id = $this->uri->segment(3);
+        $this->validate_managed_district($id);
+        $district = $this->Page_model->one_cond_row('district', 'id', $id);
 
+        if (!$district) {
+            show_404();
+        }
+
+        $data['title'] = "District User Accounts";
+        $data['division_scope'] = true;
+        $data['district_user_scope'] = true;
+        $data['district'] = $district;
+        $data['district_user_back_url'] = base_url() . 'pages/district_account/' . rawurlencode($district->division_id);
         $data['users'] = $this->Page_model->two_cond('users','position','district','d_id',$id);
 
         $this->load->view('templates/header_dt');
