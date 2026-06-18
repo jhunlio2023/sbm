@@ -497,7 +497,7 @@ public function division_account_overview($division_id){
         ->result();
 
     $users = $this->db
-        ->select('username, position, d_id')
+        ->select('id, username, position, d_id')
         ->where('p_id', $division_id)
         ->get('users')
         ->result();
@@ -508,9 +508,11 @@ public function division_account_overview($division_id){
     }
 
     $school_usernames = array();
+    $school_account_ids = array();
     $district_user_counts = array();
     foreach ($users as $user) {
         $school_usernames[(string) $user->username] = true;
+        $school_account_ids[(string) $user->username] = (int) $user->id;
 
         if ($user->position === 'district') {
             $district_id = (string) $user->d_id;
@@ -523,6 +525,7 @@ public function division_account_overview($division_id){
     return array(
         'schools_by_district' => $schools_by_district,
         'school_usernames' => $school_usernames,
+        'school_account_ids' => $school_account_ids,
         'district_user_counts' => $district_user_counts,
         'school_count' => count($schools)
     );

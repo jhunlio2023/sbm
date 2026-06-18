@@ -587,6 +587,14 @@ class Pages extends CI_Controller
         $id = $this->input->post('id');
         $user = $this->get_managed_user($id);
         $password = $this->Page_model->random_password();
+        $redirect_url = base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist');
+
+        if (
+            $this->is_division_user_manager()
+            && $this->input->post('return_to') === 'district_account'
+        ) {
+            $redirect_url = base_url() . 'pages/district_account/' . rawurlencode($this->session->division);
+        }
 
         if ($this->Page_model->reset_user_password($id, $password)) {
             $message = 'Password reset for <strong>' . html_escape($user->username)
@@ -596,7 +604,7 @@ class Pages extends CI_Controller
             $this->session->set_flashdata('danger', 'Unable to reset the password.');
         }
 
-        redirect(base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist'));
+        redirect($redirect_url);
     }
 
     public function profile()
@@ -2040,6 +2048,12 @@ class Pages extends CI_Controller
 
         $data['data'] = $this->Common->one_cond_row('schools', 'schoolID', $this->uri->segment(2));
 
+        if (!$data['data']) {
+            show_404();
+        }
+
+        $data['division'] = $this->Page_model->one_cond_row('division', 'id', $data['data']->division_id);
+        $data['district'] = $this->Page_model->one_cond_row('district', 'id', $data['data']->district_id);
 
         $this->load->view('templates/header');
         $this->load->view('templates/menu');
@@ -2192,6 +2206,7 @@ class Pages extends CI_Controller
         $overview = $this->Page_model->division_account_overview($this->session->division);
         $data['schools_by_district'] = $overview['schools_by_district'];
         $data['school_usernames'] = $overview['school_usernames'];
+        $data['school_account_ids'] = $overview['school_account_ids'];
         $data['district_user_counts'] = $overview['district_user_counts'];
         $data['school_count'] = $overview['school_count'];
         $data['division'] = $this->Page_model->one_cond_row('division', 'id', $this->session->division);

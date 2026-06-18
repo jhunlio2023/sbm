@@ -252,6 +252,10 @@ $district_total = count($district);
         min-width: 310px;
     }
 
+    .school-account-actions form {
+        margin: 0;
+    }
+
     .school-account-actions .btn {
         display: inline-flex;
         align-items: center;
@@ -279,18 +283,6 @@ $district_total = count($district);
         border: 0;
         border-radius: 12px;
         box-shadow: 0 6px 18px rgba(31, 45, 75, .07);
-    }
-
-    .account-password-modal .modal-content {
-        border: 0;
-        border-radius: 15px;
-        box-shadow: 0 18px 45px rgba(31, 45, 75, .2);
-        overflow: hidden;
-    }
-
-    .account-password-modal .modal-header {
-        color: #fff;
-        background: linear-gradient(135deg, #64142d, #a83255);
     }
 
     @media (max-width: 767.98px) {
@@ -441,6 +433,9 @@ $district_total = count($district);
                                                 <?php foreach ($schools as $school_index => $school) :
                                                     $school_id = (string) $school->schoolID;
                                                     $has_account = !empty($school_usernames[$school_id]);
+                                                    $account_id = isset($school_account_ids[$school_id])
+                                                        ? $school_account_ids[$school_id]
+                                                        : null;
                                                 ?>
                                                     <tr>
                                                         <td><span class="school-sequence"><?= $school_index + 1; ?></span></td>
@@ -463,15 +458,19 @@ $district_total = count($district);
                                                                         <i class="mdi mdi-account-plus-outline"></i> Add Account
                                                                     </a>
                                                                 <?php } else { ?>
-                                                                    <a
-                                                                        href="#"
-                                                                        class="btn btn-warning btn-sm open-AddBookDialog"
-                                                                        data-toggle="modal"
-                                                                        data-target="#schoolPasswordModal"
-                                                                        data-id="<?= html_escape($school_id); ?>"
-                                                                    >
-                                                                        <i class="mdi mdi-lock-reset"></i> Password
-                                                                    </a>
+                                                                    <?= form_open(
+                                                                        'pages/user_reset_password',
+                                                                        array(
+                                                                            'style' => 'display:inline;',
+                                                                            'onsubmit' => "return confirm('Reset this school account password?');"
+                                                                        )
+                                                                    ); ?>
+                                                                        <input type="hidden" name="id" value="<?= (int) $account_id; ?>">
+                                                                        <input type="hidden" name="return_to" value="district_account">
+                                                                        <button type="submit" class="btn btn-warning btn-sm">
+                                                                            <i class="mdi mdi-lock-reset"></i> Reset Password
+                                                                        </button>
+                                                                    </form>
                                                                 <?php } ?>
 
                                                                 <a href="<?= base_url(); ?>school/<?= rawurlencode($school_id); ?>" class="btn btn-info btn-sm">
@@ -508,46 +507,3 @@ $district_total = count($district);
         </div>
     </div>
 </div>
-
-<div id="schoolPasswordModal" class="modal fade account-password-modal" tabindex="-1" role="dialog" aria-labelledby="schoolPasswordModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title text-white" id="schoolPasswordModalLabel">Change School Password</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-hidden="true">&times;</button>
-            </div>
-            <form action="<?= base_url('Pages/change_password_user_division'); ?>" method="post">
-                <div class="modal-body">
-                    <input type="hidden" id="id" name="school_id">
-                    <div class="form-group mb-0">
-                        <label for="schoolAccountPassword">New Password</label>
-                        <div class="input-group">
-                            <input type="password" class="form-control" name="password" id="schoolAccountPassword" required>
-                            <div class="input-group-append">
-                                <button class="btn btn-light border" type="button" onclick="toggleSchoolPassword()">
-                                    <i class="fa fa-eye" id="schoolPasswordIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Password</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-function toggleSchoolPassword() {
-    var password = document.getElementById('schoolAccountPassword');
-    var icon = document.getElementById('schoolPasswordIcon');
-    var showPassword = password.type === 'password';
-
-    password.type = showPassword ? 'text' : 'password';
-    icon.classList.toggle('fa-eye', !showPassword);
-    icon.classList.toggle('fa-eye-slash', showPassword);
-}
-</script>

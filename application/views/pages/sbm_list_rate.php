@@ -300,7 +300,7 @@ $back_url = $rate_scope === 'division'
         <div class="col-12">
             <div class="rate-results-hero">
                 <div>
-                    <h2><i class="mdi mdi-chart-box-outline mr-2"></i>SBM Rating Results</h2>
+                    <h2><i class="mdi mdi-chart-bar mr-2"></i>SBM Rating Results</h2>
                     <p>Schools reporting “<?= html_escape($rate_label); ?>” for SBM Indicator <?= $indicator_number; ?>.</p>
                 </div>
                 <div class="rate-hero-actions">
