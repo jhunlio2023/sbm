@@ -866,6 +866,54 @@ if ($checklist_record && !$all_answered && $can_edit) {
         line-height: 1.4;
     }
 
+    .sbm-checklist-page .indicator-status.rating-na {
+        background: #f8fafc;
+        color: #475569;
+    }
+
+    .sbm-checklist-page .indicator-status.rating-one {
+        background: #f5f3ff;
+        color: var(--checklist-purple);
+    }
+
+    .sbm-checklist-page .indicator-status.rating-two {
+        background: #fff7ed;
+        color: var(--checklist-warning);
+    }
+
+    .sbm-checklist-page .indicator-status.rating-three {
+        background: #ecfeff;
+        color: #0f766e;
+    }
+
+    .sbm-checklist-page .indicator-status.rating-four {
+        background: #ecfdf5;
+        color: var(--checklist-success);
+    }
+
+    .sbm-checklist-page .indicator-rating-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 12px;
+    }
+
+    .sbm-checklist-page .indicator-rating-head strong {
+        color: var(--checklist-ink);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .sbm-checklist-page .indicator-rating-head span {
+        color: var(--checklist-muted);
+        font-size: 12px;
+        line-height: 1.6;
+        text-align: right;
+    }
+
     .sbm-checklist-page .indicator-options {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -889,9 +937,17 @@ if ($checklist_record && !$all_answered && $can_edit) {
     }
 
     .sbm-checklist-page .indicator-choice-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas:
+            "badge check"
+            "copy copy";
+        align-items: flex-start;
+        column-gap: 8px;
+        row-gap: 10px;
         height: 100%;
-        min-height: 106px;
-        padding: 14px 12px;
+        min-height: 88px;
+        padding: 12px;
         border: 1px solid var(--checklist-border);
         border-radius: 14px;
         background: #fff;
@@ -909,50 +965,148 @@ if ($checklist_record && !$all_answered && $can_edit) {
         box-shadow: none;
     }
 
-    .sbm-checklist-page .indicator-choice.is-selected .indicator-choice-body {
+    .sbm-checklist-page .indicator-choice.is-selected .indicator-choice-body,
+    .sbm-checklist-page .indicator-choice input:checked + .indicator-choice-body {
         border-width: 2px;
         box-shadow: 0 12px 24px rgba(31, 45, 75, .08);
     }
 
-    .sbm-checklist-page .indicator-choice.rating-na.is-selected .indicator-choice-body {
+    .sbm-checklist-page .indicator-choice.rating-na.is-selected .indicator-choice-body,
+    .sbm-checklist-page .indicator-choice.rating-na input:checked + .indicator-choice-body {
         border-color: #475569;
         background: #f8fafc;
     }
 
-    .sbm-checklist-page .indicator-choice.rating-one.is-selected .indicator-choice-body {
+    .sbm-checklist-page .indicator-choice.rating-one.is-selected .indicator-choice-body,
+    .sbm-checklist-page .indicator-choice.rating-one input:checked + .indicator-choice-body {
         border-color: var(--checklist-purple);
         background: #f5f3ff;
     }
 
-    .sbm-checklist-page .indicator-choice.rating-two.is-selected .indicator-choice-body {
+    .sbm-checklist-page .indicator-choice.rating-two.is-selected .indicator-choice-body,
+    .sbm-checklist-page .indicator-choice.rating-two input:checked + .indicator-choice-body {
         border-color: var(--checklist-warning);
         background: #fff7ed;
     }
 
-    .sbm-checklist-page .indicator-choice.rating-three.is-selected .indicator-choice-body {
+    .sbm-checklist-page .indicator-choice.rating-three.is-selected .indicator-choice-body,
+    .sbm-checklist-page .indicator-choice.rating-three input:checked + .indicator-choice-body {
         border-color: #0f766e;
         background: #ecfeff;
     }
 
-    .sbm-checklist-page .indicator-choice.rating-four.is-selected .indicator-choice-body {
+    .sbm-checklist-page .indicator-choice.rating-four.is-selected .indicator-choice-body,
+    .sbm-checklist-page .indicator-choice.rating-four input:checked + .indicator-choice-body {
         border-color: var(--checklist-success);
         background: #ecfdf5;
     }
 
+    .sbm-checklist-page .indicator-choice input:focus-visible + .indicator-choice-body {
+        box-shadow: 0 0 0 4px rgba(127, 29, 29, .10);
+    }
+
+    .sbm-checklist-page .indicator-choice-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        grid-area: badge;
+        justify-self: flex-start;
+        min-width: 34px;
+        height: 34px;
+        padding: 0 8px;
+        border-radius: 10px;
+        background: rgba(127, 29, 29, .08);
+        color: var(--checklist-primary);
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    .sbm-checklist-page .indicator-choice-copy {
+        grid-area: copy;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
     .sbm-checklist-page .indicator-choice-label {
         display: block;
-        margin-bottom: 6px;
+        color: var(--checklist-ink);
+        font-size: 11px;
+        font-weight: 800;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    .sbm-checklist-page .indicator-choice-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        grid-area: check;
+        justify-self: flex-end;
+        align-self: start;
+        color: transparent;
+        font-size: 18px;
+        line-height: 1;
+        flex-shrink: 0;
+        transition: color .16s ease;
+    }
+
+    .sbm-checklist-page .indicator-choice.is-selected .indicator-choice-check,
+    .sbm-checklist-page .indicator-choice input:checked + .indicator-choice-body .indicator-choice-check {
+        color: currentColor;
+    }
+
+    .sbm-checklist-page .indicator-choice-summary {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin-top: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--checklist-border);
+        border-radius: 14px;
+        background: #f8fafc;
+    }
+
+    .sbm-checklist-page .indicator-choice-summary strong {
+        display: block;
+        margin-bottom: 2px;
         color: var(--checklist-ink);
         font-size: 12px;
         font-weight: 800;
-        line-height: 1.5;
+        line-height: 1.45;
     }
 
-    .sbm-checklist-page .indicator-choice-hint {
-        display: block;
+    .sbm-checklist-page .indicator-choice-summary span {
         color: var(--checklist-muted);
         font-size: 11px;
-        line-height: 1.6;
+        line-height: 1.65;
+    }
+
+    .sbm-checklist-page .indicator-choice-summary.rating-na {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+    }
+
+    .sbm-checklist-page .indicator-choice-summary.rating-one {
+        background: #f5f3ff;
+        border-color: #ddd6fe;
+    }
+
+    .sbm-checklist-page .indicator-choice-summary.rating-two {
+        background: #fff7ed;
+        border-color: #fed7aa;
+    }
+
+    .sbm-checklist-page .indicator-choice-summary.rating-three {
+        background: #ecfeff;
+        border-color: #a5f3fc;
+    }
+
+    .sbm-checklist-page .indicator-choice-summary.rating-four {
+        background: #ecfdf5;
+        border-color: #bbf7d0;
     }
 
     .sbm-checklist-page .workspace-actions {
@@ -1095,6 +1249,15 @@ if ($checklist_record && !$all_answered && $can_edit) {
             flex-direction: column;
         }
 
+        .sbm-checklist-page .indicator-rating-head {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .sbm-checklist-page .indicator-rating-head span {
+            text-align: left;
+        }
+
         .sbm-checklist-page .indicator-options {
             grid-template-columns: 1fr;
         }
@@ -1119,22 +1282,9 @@ if ($checklist_record && !$all_answered && $can_edit) {
                 SBM Assessment Workspace
             </span>
             <h1>School-Based Management Self-Assessment Checklist</h1>
-            <p>
-                Review each indicator carefully and choose the degree of manifestation that best reflects the school’s present practice or learning outcome for <?= $escape($fiscal_year_label); ?>.
-            </p>
-            <div class="hero-meta">
-                <span><i class="mdi mdi-school-outline"></i> <?= $escape($school_name); ?></span>
-                <span><i class="mdi mdi-map-marker-outline"></i> <?= $escape($district_name); ?></span>
-                <span><i class="mdi mdi-map-marker-path"></i> <?= $escape($division_name); ?></span>
-                <span><i class="mdi mdi-calendar-range"></i> <?= $escape($fiscal_year_label); ?></span>
-            </div>
         </div>
 
         <div class="checklist-hero-side">
-            <div class="school-badge">
-                <small>Checklist</small>
-                <strong><?= $escape($school_initials); ?></strong>
-            </div>
             <div class="hero-actions">
                 <a href="<?= $profile_url; ?>" class="hero-button hero-button-primary">
                     <i class="mdi mdi-account-school-outline"></i>
@@ -1238,9 +1388,7 @@ if ($checklist_record && !$all_answered && $can_edit) {
                 <div class="workspace-panel-header">
                     <div>
                         <h4>Checklist Workspace</h4>
-                        <p>Select a principle, read the indicator statements, and choose the most accurate manifestation level for each one.</p>
                     </div>
-                    <small><?= $escape($fiscal_year_label); ?></small>
                 </div>
                 <div class="workspace-panel-body" id="checklistWorkspace">
                     <?= form_open($form_action, array('class' => 'sbm-checklist-form')); ?>
@@ -1320,25 +1468,43 @@ if ($checklist_record && !$all_answered && $can_edit) {
                                                 $field_name = 'q' . (int) $question->i_no;
                                                 $selected_value = ($checklist_record && isset($checklist_record->$field_name)) ? (int) $checklist_record->$field_name : 0;
                                                 $selected_label = ($selected_value > 0 && isset($rating_details[$selected_value])) ? $rating_details[$selected_value]['short'] : 'No selection yet';
+                                                $selected_hint = ($selected_value > 0 && isset($rating_details[$selected_value]))
+                                                    ? $rating_details[$selected_value]['hint']
+                                                    : 'Select the level that best matches the current school practice or learning outcome.';
                                             ?>
-                                                <div class="indicator-card">
+                                                <div
+                                                    class="indicator-card"
+                                                    data-indicator-card
+                                                    data-default-label="No selection yet"
+                                                    data-default-hint="Select the level that best matches the current school practice or learning outcome."
+                                                >
                                                     <div class="indicator-top">
                                                         <span class="indicator-number"><?= $escape($question->i_no); ?></span>
                                                         <div class="indicator-copy">
                                                             <h5><?= $escape($question->description); ?></h5>
                                                             <p>Choose the degree of manifestation that best describes the school’s current practice or result for this indicator.</p>
                                                         </div>
-                                                        <span class="indicator-status <?= $selected_value > 0 && isset($rating_details[$selected_value]) ? $rating_details[$selected_value]['class'] : ''; ?>">
+                                                        <span class="indicator-status <?= $selected_value > 0 && isset($rating_details[$selected_value]) ? $rating_details[$selected_value]['class'] : ''; ?>" data-indicator-status>
                                                             <i class="mdi mdi-check-decagram-outline"></i>
-                                                            <?= $escape($selected_label); ?>
+                                                            <span data-indicator-status-label><?= $escape($selected_label); ?></span>
                                                         </span>
+                                                    </div>
+
+                                                    <div class="indicator-rating-head">
+                                                        <strong>Select one rating</strong>
+                                                        <span>Pick the option that best reflects the current evidence for this indicator.</span>
                                                     </div>
 
                                                     <div class="indicator-options">
                                                         <?php foreach ($rating_details as $rating_value => $rating) :
                                                             $is_selected = $selected_value === (int) $rating_value;
                                                         ?>
-                                                            <label class="indicator-choice <?= $rating['class']; ?><?= $is_selected ? ' is-selected' : ''; ?><?= !$can_edit ? ' is-readonly' : ''; ?>">
+                                                            <label
+                                                                class="indicator-choice <?= $rating['class']; ?><?= $is_selected ? ' is-selected' : ''; ?><?= !$can_edit ? ' is-readonly' : ''; ?>"
+                                                                data-rating-class="<?= $escape($rating['class']); ?>"
+                                                                data-rating-short="<?= $escape($rating['short']); ?>"
+                                                                data-rating-hint="<?= $escape($rating['hint']); ?>"
+                                                            >
                                                                 <input
                                                                     type="radio"
                                                                     name="<?= $escape($field_name); ?>"
@@ -1347,11 +1513,23 @@ if ($checklist_record && !$all_answered && $can_edit) {
                                                                     <?= !$can_edit ? 'disabled' : ''; ?>
                                                                 >
                                                                 <span class="indicator-choice-body">
-                                                                    <span class="indicator-choice-label"><?= $escape($rating['short']); ?></span>
-                                                                    <span class="indicator-choice-hint"><?= $escape($rating['hint']); ?></span>
+                                                                    <span class="indicator-choice-badge"><?= $escape($rating['label']); ?></span>
+                                                                    <span class="indicator-choice-copy">
+                                                                        <span class="indicator-choice-label"><?= $escape($rating['short']); ?></span>
+                                                                    </span>
+                                                                    <span class="indicator-choice-check">
+                                                                        <i class="mdi mdi-check-circle"></i>
+                                                                    </span>
                                                                 </span>
                                                             </label>
                                                         <?php endforeach; ?>
+                                                    </div>
+
+                                                    <div class="indicator-choice-summary<?= $selected_value > 0 && isset($rating_details[$selected_value]) ? ' ' . $rating_details[$selected_value]['class'] : ''; ?>" data-indicator-summary>
+                                                        <div>
+                                                            <strong data-indicator-summary-title><?= $escape($selected_label); ?></strong>
+                                                            <span data-indicator-summary-hint><?= $escape($selected_hint); ?></span>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             <?php endforeach; ?>
@@ -1518,3 +1696,77 @@ if ($checklist_record && !$all_answered && $can_edit) {
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    var cards = document.querySelectorAll("[data-indicator-card]");
+    var ratingClasses = ["rating-na", "rating-one", "rating-two", "rating-three", "rating-four"];
+
+    function syncCard(card) {
+        var status = card.querySelector("[data-indicator-status]");
+        var statusLabel = card.querySelector("[data-indicator-status-label]");
+        var summary = card.querySelector("[data-indicator-summary]");
+        var summaryTitle = card.querySelector("[data-indicator-summary-title]");
+        var summaryHint = card.querySelector("[data-indicator-summary-hint]");
+        var labels = card.querySelectorAll(".indicator-choice");
+        var checkedInput = card.querySelector(".indicator-choice input:checked");
+        var defaultLabel = card.getAttribute("data-default-label") || "No selection yet";
+        var defaultHint = card.getAttribute("data-default-hint") || "Select the level that best matches the current school practice or learning outcome.";
+        var activeLabel = checkedInput ? checkedInput.closest(".indicator-choice") : null;
+        var activeShort = defaultLabel;
+        var activeHint = defaultHint;
+        var activeClass = "";
+
+        labels.forEach(function (label) {
+            var input = label.querySelector("input");
+            var isChecked = !!input && input.checked;
+            label.classList.toggle("is-selected", isChecked);
+        });
+
+        if (activeLabel) {
+            activeShort = activeLabel.getAttribute("data-rating-short") || defaultLabel;
+            activeHint = activeLabel.getAttribute("data-rating-hint") || defaultHint;
+            activeClass = activeLabel.getAttribute("data-rating-class") || "";
+        }
+
+        if (statusLabel) {
+            statusLabel.textContent = activeShort;
+        }
+
+        if (summaryTitle) {
+            summaryTitle.textContent = activeShort;
+        }
+
+        if (summaryHint) {
+            summaryHint.textContent = activeHint;
+        }
+
+        if (status) {
+            ratingClasses.forEach(function (className) {
+                status.classList.remove(className);
+            });
+            if (activeClass) {
+                status.classList.add(activeClass);
+            }
+        }
+
+        if (summary) {
+            ratingClasses.forEach(function (className) {
+                summary.classList.remove(className);
+            });
+            if (activeClass) {
+                summary.classList.add(activeClass);
+            }
+        }
+    }
+
+    cards.forEach(function (card) {
+        syncCard(card);
+        card.querySelectorAll(".indicator-choice input").forEach(function (input) {
+            input.addEventListener("change", function () {
+                syncCard(card);
+            });
+        });
+    });
+});
+</script>

@@ -1150,9 +1150,6 @@ if (!$checklist) {
                 School Access Dashboard
             </span>
             <h1><?= html_escape($school_name); ?></h1>
-            <p class="hero-summary">
-                Use this dashboard as the school’s working base for profile updates, self-assessment, technical assistance planning, and priority ranking for <?= html_escape($fiscal_year_label); ?>.
-            </p>
             <div class="hero-meta">
                 <span><i class="mdi mdi-card-account-details-outline"></i> School ID: <?= html_escape($school_id); ?></span>
                 <span><i class="mdi mdi-map-marker-path"></i> <?= html_escape($division_name); ?></span>
@@ -1161,7 +1158,6 @@ if (!$checklist) {
         </div>
 
         <div class="hero-side">
-            <div class="hero-avatar"><?= html_escape($school_initials); ?></div>
             <a href="#" class="hero-year-button" data-toggle="modal" data-target="#myModal">
                 <i class="mdi mdi-calendar-range"></i>
                 <?= html_escape($fiscal_year_label); ?>
@@ -1171,10 +1167,6 @@ if (!$checklist) {
                 <a href="<?= $profile_url; ?>" class="hero-button hero-button-primary">
                     <i class="mdi mdi-account-school-outline"></i>
                     View Profile
-                </a>
-                <a href="<?= $school_update_url; ?>" class="hero-button hero-button-secondary">
-                    <i class="mdi mdi-pencil-outline"></i>
-                    Update School Info
                 </a>
             </div>
         </div>
