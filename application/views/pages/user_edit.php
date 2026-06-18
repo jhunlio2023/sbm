@@ -5,7 +5,7 @@
 
                                     <div class="page-title-right">
                                         <ol class="breadcrumb p-0 m-0">
-                                            <li class="breadcrumb-item"><a href="<?= base_url(); ?>pages/userlist">Manage User</a></li>
+                                            <li class="breadcrumb-item"><a href="<?= base_url(); ?><?= in_array($this->session->position, array('division', 'ict'), true) ? 'pages/userlist_division' : 'pages/userlist'; ?>">Manage User</a></li>
                                             <li class="breadcrumb-item active">Update User</li>
                                         </ol>
                                     </div>

@@ -4,6 +4,62 @@
 class Pages extends CI_Controller
 {
 
+    private function is_user_manager()
+    {
+        return in_array($this->session->position, array('admin', 'division', 'ict'), true);
+    }
+
+    private function is_division_user_manager()
+    {
+        return in_array($this->session->position, array('division', 'ict'), true);
+    }
+
+    private function require_user_manager()
+    {
+        if (!$this->session->logged_in || !$this->is_user_manager()) {
+            show_error('You are not authorized to manage users.', 403);
+        }
+    }
+
+    private function get_managed_user($id)
+    {
+        $user = $this->Page_model->one_cond_row('users', 'id', $id);
+
+        if (!$user) {
+            show_404();
+        }
+
+        if ($this->is_division_user_manager() && (string) $user->p_id !== (string) $this->session->division) {
+            show_error('You can only manage users under your division.', 403);
+        }
+
+        return $user;
+    }
+
+    private function is_allowed_managed_position($position)
+    {
+        if ($this->session->position === 'admin') {
+            return true;
+        }
+
+        $position_record = $this->Page_model->one_cond_row('position', 'pos', $position);
+
+        return $position_record && !in_array($position, array('admin', 'region', 'division'), true);
+    }
+
+    private function validate_managed_district($district_id)
+    {
+        if (!$this->is_division_user_manager() || empty($district_id)) {
+            return;
+        }
+
+        $district = $this->Page_model->one_cond_row('district', 'id', $district_id);
+
+        if (!$district || (string) $district->division_id !== (string) $this->session->division) {
+            show_error('The selected district is not under your division.', 403);
+        }
+    }
+
 
     public function view()
     {
@@ -136,6 +192,11 @@ class Pages extends CI_Controller
 
     public function userlist()
     {
+        $this->require_user_manager();
+
+        if ($this->is_division_user_manager()) {
+            redirect(base_url() . 'pages/userlist_division');
+        }
 
         $page = "user_list";
 
@@ -144,6 +205,7 @@ class Pages extends CI_Controller
         }
 
         $data['title'] = "User List";
+        $data['division_scope'] = false;
 
         $data['users'] = $this->Page_model->no_cond('users');
 
@@ -156,6 +218,7 @@ class Pages extends CI_Controller
 
     public function userlist_division()
     {
+        $this->require_user_manager();
 
         $page = "user_list";
 
@@ -163,7 +226,8 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['title'] = "User List";
+        $data['title'] = "Division User List";
+        $data['division_scope'] = true;
 
         $data['users'] = $this->Page_model->one_cond('users','p_id',$this->session->division);
 
@@ -322,6 +386,7 @@ class Pages extends CI_Controller
 
     public function user_new()
     {
+        $this->require_user_manager();
 
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -340,8 +405,14 @@ class Pages extends CI_Controller
 
             $data['title'] = "New User";
             $data['division'] = $this->Page_model->one_cond('division', 'region_id', 12);
-            if($this->session->position == 'ict'){
-                $data['pos'] = $this->Page_model->no_cond_ne('position','pos','admin');
+            if ($this->is_division_user_manager()) {
+                $data['pos'] = array_values(array_filter(
+                    $this->Page_model->no_cond('position'),
+                    function ($position) {
+                        return $this->is_allowed_managed_position($position->pos);
+                    }
+                ));
+                $data['districts'] = $this->Page_model->one_cond('district', 'division_id', $this->session->division);
             }else{
                 $data['pos'] = $this->Page_model->no_cond('position');  
             }
@@ -356,6 +427,13 @@ class Pages extends CI_Controller
             $fname = $this->input->post('fname');
             $lname = $this->input->post('lname');
             $username = $this->input->post('username');
+            $position = $this->input->post('position');
+
+            if (!$this->is_allowed_managed_position($position)) {
+                show_error('You are not authorized to create this type of user.', 403);
+            }
+
+            $this->validate_managed_district($this->input->post('d_id'));
 
             $config['allowed_types'] = 'jpg|png';
             $config['upload_path'] = './uploads/';
@@ -369,12 +447,13 @@ class Pages extends CI_Controller
             } else {
                 $this->Page_model->user_insert();
                 $this->session->set_flashdata('success', 'Successfully saved.');
-                redirect(base_url() . 'pages/userlist');
+                redirect(base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist'));
             }
         }
     }
     public function user_update()
     {
+        $this->require_user_manager();
 
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -391,7 +470,7 @@ class Pages extends CI_Controller
             }
 
             $data['title'] = "Update User";
-            $data['data'] = $this->Page_model->one_cond_row('users', 'id', $this->uri->segment(3));
+            $data['data'] = $this->get_managed_user($this->uri->segment(3));
 
 
             $this->load->view('templates/header');
@@ -400,20 +479,28 @@ class Pages extends CI_Controller
             $this->load->view('templates/footer');
             $this->load->view('templates/footer_basic');
         } else {
-
+            $this->get_managed_user($this->input->post('id'));
             $this->Page_model->user_update();
             $this->session->set_flashdata('success', 'Successfully saved.');
-            redirect($_SERVER['HTTP_REFERER']);
+            redirect(base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist'));
         }
     }
 
     public function user_delete()
     {
+        $this->require_user_manager();
+
         $id = $this->uri->segment(3);
-        $user = $this->Page_model->one_cond_row('users', 'id', $id);
+        $user = $this->get_managed_user($id);
+
+        if ((string) $user->id === (string) $this->session->id) {
+            $this->session->set_flashdata('danger', 'You cannot delete your own account.');
+            redirect(base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist'));
+        }
+
         $this->Page_model->delete_with_attach('users', $id, $user->image);
         $this->session->set_flashdata('danger', 'Successfully deleted.');
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect(base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist'));
     }
 
     public function school_delete()
@@ -437,13 +524,38 @@ class Pages extends CI_Controller
 
     public function cp()
     {
+        $this->require_user_manager();
+        $this->get_managed_user($this->input->post('id'));
         $this->Page_model->user_pass();
         $this->session->set_flashdata('success', 'Successfully updated.');
-        redirect($_SERVER['HTTP_REFERER']);
+        redirect(base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist'));
+    }
+
+    public function user_reset_password()
+    {
+        $this->require_user_manager();
+
+        $id = $this->input->post('id');
+        $user = $this->get_managed_user($id);
+        $password = $this->Page_model->random_password();
+
+        if ($this->Page_model->reset_user_password($id, $password)) {
+            $message = 'Password reset for <strong>' . html_escape($user->username)
+                . '</strong>. Temporary password: <strong><code>' . html_escape($password) . '</code></strong>';
+            $this->session->set_flashdata('success', $message);
+        } else {
+            $this->session->set_flashdata('danger', 'Unable to reset the password.');
+        }
+
+        redirect(base_url() . ($this->is_division_user_manager() ? 'pages/userlist_division' : 'pages/userlist'));
     }
 
     public function profile()
     {
+        if (!$this->session->logged_in || $this->session->position !== 'admin') {
+            show_error('You are not authorized to update user profile pictures.', 403);
+        }
+
         $id = $this->input->post('id');
         $user = $this->Page_model->one_cond_row('users', 'id', $id);
         $config['allowed_types'] = 'jpg|png|jpeg|gif|';

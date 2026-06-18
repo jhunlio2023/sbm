@@ -24,21 +24,26 @@ public function profile_insert(){
 }
 
 function random_password(){
-    $alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-    $password = array(); 
-    $alpha_length = strlen($alphabet) - 1; 
-    for ($i = 0; $i < 8; $i++) 
-    {
-        $n = rand(0, $alpha_length);
-        $password[] = $alphabet[$n];
+    $alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    $password = array();
+    $alpha_length = strlen($alphabet) - 1;
+
+    for ($i = 0; $i < 10; $i++) {
+        $password[] = $alphabet[random_int(0, $alpha_length)];
     }
-    return implode($password); 
+
+    return implode($password);
 }
 
 
 public function user_insert(){
     $file = $this->upload->data();
     $filename = $file['file_name']; 
+    $division_id = $this->input->post('division_id');
+
+    if (in_array($this->session->position, array('division', 'ict'), true)) {
+        $division_id = $this->session->division;
+    }
 
     $password = $this->input->post('password');
     $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -52,7 +57,7 @@ public function user_insert(){
     'lname' => $this->input->post('lname'),
     'gender' => $this->input->post('gender'),
     'r_id' => $this->session->region,
-    'p_id' => $this->input->post('division_id'),
+    'p_id' => $division_id,
     'd_id' => $this->input->post('d_id'),
     'image' => $filename,
     'virified' => 0
@@ -205,6 +210,16 @@ public function user_pass(){
     $this->db->where('id', $id);
     return $this->db->update('users', $data);
 }
+
+public function reset_user_password($id, $password){
+    $data = array(
+        'password' => password_hash($password, PASSWORD_DEFAULT)
+    );
+
+    $this->db->where('id', $id);
+    return $this->db->update('users', $data);
+}
+
 public function user_update_profile(){
 
     $id = $this->input->post('id');
@@ -417,7 +432,10 @@ public function delete_two_cond($table,$col,$val,$col2,$val2){
 
 function delete_with_attach($table,$segment,$attach){
     $this->db->where('id', $segment);
-    unlink("uploads/".$attach);
+    $file = "uploads/".$attach;
+    if (!empty($attach) && file_exists($file)) {
+        unlink($file);
+    }
     $this->db->delete($table);
 }
 

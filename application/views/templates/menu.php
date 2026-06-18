@@ -157,6 +157,7 @@
                         <?php if ($this->session->position == 'division') { ?>
                             <!-- <li><a href="<?= base_url(); ?>pages/schools_division/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li> -->
                             <li><a href="<?= base_url(); ?>pages/district_account/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>District</span></a></li>
+                            <li><a href="<?= base_url(); ?>pages/userlist_division" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
                             <li>
                                 <a href="javascript: void(0);" class="waves-effect">
                                     <i class="mdi mdi-format-list-checks"></i>

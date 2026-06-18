@@ -5,7 +5,7 @@
 
                                     <div class="page-title-right">
                                         <ol class="breadcrumb p-0 m-0">
-                                            <li class="breadcrumb-item"><a href="<?= base_url(); ?>pages/userlist">Manage User</a></li>
+                                            <li class="breadcrumb-item"><a href="<?= base_url(); ?><?= in_array($this->session->position, array('division', 'ict'), true) ? 'pages/userlist_division' : 'pages/userlist'; ?>">Manage User</a></li>
                                             <li class="breadcrumb-item active">Add New User</li>
                                         </ol>
                                     </div>
@@ -121,8 +121,20 @@
                                                 </div>
                                             </div>
 
-                                            <?php if($this->session->position == 'ict'){ ?>
+                                            <?php if(in_array($this->session->position, array('division', 'ict'), true)){ ?>
                                                 <input type='hidden' name="division_id" value="<?= $this->session->division; ?>" >
+
+                                            <div class="form-group row">
+                                                <label class="col-md-4 col-form-label">District</label>
+                                                <div class="col-md-7">
+                                                    <select name="d_id" class="form-control">
+                                                        <option value="">Select District</option>
+                                                        <?php foreach($districts as $row){ ?>
+                                                            <option value="<?= $row->id; ?>"><?= $row->description; ?></option>
+                                                        <?php } ?>
+                                                    </select>
+                                                </div>
+                                            </div>
                                             <?php }else{ ?>
 
                                             <div class="form-group row">
@@ -233,4 +245,3 @@ $(document).ready(function(){
     });
 });
 </script>
-                  
