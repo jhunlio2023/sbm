@@ -927,6 +927,7 @@ if (!$checklist_record) {
         margin: 0.95rem 0 0.45rem;
         font-size: 1.3rem;
         line-height: 1.3;
+        color: #fff;
     }
 
     .ta-workspace-page .next-step-card p {
@@ -1158,19 +1159,9 @@ if (!$checklist_record) {
             <p>
                 Capture the school narrative behind each checklist indicator by documenting concerns, enabling factors, category tags, and proposed commitments for <?= $escape($fiscal_year_label); ?>.
             </p>
-            <div class="hero-meta">
-                <span><i class="mdi mdi-school-outline"></i> <?= $escape($school_name); ?></span>
-                <span><i class="mdi mdi-map-marker-outline"></i> <?= $escape($district_name); ?></span>
-                <span><i class="mdi mdi-map-marker-path"></i> <?= $escape($division_name); ?></span>
-                <span><i class="mdi mdi-calendar-range"></i> <?= $escape($fiscal_year_label); ?></span>
-            </div>
         </div>
 
         <div class="hero-side">
-            <div class="ta-badge">
-                <small>TA Report</small>
-                <strong><?= $escape($school_initials); ?></strong>
-            </div>
             <div class="hero-actions">
                 <a href="<?= $profile_url; ?>" class="hero-button hero-button-primary">
                     <i class="mdi mdi-account-school-outline"></i>

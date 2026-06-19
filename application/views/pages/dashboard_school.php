@@ -1031,6 +1031,21 @@ if (!$checklist) {
         font-size: 18px;
     }
 
+    .school-dashboard-page .snapshot-card .email-box {
+        display: inline-block;
+        padding: 8px 12px;
+        margin: 8px 0;
+        border: 1px solid var(--school-border);
+        border-radius: 8px;
+        background: #f8f9fa;
+        word-break: break-all;
+    }
+
+    .school-dashboard-page .snapshot-card .email-box strong {
+        font-size: 14px;
+        color: var(--school-ink);
+    }
+
     .school-dashboard-page .dashboard-modal .modal-content {
         border: 0;
         border-radius: 18px;
@@ -1418,7 +1433,9 @@ if (!$checklist) {
                         <div class="snapshot-card">
                             <i class="mdi mdi-email-outline"></i>
                             <small>School Email</small>
-                            <strong><?= html_escape($school_email); ?></strong>
+                            <div class="email-box">
+                                <strong><?= html_escape($school_email); ?></strong>
+                            </div>
                             <p><?= $school_email !== 'Not provided' ? 'Main school contact listed in the system.' : 'No school email has been saved yet.'; ?></p>
                         </div>
                         <div class="snapshot-card">

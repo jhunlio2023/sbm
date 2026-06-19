@@ -148,7 +148,7 @@
 
                                     <div class="form-group mb-4">
                                         <div class="checkbox checkbox-success">
-                                            <input id="remember" type="checkbox" checked="" required>
+                                            <input id="remember" name="remember" type="checkbox" checked="" required>
                                             <label for="remember">
                                                 I accept <strong><a href="#" data-toggle="modal" data-target="#myModal">Terms and Conditions</a></strong>
                                             </label>

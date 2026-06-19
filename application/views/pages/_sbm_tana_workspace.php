@@ -274,6 +274,7 @@ if (!$ta_record || $ready_concern_count === 0) {
             linear-gradient(135deg, #fff9ef 0%, #fff 40%, #f7f2e7 100%);
         border: 1px solid rgba(214, 168, 75, 0.25);
         box-shadow: var(--tana-shadow);
+        margin-top: 1.5rem;
         margin-bottom: 1.5rem;
     }
 
@@ -930,6 +931,7 @@ if (!$ta_record || $ready_concern_count === 0) {
         margin: 0.95rem 0 0.45rem;
         font-size: 1.3rem;
         line-height: 1.3;
+        color: #fff;
     }
 
     .tana-workspace-page .next-step-card p {
@@ -1157,19 +1159,9 @@ if (!$ta_record || $ready_concern_count === 0) {
             <p>
                 Score each concern using Strategic Importance, Urgency, Magnitude, and Feasibility so the school can build a defensible priority shortlist for <?= $escape($fiscal_year_label); ?>.
             </p>
-            <div class="hero-meta">
-                <span><i class="mdi mdi-school-outline"></i> <?= $escape($school_name); ?></span>
-                <span><i class="mdi mdi-map-marker-outline"></i> <?= $escape($district_name); ?></span>
-                <span><i class="mdi mdi-map-marker-path"></i> <?= $escape($division_name); ?></span>
-                <span><i class="mdi mdi-calendar-range"></i> <?= $escape($fiscal_year_label); ?></span>
-            </div>
         </div>
 
         <div class="hero-side">
-            <div class="tana-badge">
-                <small>TANA</small>
-                <strong><?= $escape($school_initials); ?></strong>
-            </div>
             <div class="hero-actions">
                 <a href="<?= $profile_url; ?>" class="hero-button hero-button-primary">
                     <i class="mdi mdi-account-school-outline"></i>

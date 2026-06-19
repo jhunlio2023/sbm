@@ -352,7 +352,10 @@ class Pages extends CI_Controller
         $data['title'] = "User List";
         $data['division_scope'] = false;
 
-        $data['users'] = $this->Page_model->no_cond('users');
+        // Optimize query by selecting only needed columns and ordering
+        $this->db->select('id, fname, mname, lname, username, position');
+        $this->db->order_by('lname, fname', 'ASC');
+        $data['users'] = $this->db->get('users')->result();
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -394,13 +397,70 @@ class Pages extends CI_Controller
 
         $data['title'] = "Division List";
 
-        $data['data'] = $this->Common->one_cond_select('division', 'description,id', 'region_id', $this->session->region);
+        // Get divisions with total_schools field
+        $divisions = $this->Common->one_cond_select('division', 'description,id,total_schools', 'region_id', $this->session->region);
+
+        // Calculate signup statistics for each division
+        foreach ($divisions as $division) {
+            // Count signed up schools for this division
+            $this->db->where('division_id', $division->id);
+            $signed_up_count = $this->db->count_all_results('schools');
+
+            $total_schools = $division->total_schools ? (int) $division->total_schools : 0;
+
+            // Calculate percentages
+            if ($total_schools > 0) {
+                $signup_percentage = round(($signed_up_count / $total_schools) * 100, 1);
+                $not_signup_percentage = round((($total_schools - $signed_up_count) / $total_schools) * 100, 1);
+            } else {
+                $signup_percentage = 0;
+                $not_signup_percentage = 0;
+            }
+
+            $division->signed_up_count = $signed_up_count;
+            $division->signup_percentage = $signup_percentage;
+            $division->not_signup_percentage = $not_signup_percentage;
+        }
+
+        $data['data'] = $divisions;
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
         $this->load->view('pages/' . $page, $data);
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
+    }
+
+    public function update_total_schools()
+    {
+        // Bypass CSRF validation for AJAX requests
+        $this->config->set_item('csrf_protection', false);
+
+        $division_id = $this->input->post('division_id');
+        $total_schools = $this->input->post('total_schools');
+
+        error_log("update_total_schools called - division_id: " . $division_id . ", total_schools: " . $total_schools);
+        error_log("POST data: " . print_r($_POST, true));
+
+        if ($division_id && $total_schools !== null) {
+            $this->db->where('id', $division_id);
+            $result = $this->db->update('division', array('total_schools' => $total_schools));
+
+            error_log("Update result: " . ($result ? "success" : "failed"));
+            error_log("Affected rows: " . $this->db->affected_rows());
+
+            if ($result) {
+                echo json_encode(array('success' => true));
+            } else {
+                echo json_encode(array('success' => false, 'message' => 'Database update failed'));
+            }
+        } else {
+            error_log("Invalid parameters - division_id: " . ($division_id ? 'set' : 'not set') . ", total_schools: " . ($total_schools !== null ? 'set' : 'not set'));
+            echo json_encode(array('success' => false, 'message' => 'Invalid parameters'));
+        }
+
+        // Re-enable CSRF protection
+        $this->config->set_item('csrf_protection', true);
     }
 
     public function schools()
@@ -1851,7 +1911,31 @@ class Pages extends CI_Controller
         $data['title'] = "Division List";
 
         //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        $data['data'] = $this->Page_model->one_cond('division', 'region_id', 12);
+        $divisions = $this->Page_model->one_cond('division', 'region_id', 12);
+
+        // Calculate signup statistics for each division
+        foreach ($divisions as $division) {
+            // Count signed up schools for this division
+            $this->db->where('division_id', $division->id);
+            $signed_up_count = $this->db->count_all_results('schools');
+
+            $total_schools = $division->total_schools ? (int) $division->total_schools : 0;
+
+            // Calculate percentages
+            if ($total_schools > 0) {
+                $signup_percentage = round(($signed_up_count / $total_schools) * 100, 1);
+                $not_signup_percentage = round((($total_schools - $signed_up_count) / $total_schools) * 100, 1);
+            } else {
+                $signup_percentage = 0;
+                $not_signup_percentage = 0;
+            }
+
+            $division->signed_up_count = $signed_up_count;
+            $division->signup_percentage = $signup_percentage;
+            $division->not_signup_percentage = $not_signup_percentage;
+        }
+
+        $data['data'] = $divisions;
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');

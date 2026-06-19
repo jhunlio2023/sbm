@@ -864,13 +864,13 @@
 
                                             <div class="signup-consent mb-4">
                                                 <div class="checkbox checkbox-success mt-1">
-                                                    <input id="termsAccepted" type="checkbox" required>
+                                                    <input id="termsAccepted" name="termsAccepted" type="checkbox" required>
+                                                    <label for="termsAccepted">
+                                                        I accept the
+                                                        <a href="#" data-toggle="modal" data-target="#termsModal">Terms and Conditions</a>
+                                                        for registering and processing school information in the SBM system.
+                                                    </label>
                                                 </div>
-                                                <label for="termsAccepted">
-                                                    I accept the
-                                                    <a href="#" data-toggle="modal" data-target="#termsModal">Terms and Conditions</a>
-                                                    for registering and processing school information in the SBM system.
-                                                </label>
                                             </div>
 
                                             <div class="recaptcha-wrap">

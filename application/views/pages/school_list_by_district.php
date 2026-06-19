@@ -232,6 +232,60 @@ $dashboard_url = base_url();
         font-weight: 700;
     }
 
+    .directory-stat-cell {
+        min-width: 140px;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        color: #27324a;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 11px;
+        color: var(--directory-muted);
+    }
+
+    .progress-wrapper {
+        margin-top: 6px;
+    }
+
+    .progress {
+        height: 8px;
+        background: #e8ecf4;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-bar {
+        height: 100%;
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    .progress-bar-success {
+        background: linear-gradient(90deg, #28a745, #20c997);
+    }
+
+    .progress-bar-warning {
+        background: linear-gradient(90deg, #ffc107, #fd7e14);
+    }
+
+    .progress-bar-danger {
+        background: linear-gradient(90deg, #dc3545, #e83e8c);
+    }
+
+    .percentage-text {
+        display: block;
+        margin-top: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--directory-muted);
+    }
+
     .directory-empty {
         padding: 48px 24px;
         color: var(--directory-muted);
@@ -357,6 +411,9 @@ $dashboard_url = base_url();
                                     <tr>
                                         <th>No.</th>
                                         <th>Division</th>
+                                        <th>Total Schools</th>
+                                        <th>Signup %</th>
+                                        <th>Not Signup %</th>
                                         <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
@@ -371,6 +428,42 @@ $dashboard_url = base_url();
                                                         <span class="directory-name"><?= html_escape($row->description); ?></span>
                                                         <span class="directory-meta">Browse schools recorded under this division</span>
                                                     </div>
+                                                </div>
+                                            </td>
+                                            <td class="directory-stat-cell">
+                                                <div class="input-group" style="width: 120px;">
+                                                    <input type="number"
+                                                           class="form-control form-control-sm total-schools-input"
+                                                           data-division-id="<?= html_escape($row->id); ?>"
+                                                           value="<?= html_escape($row->total_schools); ?>"
+                                                           min="0"
+                                                           style="font-weight: 700; color: #27324a;">
+                                                    <div class="input-group-append">
+                                                        <button type="button" class="btn btn-sm btn-success save-schools-btn" data-division-id="<?= html_escape($row->id); ?>">
+                                                            <i class="mdi mdi-check"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <span class="stat-label">Total Schools</span>
+                                            </td>
+                                            <td class="directory-stat-cell">
+                                                <span class="stat-value"><?= html_escape($row->signed_up_count); ?></span>
+                                                <span class="stat-label">Signed Up</span>
+                                                <div class="progress-wrapper">
+                                                    <div class="progress">
+                                                        <div class="progress-bar progress-bar-success" style="width: <?= html_escape($row->signup_percentage); ?>%;"></div>
+                                                    </div>
+                                                    <span class="percentage-text"><?= html_escape($row->signup_percentage); ?>%</span>
+                                                </div>
+                                            </td>
+                                            <td class="directory-stat-cell">
+                                                <span class="stat-value"><?= html_escape($row->total_schools - $row->signed_up_count); ?></span>
+                                                <span class="stat-label">Not Signed Up</span>
+                                                <div class="progress-wrapper">
+                                                    <div class="progress">
+                                                        <div class="progress-bar progress-bar-warning" style="width: <?= html_escape($row->not_signup_percentage); ?>%;"></div>
+                                                    </div>
+                                                    <span class="percentage-text"><?= html_escape($row->not_signup_percentage); ?>%</span>
                                                 </div>
                                             </td>
                                             <td class="text-center directory-action">
@@ -394,3 +487,100 @@ $dashboard_url = base_url();
         </div>
     </div>
 </div>
+
+<script>
+console.log('Total Schools script loaded');
+
+// Function to handle Total Schools save
+function saveTotalSchools($input) {
+    console.log('saveTotalSchools called');
+    var divisionId = $input.data('division-id');
+    var totalSchools = $input.val();
+    var $row = $input.closest('tr');
+
+    console.log('Division ID:', divisionId, 'Total Schools:', totalSchools);
+
+    // Update progress bars and percentages
+    var signedUpCount = parseInt($row.find('.directory-stat-cell:nth-child(4) .stat-value').text());
+    var newSignupPercentage = totalSchools > 0 ? ((signedUpCount / totalSchools) * 100).toFixed(1) : 0;
+    var newNotSignupPercentage = totalSchools > 0 ? (((totalSchools - signedUpCount) / totalSchools) * 100).toFixed(1) : 0;
+
+    // Update progress bars
+    $row.find('.directory-stat-cell:nth-child(4) .progress-bar').css('width', newSignupPercentage + '%');
+    $row.find('.directory-stat-cell:nth-child(4) .percentage-text').text(newSignupPercentage + '%');
+
+    $row.find('.directory-stat-cell:nth-child(5) .stat-value').text(totalSchools - signedUpCount);
+    $row.find('.directory-stat-cell:nth-child(5) .progress-bar').css('width', newNotSignupPercentage + '%');
+    $row.find('.directory-stat-cell:nth-child(5) .percentage-text').text(newNotSignupPercentage + '%');
+
+    // Save to database via AJAX
+    console.log('Sending AJAX request...');
+    $.ajax({
+        url: '<?= base_url(); ?>index.php/pages/update_total_schools',
+        type: 'POST',
+        data: {
+            division_id: divisionId,
+            total_schools: totalSchools,
+            <?= $this->security->get_csrf_token_name(); ?>: '<?= $this->security->get_csrf_hash(); ?>'
+        },
+        success: function(response) {
+            console.log('Response:', response);
+            if (response.success) {
+                // Show success feedback
+                $input.addClass('border-success');
+                setTimeout(function() {
+                    $input.removeClass('border-success');
+                }, 2000);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error:', error);
+            console.error('Status:', status);
+            console.error('Response:', xhr.responseText);
+            alert('Error updating total schools: ' + error);
+        }
+    });
+}
+
+// Handle Total Schools input changes (on blur)
+$(document).on('change', '.total-schools-input', function() {
+    console.log('Change event triggered');
+    saveTotalSchools($(this));
+});
+
+// Handle Enter key press - directly call save function
+$(document).on('keydown', '.total-schools-input', function(e) {
+    if (e.key === 'Enter') { // Enter key
+        e.preventDefault();
+        console.log('Enter key pressed (keydown)');
+        saveTotalSchools($(this));
+    }
+});
+
+// Also try with keyup as backup
+$(document).on('keyup', '.total-schools-input', function(e) {
+    if (e.key === 'Enter') { // Enter key
+        e.preventDefault();
+        console.log('Enter key pressed (keyup)');
+        saveTotalSchools($(this));
+    }
+});
+
+// Handle save button click
+$(document).on('click', '.save-schools-btn', function() {
+    console.log('Save button clicked');
+    var $input = $(this).closest('.input-group').find('.total-schools-input');
+    saveTotalSchools($input);
+});
+
+// Initialize event listeners when DataTables is ready
+$(document).ready(function() {
+    console.log('Document ready, attaching event listeners');
+    // Re-attach listeners after DataTables initialization
+    setTimeout(function() {
+        $('.total-schools-input').each(function() {
+            console.log('Found input:', $(this).data('division-id'));
+        });
+    }, 1000);
+});
+</script>
