@@ -646,7 +646,7 @@ $sgc_percentages = array(
         <div class="dashboard-panel-header">
             <div>
                 <h4>Self-Assessment Checklist</h4>
-                <p>Select a principle to review region-wide manifestation results and overall checklist completion.</p>
+                <p>Select a principle to review finalized region-wide manifestation results and overall checklist completion.</p>
             </div>
             <small class="text-muted">
                 <?= $completed_checklist_total; ?> of <?= $encoded_school_total; ?> schools completed

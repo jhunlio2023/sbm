@@ -35,6 +35,299 @@ class Pages extends CI_Controller
         }
     }
 
+    private function require_region_dashboard_access()
+    {
+        if (!$this->session->logged_in || $this->session->position !== 'region') {
+            show_error('Only regional users can access this page.', 403);
+        }
+    }
+
+    private function build_checklist_report_groups($records)
+    {
+        $groups = array();
+
+        foreach ($records as $record) {
+            $district_name = trim((string) (isset($record->district_name) ? $record->district_name : ''));
+            $division_name = trim((string) (isset($record->division_name) ? $record->division_name : ''));
+            $district_id = isset($record->district_id) ? (string) $record->district_id : '';
+            $division_id = isset($record->division_id) ? (string) $record->division_id : '';
+
+            if ($district_name === '') {
+                $district_name = 'Unassigned District';
+            }
+
+            if ($division_name === '') {
+                $division_name = 'Division';
+            }
+
+            $group_key = $division_id . ':' . $district_id . ':' . mb_strtolower($district_name, 'UTF-8');
+
+            if (!isset($groups[$group_key])) {
+                $groups[$group_key] = array(
+                    'district_name' => $district_name,
+                    'division_name' => $division_name,
+                    'district_id' => $district_id,
+                    'division_id' => $division_id,
+                    'records' => array()
+                );
+            }
+
+            $groups[$group_key]['records'][] = $record;
+        }
+
+        foreach ($groups as &$group) {
+            usort($group['records'], function ($left, $right) {
+                return strcasecmp(
+                    trim((string) $left->schoolName),
+                    trim((string) $right->schoolName)
+                );
+            });
+        }
+        unset($group);
+
+        $group_list = array_values($groups);
+        usort($group_list, function ($left, $right) {
+            $district_compare = strcasecmp($left['district_name'], $right['district_name']);
+
+            if ($district_compare !== 0) {
+                return $district_compare;
+            }
+
+            return strcasecmp($left['division_name'], $right['division_name']);
+        });
+
+        return $group_list;
+    }
+
+    private function build_checklist_filter_options($records, $id_field, $name_field, $fallback_label)
+    {
+        $options = array();
+
+        foreach ($records as $record) {
+            $option_id = trim((string) (isset($record->{$id_field}) ? $record->{$id_field} : ''));
+            $option_name = trim((string) (isset($record->{$name_field}) ? $record->{$name_field} : ''));
+
+            if ($option_name === '') {
+                $option_name = $fallback_label;
+            }
+
+            $option_key = $option_id . ':' . mb_strtolower($option_name, 'UTF-8');
+
+            if (!isset($options[$option_key])) {
+                $options[$option_key] = array(
+                    'id' => $option_id,
+                    'name' => $option_name,
+                );
+            }
+        }
+
+        $option_list = array_values($options);
+
+        usort($option_list, function ($left, $right) {
+            return strcasecmp($left['name'], $right['name']);
+        });
+
+        return $option_list;
+    }
+
+    private function filter_checklist_records($records, $field_name, $selected_value)
+    {
+        if ($selected_value === '') {
+            return $records;
+        }
+
+        return array_values(array_filter($records, function ($record) use ($field_name, $selected_value) {
+            return trim((string) (isset($record->{$field_name}) ? $record->{$field_name} : '')) === $selected_value;
+        }));
+    }
+
+    private function get_division_checklist_share_secret()
+    {
+        $secret = trim((string) config_item('encryption_key'));
+
+        if ($secret !== '') {
+            return $secret;
+        }
+
+        return hash('sha256', implode('|', array(
+            APPPATH,
+            FCPATH,
+            (string) config_item('base_url'),
+            (string) $this->config->item('cookie_prefix'),
+            'division-checklist-share',
+        )));
+    }
+
+    private function build_division_checklist_share_token($division_id, $fy)
+    {
+        $payload = trim((string) $division_id) . '|' . trim((string) $fy);
+
+        return hash_hmac('sha256', $payload, $this->get_division_checklist_share_secret());
+    }
+
+    private function build_division_checklist_share_url($division_id, $fy, $selected_filter = '')
+    {
+        $query = array(
+            'token' => $this->build_division_checklist_share_token($division_id, $fy),
+        );
+        $selected_filter = trim((string) $selected_filter);
+
+        if ($selected_filter !== '') {
+            $query['district_id'] = $selected_filter;
+        }
+
+        return base_url(
+            'Pages/division_checklist_completed_shared/'
+            . rawurlencode((string) $division_id)
+            . '/'
+            . rawurlencode((string) $fy)
+        ) . '?' . http_build_query($query);
+    }
+
+    private function validate_division_checklist_share_request($division_id, $fy)
+    {
+        $token = trim((string) $this->input->get('token', true));
+
+        if ($division_id === '' || $fy === '' || $token === '') {
+            show_error('This shared checklist link is invalid.', 403);
+        }
+
+        $expected_token = $this->build_division_checklist_share_token($division_id, $fy);
+
+        if (!hash_equals($expected_token, $token)) {
+            show_error('This shared checklist link is invalid.', 403);
+        }
+    }
+
+    private function build_division_checklist_completed_report_data($division_id, $fy, $options = array())
+    {
+        $division_id = trim((string) $division_id);
+        $fy = trim((string) $fy);
+        $print_mode = !empty($options['print_mode']);
+        $share_mode = !empty($options['share_mode']);
+        $share_token = $share_mode
+            ? $this->build_division_checklist_share_token($division_id, $fy)
+            : '';
+        $records = $this->Page_model->division_completed_checklist_report_rows($division_id, $fy);
+        $filter_options = $this->build_checklist_filter_options(
+            $records,
+            'district_id',
+            'district_name',
+            'Unassigned District'
+        );
+        $selected_filter = trim((string) $this->input->get('district_id', true));
+        $valid_filter_ids = array_map(function ($option) {
+            return (string) $option['id'];
+        }, $filter_options);
+
+        if ($selected_filter !== '' && !in_array($selected_filter, $valid_filter_ids, true)) {
+            $selected_filter = '';
+        }
+
+        $filtered_records = $this->filter_checklist_records($records, 'district_id', $selected_filter);
+        $query_string = $selected_filter !== ''
+            ? '?district_id=' . rawurlencode($selected_filter)
+            : '';
+        $default_title = $print_mode
+            ? 'Division Checklist Completion Printable Version'
+            : 'Division Checklist Completion Report';
+        $default_hero_description = $print_mode
+            ? 'Printable version of finalized Self-Assessment Checklist submissions in your division, grouped by district and arranged alphabetically by school.'
+            : 'Review finalized Self-Assessment Checklist submissions in your division, grouped by district and arranged alphabetically by school.';
+        $default_back_url = $print_mode
+            ? base_url('Pages/division_checklist_completed_details') . $query_string
+            : base_url();
+        $default_back_label = $print_mode ? 'Back to Interactive Report' : 'Back to Dashboard';
+        $default_filter_action_url = $print_mode
+            ? base_url('Pages/division_checklist_completed_printable')
+            : base_url('Pages/division_checklist_completed_details');
+        $default_printable_url = $print_mode
+            ? ''
+            : base_url('Pages/division_checklist_completed_printable') . $query_string;
+        $default_shareable_url = (!$print_mode && !$share_mode)
+            ? $this->build_division_checklist_share_url($division_id, $fy, $selected_filter)
+            : '';
+        $default_filter_reset_url = $default_filter_action_url;
+        $default_filter_hidden_fields = array();
+
+        if ($share_mode) {
+            $default_title = 'Shared Division Checklist Completion Report';
+            $default_hero_description = '';
+            $default_back_url = '';
+            $default_back_label = '';
+            $default_filter_action_url = base_url(
+                'Pages/division_checklist_completed_shared/'
+                . rawurlencode((string) $division_id)
+                . '/'
+                . rawurlencode((string) $fy)
+            );
+            $default_filter_reset_url = $this->build_division_checklist_share_url($division_id, $fy);
+            $default_filter_hidden_fields = array(
+                'token' => $share_token,
+            );
+            $default_printable_url = '';
+        }
+
+        return array(
+            'title' => array_key_exists('title', $options)
+                ? (string) $options['title']
+                : $default_title,
+            'hero_title' => array_key_exists('hero_title', $options)
+                ? (string) $options['hero_title']
+                : 'Completed Self-Assessment Checklist Report',
+            'hero_description' => array_key_exists('hero_description', $options)
+                ? (string) $options['hero_description']
+                : $default_hero_description,
+            'report_scope' => 'division',
+            'report_badge' => array_key_exists('report_badge', $options)
+                ? (string) $options['report_badge']
+                : 'Fiscal Year ' . $fy,
+            'back_url' => array_key_exists('back_url', $options)
+                ? (string) $options['back_url']
+                : $default_back_url,
+            'back_label' => array_key_exists('back_label', $options)
+                ? (string) $options['back_label']
+                : $default_back_label,
+            'records' => $filtered_records,
+            'district_groups' => $this->build_checklist_report_groups($filtered_records),
+            'filter_title' => 'Filter By District',
+            'filter_description' => 'Select one district to narrow the completed checklist report for this division.',
+            'filter_action_url' => array_key_exists('filter_action_url', $options)
+                ? (string) $options['filter_action_url']
+                : $default_filter_action_url,
+            'filter_reset_url' => array_key_exists('filter_reset_url', $options)
+                ? (string) $options['filter_reset_url']
+                : $default_filter_reset_url,
+            'filter_param' => 'district_id',
+            'filter_placeholder' => 'All Districts',
+            'filter_icon' => 'mdi-map-marker-multiple',
+            'filter_options' => $filter_options,
+            'filter_hidden_fields' => array_key_exists('filter_hidden_fields', $options) && is_array($options['filter_hidden_fields'])
+                ? $options['filter_hidden_fields']
+                : $default_filter_hidden_fields,
+            'selected_filter' => $selected_filter,
+            'print_mode' => $print_mode,
+            'printable_url' => array_key_exists('printable_url', $options)
+                ? (string) $options['printable_url']
+                : $default_printable_url,
+            'share_mode' => $share_mode,
+            'shareable_url' => array_key_exists('shareable_url', $options)
+                ? (string) $options['shareable_url']
+                : $default_shareable_url,
+        );
+    }
+
+    private function get_division_checklist_completed_report_data($print_mode = false)
+    {
+        return $this->build_division_checklist_completed_report_data(
+            $this->session->division,
+            $this->session->fy,
+            array(
+                'print_mode' => $print_mode,
+            )
+        );
+    }
+
     private function get_rate_indicator_context($question_key)
     {
         $indicator_number = (int) preg_replace('/\D+/', '', (string) $question_key);
@@ -352,9 +645,8 @@ class Pages extends CI_Controller
         $data['title'] = "User List";
         $data['division_scope'] = false;
 
-        // For server-side DataTables, don't fetch all users
-        // The AJAX endpoint will handle data fetching
-        $data['users'] = array();
+        // Fetch all users for client-side DataTables
+        $data['users'] = $this->Page_model->no_cond('users');
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -368,7 +660,11 @@ class Pages extends CI_Controller
         // Bypass CSRF validation for AJAX requests
         $this->config->set_item('csrf_protection', false);
 
+        error_log("userlist_ajax called - CSRF bypassed");
+
         $this->require_user_manager();
+
+        error_log("userlist_ajax - user manager check passed");
 
         // DataTables parameters
         $draw = $this->input->post('draw');
@@ -639,7 +935,17 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.division_id,b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'district',$district, 'b.schoolName', 'ASC');
+        $data['data'] = $this->db
+            ->select("CAST(a.school_id AS CHAR) AS school_id, COALESCE(MAX(NULLIF(TRIM(b.schoolID), '')), CAST(a.school_id AS CHAR)) AS schoolID, MAX(b.division_id) AS division_id, COALESCE(MAX(NULLIF(TRIM(b.schoolName), '')), '') AS schoolName", false)
+            ->from('sbm a')
+            ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'left', false)
+            ->where('a.fy', $fy)
+            ->where('a.' . $q, $val)
+            ->where('a.district', $district)
+            ->group_by('a.school_id')
+            ->order_by('schoolName', 'ASC')
+            ->get()
+            ->result();
         $data['rate_scope'] = 'district';
         $data['rate_question'] = $q;
         $data['rate_value'] = (int) $val;
@@ -673,7 +979,18 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.division_id, b.schoolID,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'division',$division, 'b.schoolName', 'ASC');
+        $data['data'] = $this->db
+            ->select("CAST(a.school_id AS CHAR) AS school_id, COALESCE(MAX(NULLIF(TRIM(b.schoolID), '')), CAST(a.school_id AS CHAR)) AS schoolID, MAX(b.division_id) AS division_id, COALESCE(MAX(NULLIF(TRIM(b.schoolName), '')), '') AS schoolName", false)
+            ->from('sbm a')
+            ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'left', false)
+            ->where('a.fy', $fy)
+            ->where('a.' . $q, $val)
+            ->where('a.division', $division)
+            ->where('a.stat', 1)
+            ->group_by('a.school_id')
+            ->order_by('schoolName', 'ASC')
+            ->get()
+            ->result();
         $data['rate_scope'] = 'division';
         $data['rate_question'] = $q;
         $data['rate_value'] = (int) $val;
@@ -708,7 +1025,18 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.division_id,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'region',$region, 'b.schoolName', 'ASC');
+        $data['data'] = $this->db
+            ->select("CAST(a.school_id AS CHAR) AS school_id, COALESCE(MAX(NULLIF(TRIM(b.schoolID), '')), CAST(a.school_id AS CHAR)) AS schoolID, MAX(b.division_id) AS division_id, COALESCE(MAX(NULLIF(TRIM(b.schoolName), '')), '') AS schoolName", false)
+            ->from('sbm a')
+            ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'left', false)
+            ->where('a.fy', $fy)
+            ->where('a.' . $q, $val)
+            ->where('a.region', $region)
+            ->where('a.stat', 1)
+            ->group_by('a.school_id')
+            ->order_by('schoolName', 'ASC')
+            ->get()
+            ->result();
         error_log("sbm_rate_list_region - fy: $fy, q: $q, val: $val, region: $region, count: " . count($data['data']));
         $data['rate_scope'] = 'region';
         $data['rate_question'] = $q;
@@ -2274,12 +2602,14 @@ class Pages extends CI_Controller
 
             // Total schools in division
             $total_schools = $division->total_schools ? (int) $division->total_schools : 0;
+            $not_yet_responded = max(0, $total_schools - $total_sgc);
 
             $division->not_yet_organized = $not_yet_organized;
             $division->organized_not_functional = $organized_not_functional;
             $division->functional = $functional;
             $division->total_sgc = $total_sgc;
             $division->total_schools = $total_schools;
+            $division->not_yet_responded = $not_yet_responded;
         }
 
         $data['data'] = $divisions;
@@ -2971,23 +3301,122 @@ class Pages extends CI_Controller
     {
         $this->require_division_dashboard_access();
 
-        $page = "division_count_details";
+        $page = "checklist_completion_report";
 
         if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
             show_404();
         }
 
-        $data['title'] = 'Checklist Completion Details';
-        $data['hero_title'] = 'Completed Self-Assessment Checklists';
-        $data['hero_description'] = 'Review schools with finalized Self-Assessment Checklist submissions for the active fiscal year.';
-        $data['detail_label'] = 'Checklist Status';
-        $data['detail_badge'] = 'Fiscal Year ' . $this->session->fy;
-        $data['detail_type'] = 'checklist';
-        $data['back_url'] = base_url();
-        $data['records'] = $this->Page_model->division_completed_checklist_schools(
-            $this->session->division,
+        $data = $this->get_division_checklist_completed_report_data(false);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function division_checklist_completed_printable()
+    {
+        $this->require_division_dashboard_access();
+
+        $page = "checklist_completion_report";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data = $this->get_division_checklist_completed_report_data(true);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function division_checklist_completed_shared($division_id = null, $fy = null)
+    {
+        $page = "checklist_completion_report";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $division_id = trim((string) $division_id);
+        $fy = trim((string) $fy);
+
+        if ($division_id === '' || $fy === '' || !ctype_digit($division_id) || !ctype_digit($fy)) {
+            show_404();
+        }
+
+        $this->validate_division_checklist_share_request($division_id, $fy);
+
+        $data = $this->build_division_checklist_completed_report_data(
+            $division_id,
+            $fy,
+            array(
+                'share_mode' => true,
+                'back_url' => '',
+                'back_label' => '',
+                'printable_url' => '',
+                'shareable_url' => '',
+            )
+        );
+
+        $this->load->view('templates/header_public', $data);
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer_public');
+        $this->load->view('templates/footer_basic');
+    }
+
+    public function region_checklist_completed_report()
+    {
+        $this->require_region_dashboard_access();
+
+        $page = "checklist_completion_report";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $records = $this->Page_model->region_completed_checklist_report_rows(
+            $this->session->region,
             $this->session->fy
         );
+        $filter_options = $this->build_checklist_filter_options(
+            $records,
+            'division_id',
+            'division_name',
+            'Division'
+        );
+        $selected_filter = trim((string) $this->input->get('division_id', true));
+        $valid_filter_ids = array_map(function ($option) {
+            return (string) $option['id'];
+        }, $filter_options);
+
+        if ($selected_filter !== '' && !in_array($selected_filter, $valid_filter_ids, true)) {
+            $selected_filter = '';
+        }
+
+        $filtered_records = $this->filter_checklist_records($records, 'division_id', $selected_filter);
+
+        $data['title'] = 'Regional Checklist Completion Report';
+        $data['hero_title'] = 'Completed Self-Assessment Checklist Report';
+        $data['hero_description'] = 'Review finalized Self-Assessment Checklist submissions across the region, grouped by district and arranged alphabetically by school.';
+        $data['report_scope'] = 'region';
+        $data['report_badge'] = 'Fiscal Year ' . $this->session->fy;
+        $data['back_url'] = base_url();
+        $data['records'] = $filtered_records;
+        $data['district_groups'] = $this->build_checklist_report_groups($filtered_records);
+        $data['filter_title'] = 'Filter By Division';
+        $data['filter_description'] = 'Select one division to narrow the completed checklist report for this region.';
+        $data['filter_action_url'] = base_url('Pages/region_checklist_completed_report');
+        $data['filter_param'] = 'division_id';
+        $data['filter_placeholder'] = 'All Divisions';
+        $data['filter_icon'] = 'mdi-domain';
+        $data['filter_options'] = $filter_options;
+        $data['selected_filter'] = $selected_filter;
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');

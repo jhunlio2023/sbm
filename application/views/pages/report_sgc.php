@@ -211,7 +211,7 @@ $dashboard_url = base_url();
             <div class="report-hero">
                 <div>
                     <h2><i class="mdi mdi-account-group mr-2"></i>School Governance Council Report</h2>
-                    <p>View the status of School Governance Councils across divisions: Not Yet Organized, Organized but not Functional, and Functional.</p>
+                    <p>View the SGC status across divisions, including schools that have not yet submitted an SGC response.</p>
                 </div>
                 <div class="report-actions">
                     <span class="report-pill">
@@ -248,7 +248,7 @@ $dashboard_url = base_url();
                     <div class="report-card-header">
                         <div>
                             <h4><?= html_escape($title); ?></h4>
-                            <p>SGC status breakdown per division.</p>
+                            <p>SGC status breakdown per division, with schools that have not yet responded based on total encoded schools.</p>
                         </div>
                     </div>
 
@@ -264,6 +264,7 @@ $dashboard_url = base_url();
                                         <th>Organized (Not Functional)</th>
                                         <th>Functional</th>
                                         <th>Total SGC</th>
+                                        <th>Not Yet Responded</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -316,6 +317,18 @@ $dashboard_url = base_url();
                                             <td class="stat-cell">
                                                 <span class="stat-value"><?= html_escape($row->total_sgc); ?></span>
                                                 <span class="stat-label">Total SGC</span>
+                                            </td>
+                                            <td class="stat-cell">
+                                                <span class="stat-value"><?= html_escape($row->not_yet_responded); ?></span>
+                                                <span class="stat-label">Total Schools - Total SGC</span>
+                                                <?php if ($row->total_schools > 0) { ?>
+                                                <div class="progress-wrapper">
+                                                    <div class="progress">
+                                                        <div class="progress-bar progress-bar-danger" style="width: <?= round(($row->not_yet_responded / $row->total_schools) * 100, 1); ?>%;"></div>
+                                                    </div>
+                                                    <span class="percentage-text"><?= round(($row->not_yet_responded / $row->total_schools) * 100, 1); ?>%</span>
+                                                </div>
+                                                <?php } ?>
                                             </td>
                                         </tr>
                                     <?php } ?>

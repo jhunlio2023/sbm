@@ -21,6 +21,7 @@ $display_name = isset($this->session->user) && trim((string) $this->session->use
 $division_list_url = base_url() . 'pages/division_list';
 $school_directory_url = base_url() . 'pages/school_by_district';
 $tana_summary_url = base_url() . 'pages/tana_summary_region';
+$checklist_completion_url = base_url() . 'pages/region_checklist_completed_report';
 $rate_details = array(
     1 => array('label' => 'Not Yet Manifested', 'class' => 'rate-one'),
     2 => array('label' => 'Rarely Manifested', 'class' => 'rate-two'),
@@ -665,7 +666,7 @@ $sgc_percentages = array(
         <div class="dashboard-panel-header">
             <div>
                 <h4>Self-Assessment Checklist</h4>
-                <p>Select a principle to review region-wide manifestation results and checklist completion.</p>
+                <p>Select a principle to review finalized region-wide manifestation results and checklist completion.</p>
             </div>
             <small class="text-muted">
                 <?= $completed_checklist_total; ?> of <?= $encoded_school_total; ?> schools completed
@@ -674,19 +675,21 @@ $sgc_percentages = array(
 
         <div class="dashboard-panel-body">
             <div class="checklist-summary">
-                <div class="sgc-status">
-                    <div class="sgc-status-heading">
-                        <div>
-                            <h5>Checklist Completion</h5>
-                            <small>Finalized Self-Assessment Checklist submissions based on encoded school totals across the region.</small>
+                <a href="<?= $checklist_completion_url; ?>" class="dashboard-count-link" title="View completed checklist report">
+                    <div class="sgc-status">
+                        <div class="sgc-status-heading">
+                            <div>
+                                <h5>Checklist Completion</h5>
+                                <small>Finalized Self-Assessment Checklist submissions based on encoded school totals across the region.</small>
+                            </div>
+                            <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($checklist_completion_rate, 1); ?>%</span>
                         </div>
-                        <span class="sgc-percentage" style="color:#8b1e3f;"><?= number_format($checklist_completion_rate, 1); ?>%</span>
+                        <div class="sgc-progress"><span style="width: <?= $checklist_completion_width; ?>%; background:#8b1e3f;"></span></div>
+                        <small class="d-block mt-2 text-muted">
+                            <?= $completed_checklist_total; ?> completed schools out of <?= $encoded_school_total; ?> encoded schools for Fiscal Year <?= html_escape($this->session->fy); ?>.
+                        </small>
                     </div>
-                    <div class="sgc-progress"><span style="width: <?= $checklist_completion_width; ?>%; background:#8b1e3f;"></span></div>
-                    <small class="d-block mt-2 text-muted">
-                        <?= $completed_checklist_total; ?> completed schools out of <?= $encoded_school_total; ?> encoded schools for Fiscal Year <?= html_escape($this->session->fy); ?>.
-                    </small>
-                </div>
+                </a>
             </div>
 
             <div id="assessmentAccordion">

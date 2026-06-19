@@ -336,13 +336,6 @@ $position_count = !empty($pos) ? count($pos) : 0;
     <div class="row">
         <div class="col-12">
             <div class="page-title-box">
-                <div class="page-title-right">
-                    <ol class="breadcrumb p-0 m-0">
-                        <li class="breadcrumb-item"><a href="<?= $user_list_url; ?>">Manage Users</a></li>
-                        <li class="breadcrumb-item active">Add New User</li>
-                    </ol>
-                </div>
-
                 <?php if($this->session->flashdata('success')) : ?>
                     <?= '<div class="alert alert-success alert-dismissible fade show" role="alert">
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close">

@@ -522,7 +522,7 @@ public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
 
         for ($rate = 1; $rate <= 4; $rate++) {
             $alias = 'q' . $indicator_number . '_r' . $rate;
-            $select[] = 'SUM(CASE WHEN q' . $indicator_number . ' = ' . $rate . ' THEN 1 ELSE 0 END) AS ' . $alias;
+            $select[] = 'COUNT(DISTINCT CASE WHEN q' . $indicator_number . ' = ' . $rate . ' THEN school_id END) AS ' . $alias;
         }
     }
 
@@ -534,6 +534,7 @@ public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
         ->select(implode(', ', $select), false)
         ->where('division', $division_id)
         ->where('fy', $fy)
+        ->where('stat', 1)
         ->get('sbm')
         ->row();
 
@@ -565,7 +566,7 @@ public function region_sbm_rate_counts($region_id, $fy, $indicator_numbers){
 
         for ($rate = 1; $rate <= 4; $rate++) {
             $alias = 'q' . $indicator_number . '_r' . $rate;
-            $select[] = 'SUM(CASE WHEN q' . $indicator_number . ' = ' . $rate . ' THEN 1 ELSE 0 END) AS ' . $alias;
+            $select[] = 'COUNT(DISTINCT CASE WHEN q' . $indicator_number . ' = ' . $rate . ' THEN school_id END) AS ' . $alias;
         }
     }
 
@@ -577,6 +578,7 @@ public function region_sbm_rate_counts($region_id, $fy, $indicator_numbers){
         ->select(implode(', ', $select), false)
         ->where('region', $region_id)
         ->where('fy', $fy)
+        ->where('stat', 1)
         ->get('sbm')
         ->row();
 
@@ -629,6 +631,60 @@ public function division_completed_checklist_schools($division_id, $fy){
         ->where('a.stat', 1)
         ->group_by(array('b.recID', 'b.schoolID', 'b.schoolName', 'd.description'))
         ->order_by('b.schoolName', 'ASC')
+        ->get()
+        ->result();
+}
+
+public function division_completed_checklist_report_rows($division_id, $fy){
+    return $this->db
+        ->select("
+            MAX(b.recID) AS recID,
+            CAST(a.school_id AS CHAR) AS school_id,
+            COALESCE(MAX(NULLIF(TRIM(b.schoolID), '')), CAST(a.school_id AS CHAR)) AS schoolID,
+            COALESCE(MAX(NULLIF(TRIM(b.schoolName), '')), '') AS schoolName,
+            MAX(b.division_id) AS division_id,
+            COALESCE(MAX(NULLIF(TRIM(v.description), '')), 'Division') AS division_name,
+            MAX(b.district_id) AS district_id,
+            COALESCE(MAX(NULLIF(TRIM(d.description), '')), 'Unassigned District') AS district_name,
+            'Finalized' AS detail_status
+        ", false)
+        ->from('sbm a')
+        ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'left', false)
+        ->join('district d', 'd.id = b.district_id', 'left')
+        ->join('division v', 'v.id = b.division_id', 'left')
+        ->where('a.division', $division_id)
+        ->where('a.fy', $fy)
+        ->where('a.stat', 1)
+        ->group_by('a.school_id')
+        ->order_by('district_name', 'ASC')
+        ->order_by('schoolName', 'ASC')
+        ->get()
+        ->result();
+}
+
+public function region_completed_checklist_report_rows($region_id, $fy){
+    return $this->db
+        ->select("
+            MAX(b.recID) AS recID,
+            CAST(a.school_id AS CHAR) AS school_id,
+            COALESCE(MAX(NULLIF(TRIM(b.schoolID), '')), CAST(a.school_id AS CHAR)) AS schoolID,
+            COALESCE(MAX(NULLIF(TRIM(b.schoolName), '')), '') AS schoolName,
+            MAX(b.division_id) AS division_id,
+            COALESCE(MAX(NULLIF(TRIM(v.description), '')), 'Division') AS division_name,
+            MAX(b.district_id) AS district_id,
+            COALESCE(MAX(NULLIF(TRIM(d.description), '')), 'Unassigned District') AS district_name,
+            'Finalized' AS detail_status
+        ", false)
+        ->from('sbm a')
+        ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'left', false)
+        ->join('district d', 'd.id = b.district_id', 'left')
+        ->join('division v', 'v.id = b.division_id', 'left')
+        ->where('a.region', $region_id)
+        ->where('a.fy', $fy)
+        ->where('a.stat', 1)
+        ->group_by('a.school_id')
+        ->order_by('district_name', 'ASC')
+        ->order_by('schoolName', 'ASC')
         ->get()
         ->result();
 }

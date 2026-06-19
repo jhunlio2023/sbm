@@ -5,6 +5,7 @@ $indicators = isset($sbm_sub) && is_array($sbm_sub) ? $sbm_sub : array();
 $position = strtolower(trim((string) $this->session->position));
 $is_school_user = $position === 'school';
 $is_division_user = $position === 'division';
+$is_region_user = $position === 'region';
 $view_school_id = $is_school_user ? (string) $this->session->username : (string) $this->uri->segment(3);
 $school = $this->Common->one_cond_row('schools', 'schoolID', $view_school_id);
 $division = ($school && !empty($school->division_id)) ? $this->Page_model->one_cond_row('division', 'id', $school->division_id) : null;
@@ -1362,6 +1363,19 @@ if ($checklist_record && !$all_answered && $can_edit) {
                 SBM Assessment Workspace
             </span>
             <h1>School-Based Management Self-Assessment Checklist</h1>
+            <?php if ($is_region_user) : ?>
+                <p>Review the finalized checklist submission for this school and use the division context for regional monitoring.</p>
+                <div class="hero-meta">
+                    <span>
+                        <i class="mdi mdi-school-outline"></i>
+                        School: <?= $escape($school_name); ?>
+                    </span>
+                    <span>
+                        <i class="mdi mdi-domain"></i>
+                        Division: <?= $escape($division_name); ?>
+                    </span>
+                </div>
+            <?php endif; ?>
         </div>
 
         <div class="checklist-hero-side">

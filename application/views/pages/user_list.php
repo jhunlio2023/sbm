@@ -1,5 +1,6 @@
                         <?php
                             $themed_user_scope = !empty($division_scope) || !empty($district_user_scope);
+                            $is_division_user_scope = !empty($division_scope) && empty($district_user_scope);
                             $district_name = !empty($district) ? mb_convert_case($district->description, MB_CASE_TITLE, 'UTF-8') : 'District';
                             $district_user_back_url = !empty($district_user_back_url) ? $district_user_back_url : base_url();
                         ?>
@@ -46,6 +47,19 @@
                                 height: 210px;
                                 border-radius: 50%;
                                 background: rgba(255, 255, 255, .08);
+                            }
+
+                            .user-list-page.division-scope .user-list-hero {
+                                padding: 28px;
+                                border-radius: 18px;
+                                background:
+                                    radial-gradient(circle at 90% 15%, rgba(255, 255, 255, .2), transparent 25%),
+                                    linear-gradient(135deg, #64142d 0%, #a83255 100%);
+                                box-shadow: 0 14px 34px rgba(139, 30, 63, .22);
+                            }
+
+                            .user-list-page.division-scope .user-list-hero::after {
+                                display: none;
                             }
 
                             .user-list-hero-copy,
@@ -350,7 +364,7 @@
                             }
                         </style>
 
-                        <div class="user-list-page">
+                        <div class="user-list-page <?= $is_division_user_scope ? 'division-scope' : ''; ?>">
                             <!-- Hero Section -->
                             <div class="user-list-hero">
                                 <div class="user-list-hero-copy">
@@ -426,6 +440,35 @@
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <?php foreach($users as $row): ?>
+                                            <tr>
+                                                <td>
+                                                    <div class="account-cell">
+                                                        <span class="account-avatar"><?= strtoupper(substr($row->fname, 0, 1) . (!empty($row->lname) ? substr($row->lname, 0, 1) : '')); ?></span>
+                                                        <span class="account-name"><?= mb_convert_case(trim((!empty($row->lname) ? $row->lname . ', ' : '') . $row->fname . (!empty($row->mname) ? ' ' . substr($row->mname, 0, 1) . '.' : '')), MB_CASE_TITLE, 'UTF-8'); ?></span>
+                                                    </div>
+                                                </td>
+                                                <td><span class="username-text"><?= html_escape($row->username); ?></span></td>
+                                                <td><span class="account-level"><?= html_escape($row->position); ?></span></td>
+                                                <td>
+                                                    <div class="user-actions">
+                                                        <?php if(in_array($this->session->position, array('admin', 'division', 'ict'), true)){ ?>
+                                                        <a class="btn btn-primary btn-sm" href="<?= base_url(); ?>pages/user_update/<?= $row->id; ?>"><i class="mdi mdi-pencil-outline"></i> Edit</a>
+                                                        <?php } ?>
+                                                        <?php if($this->session->position == 'admin'){ ?>
+                                                        <a href="#profile" class="open-AddBookDialog btn btn-primary btn-sm waves-effect waves-light" data-id="<?= $row->id; ?>" data-animation="slit" data-plugin="custommodal" data-overlayspeed="100" data-overlaycolor="#36404a">Change profile</a>
+                                                        <?php } ?>
+                                                        <form action="<?= base_url(); ?>pages/user_reset_password" method="post" style="display:inline;" onsubmit="return confirm('Reset this user\'s password?');">
+                                                            <input type="hidden" name="id" value="<?= $row->id; ?>">
+                                                            <button type="submit" class="btn btn-warning btn-sm waves-effect waves-light"><i class="mdi mdi-lock-reset"></i> Reset</button>
+                                                        </form>
+                                                        <?php if(in_array($this->session->position, array('admin', 'division', 'ict'), true)){ ?>
+                                                        <a onclick="return confirm('Delete this user account?')" class="btn btn-danger btn-sm" href="<?= base_url(); ?>pages/user_delete/<?= $row->id; ?>"><i class="mdi mdi-trash-can-outline"></i> Delete</a>
+                                                        <?php } ?>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -499,18 +542,8 @@
                         }
 
                         $(document).ready(function() {
-                            console.log('Initializing DataTables with server-side processing');
+                            console.log('Initializing DataTables with client-side processing');
                             var table = $('#datatable').DataTable({
-                                processing: true,
-                                serverSide: true,
-                                ajax: {
-                                    url: '<?= base_url(); ?>index.php/pages/userlist_ajax',
-                                    type: 'POST',
-                                    error: function(xhr, error, thrown) {
-                                        console.error('DataTables AJAX error:', xhr, error, thrown);
-                                        alert('Error loading data: ' + error);
-                                    }
-                                },
                                 pageLength: 20,
                                 lengthMenu: [[10, 20, 50, 100], [10, 20, 50, 100]],
                                 order: [[0, 'asc']],

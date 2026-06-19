@@ -623,7 +623,7 @@ $rate_details = array(
         <div class="dashboard-panel-header">
             <div>
                 <h4>Self-Assessment Checklist</h4>
-                <p>Select a principle to review division-wide manifestation results and checklist completion.</p>
+                <p>Select a principle to review finalized division-wide manifestation results and checklist completion.</p>
             </div>
             <small class="text-muted">
                 <?= $completed_checklist_total; ?> of <?= $encoded_school_total; ?> schools completed
@@ -632,7 +632,7 @@ $rate_details = array(
 
         <div class="dashboard-panel-body">
             <div class="checklist-summary">
-                <a href="<?= $checklist_completion_url; ?>" class="dashboard-count-link" title="View completed checklist details">
+                <a href="<?= $checklist_completion_url; ?>" class="dashboard-count-link" title="View completed checklist report">
                     <div class="sgc-status">
                         <div class="sgc-status-heading">
                             <div>

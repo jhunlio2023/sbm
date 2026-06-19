@@ -180,6 +180,16 @@
                                 </ul>
 
                             </li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-chart-line"></i>
+                                    <span> Reports</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/division_checklist_completed_details">Checklist Completion</a></li>
+                                </ul>
+                            </li>
                             <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
 
                         <?php } ?>
@@ -207,6 +217,7 @@
                                 <ul class="nav-second-level" aria-expanded="false">
                                     <li><a href="<?= base_url(); ?>Pages/report_division_submission">Division Submission</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/report_overall_accomplishments">Overall Accomplishments</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/region_checklist_completed_report">Checklist Completion</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/report_sgc">School Governance Council</a></li>
                                 </ul>
                             </li>

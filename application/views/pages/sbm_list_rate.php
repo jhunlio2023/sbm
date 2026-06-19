@@ -10,6 +10,9 @@ $indicator_number = (int) substr($rate_question, 1);
 $result_count = count($data);
 $indicator_description = isset($rate_indicator_description) ? trim((string) $rate_indicator_description) : '';
 $indicator_principle = isset($rate_indicator_principle) ? trim((string) $rate_indicator_principle) : '';
+$results_description = in_array($rate_scope, array('division', 'region'), true)
+    ? 'Schools with finalized checklist submissions reporting'
+    : 'Schools reporting';
 $back_url = $rate_scope === 'division'
     ? base_url()
     : 'javascript:history.back()';
@@ -336,7 +339,7 @@ $back_url = $rate_scope === 'division'
             <div class="rate-results-hero">
                 <div>
                     <h2><i class="mdi mdi-chart-bar mr-2"></i>SBM Rating Results</h2>
-                    <p>Schools reporting “<?= html_escape($rate_label); ?>” for SBM Indicator <?= $indicator_number; ?>.</p>
+                    <p><?= html_escape($results_description); ?> “<?= html_escape($rate_label); ?>” for SBM Indicator <?= $indicator_number; ?>.</p>
                     <?php if ($indicator_description !== '' || $indicator_principle !== '') : ?>
                         <div class="rate-indicator-detail">
                             <strong>Indicator Details</strong>
