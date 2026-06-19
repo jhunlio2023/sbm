@@ -23,6 +23,9 @@
 <!-- Datatables init -->
 <script src="<?= base_url(); ?>assets/js/pages/datatables.init.js"></script>
 
+<!-- Chart.js -->
+<script src="<?= base_url(); ?>assets/libs/chart-js/Chart.bundle.min.js"></script>
+
 <script src="<?= base_url(); ?>assets/libs/custombox/custombox.min.js"></script>
 
 <!-- App js -->

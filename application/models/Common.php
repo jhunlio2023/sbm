@@ -496,8 +496,12 @@ class Common extends CI_Model
         $this->db->where($col2, $val2);
         $this->db->where($col3, $val3);
         $this->db->order_by($ob, $obval);
-        $query = $this->db->get();
-        return $query->result();
+        $sql = $this->db->get_compiled_select();
+        error_log("two_join_three_cond SQL: " . $sql);
+        $query = $this->db->query($sql);
+        $result = $query->result();
+        error_log("two_join_three_cond - t1: $t1, t2: $t2, col: $col, val: $val, col2: $col2, val2: $val2, col3: $col3, val3: $val3, count: " . count($result));
+        return $result;
     }
 
     public function two_join_four_cond($t1, $t2, $select, $joinby, $col, $val, $col2, $val2, $col3, $val3, $col4, $val4, $ob, $obval)

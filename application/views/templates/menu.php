@@ -198,6 +198,18 @@
                                 </ul>
 
                             </li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-chart-line"></i>
+                                    <span> Reports</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/report_division_submission">Division Submission</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/report_overall_accomplishments">Overall Accomplishments</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/report_sgc">School Governance Council</a></li>
+                                </ul>
+                            </li>
                             <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
 
                         <?php } ?>
@@ -205,6 +217,18 @@
                         <?php if ($this->session->position == 'admin') { ?>
                             <li><a href="<?= base_url(); ?>pages/school_by_district" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li>
                             <li><a href="<?= base_url(); ?>pages/userlist" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-chart-line"></i>
+                                    <span> Reports</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/report_division_submission">Division Submission</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/report_overall_accomplishments">Overall Accomplishments</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/report_sgc">School Governance Council</a></li>
+                                </ul>
+                            </li>
                         <?php } ?>
 
                         <?php if ($this->session->position == 'ict') { ?>

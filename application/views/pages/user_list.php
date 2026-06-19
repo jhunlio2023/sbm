@@ -499,12 +499,17 @@
                         }
 
                         $(document).ready(function() {
+                            console.log('Initializing DataTables with server-side processing');
                             var table = $('#datatable').DataTable({
                                 processing: true,
                                 serverSide: true,
                                 ajax: {
                                     url: '<?= base_url(); ?>index.php/pages/userlist_ajax',
-                                    type: 'POST'
+                                    type: 'POST',
+                                    error: function(xhr, error, thrown) {
+                                        console.error('DataTables AJAX error:', xhr, error, thrown);
+                                        alert('Error loading data: ' + error);
+                                    }
                                 },
                                 pageLength: 20,
                                 lengthMenu: [[10, 20, 50, 100], [10, 20, 50, 100]],
@@ -548,8 +553,10 @@
                                     searchPlaceholder: "Search users..."
                                 },
                                 initComplete: function() {
+                                    console.log('DataTables initialized');
                                     // Update account count from API response
                                     table.on('xhr.dt', function(e, settings, json, xhr) {
+                                        console.log('XHR response:', json);
                                         if (json && json.recordsTotal !== undefined) {
                                             $('.account-level').html('<i class="mdi mdi-account-multiple-outline"></i> ' + json.recordsTotal + ' account' + (json.recordsTotal === 1 ? '' : 's'));
                                         }

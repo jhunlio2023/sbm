@@ -365,6 +365,9 @@ class Pages extends CI_Controller
 
     public function userlist_ajax()
     {
+        // Bypass CSRF validation for AJAX requests
+        $this->config->set_item('csrf_protection', false);
+
         $this->require_user_manager();
 
         // DataTables parameters
@@ -374,6 +377,8 @@ class Pages extends CI_Controller
         $search = $this->input->post('search')['value'];
         $order = $this->input->post('order');
         $columns = $this->input->post('columns');
+
+        error_log("userlist_ajax called - draw: $draw, start: $start, length: $length, search: $search");
 
         // Build query
         $this->db->select('id, fname, mname, lname, username, position');
@@ -391,6 +396,7 @@ class Pages extends CI_Controller
 
         // Get total records before filtering
         $total_records = $this->db->count_all_results('users', false);
+        error_log("Total records: $total_records");
 
         // Order
         if (!empty($order)) {
@@ -414,6 +420,7 @@ class Pages extends CI_Controller
 
         // Get filtered records count
         $filtered_records = $this->db->count_all_results('', false);
+        error_log("Filtered records: $filtered_records");
 
         // Apply pagination
         if ($length > 0) {
@@ -422,6 +429,7 @@ class Pages extends CI_Controller
 
         // Get data
         $data = $this->db->get('users')->result();
+        error_log("Data count: " . count($data));
 
         // Format data for DataTables
         $formatted_data = array();
@@ -442,12 +450,19 @@ class Pages extends CI_Controller
             );
         }
 
-        echo json_encode(array(
+        $response = array(
             'draw' => intval($draw),
             'recordsTotal' => $total_records,
             'recordsFiltered' => $filtered_records,
             'data' => $formatted_data
-        ));
+        );
+
+        error_log("Response: " . json_encode($response));
+
+        echo json_encode($response);
+
+        // Re-enable CSRF protection
+        $this->config->set_item('csrf_protection', true);
     }
 
     public function userlist_division()
@@ -694,6 +709,7 @@ class Pages extends CI_Controller
         }
 
         $data['data'] = $this->Common->two_join_three_cond('sbm', 'schools', 'a.school_id, b.schoolID,b.division_id,b.schoolName,a.' .$q, 'a.school_id = b.schoolID', 'fy', $fy, $q, $val, 'region',$region, 'b.schoolName', 'ASC');
+        error_log("sbm_rate_list_region - fy: $fy, q: $q, val: $val, region: $region, count: " . count($data['data']));
         $data['rate_scope'] = 'region';
         $data['rate_question'] = $q;
         $data['rate_value'] = (int) $val;
@@ -2019,6 +2035,251 @@ class Pages extends CI_Controller
             $division->signed_up_count = $signed_up_count;
             $division->signup_percentage = $signup_percentage;
             $division->not_signup_percentage = $not_signup_percentage;
+
+            // Count Self-Assessment (sbm) submissions for this division
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $sbm_count = $this->db->count_all_results('sbm');
+
+            // Count TNA (sbm_ta) submissions for this division
+            $this->db->reset_query();
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $sbm_ta_count = $this->db->count_all_results('sbm_ta');
+
+            error_log("Division ID: {$division->id}, SBM count: {$sbm_count}, SBM_TA count: {$sbm_ta_count}");
+
+            // Calculate completion percentages
+            if ($total_schools > 0) {
+                $sbm_completion_percentage = round(($sbm_count / $total_schools) * 100, 1);
+                $sbm_ta_completion_percentage = round(($sbm_ta_count / $total_schools) * 100, 1);
+            } else {
+                $sbm_completion_percentage = 0;
+                $sbm_ta_completion_percentage = 0;
+            }
+
+            $division->sbm_count = $sbm_count;
+            $division->sbm_completion_percentage = $sbm_completion_percentage;
+            $division->sbm_ta_count = $sbm_ta_count;
+            $division->sbm_ta_completion_percentage = $sbm_ta_completion_percentage;
+        }
+
+        $data['data'] = $divisions;
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function report_division_submission()
+    {
+        $page = "report_division_submission";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "Division Submission Report";
+
+        // Get divisions based on user role
+        if ($this->session->position == 'region') {
+            $divisions = $this->Page_model->one_cond('division', 'region_id', $this->session->region);
+        } elseif ($this->session->position == 'admin') {
+            $divisions = $this->Page_model->no_cond('division');
+        } else {
+            $divisions = array();
+        }
+
+        // Calculate statistics for each division
+        foreach ($divisions as $division) {
+            // Count signed up schools
+            $this->db->where('division_id', $division->id);
+            $signed_up_count = $this->db->count_all_results('schools');
+
+            $total_schools = $division->total_schools ? (int) $division->total_schools : 0;
+
+            // Calculate signup percentages
+            if ($total_schools > 0) {
+                $signup_percentage = round(($signed_up_count / $total_schools) * 100, 1);
+                $not_signup_percentage = round((($total_schools - $signed_up_count) / $total_schools) * 100, 1);
+            } else {
+                $signup_percentage = 0;
+                $not_signup_percentage = 0;
+            }
+
+            $division->signed_up_count = $signed_up_count;
+            $division->signup_percentage = $signup_percentage;
+            $division->not_signup_percentage = $not_signup_percentage;
+
+            // Count submissions for each form type
+            $this->db->reset_query();
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $action_plan_count = $this->db->count_all_results('sgod_action_plan');
+
+            $this->db->reset_query();
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $sbm_count = $this->db->count_all_results('sbm');
+
+            $this->db->reset_query();
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $sbm_ta_count = $this->db->count_all_results('sbm_ta');
+
+            // Calculate completion percentages
+            if ($total_schools > 0) {
+                $action_plan_percentage = round(($action_plan_count / $total_schools) * 100, 1);
+                $sbm_percentage = round(($sbm_count / $total_schools) * 100, 1);
+                $sbm_ta_percentage = round(($sbm_ta_count / $total_schools) * 100, 1);
+            } else {
+                $action_plan_percentage = 0;
+                $sbm_percentage = 0;
+                $sbm_ta_percentage = 0;
+            }
+
+            $division->action_plan_count = $action_plan_count;
+            $division->action_plan_percentage = $action_plan_percentage;
+            $division->sbm_count = $sbm_count;
+            $division->sbm_percentage = $sbm_percentage;
+            $division->sbm_ta_count = $sbm_ta_count;
+            $division->sbm_ta_percentage = $sbm_ta_percentage;
+        }
+
+        $data['data'] = $divisions;
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function report_overall_accomplishments()
+    {
+        $page = "report_overall_accomplishments";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "Overall Accomplishments Comparison";
+
+        // Get divisions based on user role
+        if ($this->session->position == 'region') {
+            $divisions = $this->Page_model->one_cond('division', 'region_id', $this->session->region);
+        } elseif ($this->session->position == 'admin') {
+            $divisions = $this->Page_model->no_cond('division');
+        } else {
+            $divisions = array();
+        }
+
+        // Calculate statistics for each division
+        foreach ($divisions as $division) {
+            // Count signed up schools
+            $this->db->where('division_id', $division->id);
+            $signed_up_count = $this->db->count_all_results('schools');
+
+            $total_schools = $division->total_schools ? (int) $division->total_schools : 0;
+
+            // Calculate signup percentages
+            if ($total_schools > 0) {
+                $signup_percentage = round(($signed_up_count / $total_schools) * 100, 1);
+            } else {
+                $signup_percentage = 0;
+            }
+
+            // Count submissions for each form type
+            $this->db->reset_query();
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $action_plan_count = $this->db->count_all_results('sgod_action_plan');
+
+            $this->db->reset_query();
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $sbm_count = $this->db->count_all_results('sbm');
+
+            $this->db->reset_query();
+            $this->db->where('division', $division->id);
+            $this->db->where('fy', $this->session->fy);
+            $sbm_ta_count = $this->db->count_all_results('sbm_ta');
+
+            // Calculate completion percentages
+            if ($total_schools > 0) {
+                $action_plan_percentage = round(($action_plan_count / $total_schools) * 100, 1);
+                $sbm_percentage = round(($sbm_count / $total_schools) * 100, 1);
+                $sbm_ta_percentage = round(($sbm_ta_count / $total_schools) * 100, 1);
+            } else {
+                $action_plan_percentage = 0;
+                $sbm_percentage = 0;
+                $sbm_ta_percentage = 0;
+            }
+
+            $division->signup_percentage = $signup_percentage;
+            $division->action_plan_percentage = $action_plan_percentage;
+            $division->sbm_percentage = $sbm_percentage;
+            $division->sbm_ta_percentage = $sbm_ta_percentage;
+        }
+
+        $data['data'] = $divisions;
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function report_sgc()
+    {
+        $page = "report_sgc";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "School Governance Council Report";
+
+        // Get divisions based on user role
+        if ($this->session->position == 'region') {
+            $divisions = $this->Page_model->one_cond('division', 'region_id', $this->session->region);
+        } elseif ($this->session->position == 'admin') {
+            $divisions = $this->Page_model->no_cond('division');
+        } else {
+            $divisions = array();
+        }
+
+        // Calculate SGC statistics for each division
+        foreach ($divisions as $division) {
+            // Count schools by SGC status
+            $this->db->where('division_id', $division->id);
+            $this->db->where('sgc', 1);
+            $not_yet_organized = $this->db->count_all_results('schools');
+
+            $this->db->reset_query();
+            $this->db->where('division_id', $division->id);
+            $this->db->where('sgc', 2);
+            $organized_not_functional = $this->db->count_all_results('schools');
+
+            $this->db->reset_query();
+            $this->db->where('division_id', $division->id);
+            $this->db->where('sgc', 3);
+            $functional = $this->db->count_all_results('schools');
+
+            // Total schools with SGC data
+            $total_sgc = $not_yet_organized + $organized_not_functional + $functional;
+
+            // Total schools in division
+            $total_schools = $division->total_schools ? (int) $division->total_schools : 0;
+
+            $division->not_yet_organized = $not_yet_organized;
+            $division->organized_not_functional = $organized_not_functional;
+            $division->functional = $functional;
+            $division->total_sgc = $total_sgc;
+            $division->total_schools = $total_schools;
         }
 
         $data['data'] = $divisions;

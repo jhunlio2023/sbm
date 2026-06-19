@@ -546,6 +546,8 @@ public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
         }
     }
 
+    error_log("division_sbm_rate_counts - division_id: $division_id, fy: $fy, counts: " . json_encode($counts));
+
     return $counts;
 }
 
@@ -586,6 +588,8 @@ public function region_sbm_rate_counts($region_id, $fy, $indicator_numbers){
             $counts[$indicator_number][$rate] = $row && isset($row->$alias) ? (int) $row->$alias : 0;
         }
     }
+
+    error_log("region_sbm_rate_counts - region_id: $region_id, fy: $fy, counts: " . json_encode($counts));
 
     return $counts;
 }

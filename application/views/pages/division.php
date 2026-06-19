@@ -391,6 +391,14 @@ $overall_submission_total = array_sum($summary_totals);
         background: linear-gradient(90deg, #ffc107, #fd7e14);
     }
 
+    .progress-bar-info {
+        background: linear-gradient(90deg, #17a2b8, #138496);
+    }
+
+    .progress-bar-primary {
+        background: linear-gradient(90deg, #007bff, #0056b3);
+    }
+
     .percentage-text {
         display: block;
         margin-top: 4px;
@@ -564,6 +572,8 @@ $overall_submission_total = array_sum($summary_totals);
                                         <th>Total Schools</th>
                                         <th>Signup %</th>
                                         <th>Not Signup %</th>
+                                        <th>Self-Assessment %</th>
+                                        <th>TNA %</th>
                                         <th class="text-center">Action Plan</th>
                                         <th class="text-center">Self-Assessment</th>
                                         <th class="text-center">TA Form</th>
@@ -617,6 +627,26 @@ $overall_submission_total = array_sum($summary_totals);
                                                         <div class="progress-bar progress-bar-warning" style="width: <?= html_escape($row->not_signup_percentage); ?>%;"></div>
                                                     </div>
                                                     <span class="percentage-text"><?= html_escape($row->not_signup_percentage); ?>%</span>
+                                                </div>
+                                            </td>
+                                            <td class="directory-stat-cell">
+                                                <span class="stat-value"><?= html_escape($row->sbm_count); ?></span>
+                                                <span class="stat-label">Self-Assessment</span>
+                                                <div class="progress-wrapper">
+                                                    <div class="progress">
+                                                        <div class="progress-bar progress-bar-info" style="width: <?= html_escape($row->sbm_completion_percentage); ?>%;"></div>
+                                                    </div>
+                                                    <span class="percentage-text"><?= html_escape($row->sbm_completion_percentage); ?>%</span>
+                                                </div>
+                                            </td>
+                                            <td class="directory-stat-cell">
+                                                <span class="stat-value"><?= html_escape($row->sbm_ta_count); ?></span>
+                                                <span class="stat-label">TNA</span>
+                                                <div class="progress-wrapper">
+                                                    <div class="progress">
+                                                        <div class="progress-bar progress-bar-primary" style="width: <?= html_escape($row->sbm_ta_completion_percentage); ?>%;"></div>
+                                                    </div>
+                                                    <span class="percentage-text"><?= html_escape($row->sbm_ta_completion_percentage); ?>%</span>
                                                 </div>
                                             </td>
                                             <?php foreach ($table_definitions as $table => $definition) :
