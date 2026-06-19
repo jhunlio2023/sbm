@@ -419,52 +419,13 @@
                                     <table id="datatable" class="table table-bordered dt-responsive nowrap" style="width: 100%;">
                                         <thead>
                                             <tr>
-                                                <th>Account</th>
-                                                <th>Username</th>
-                                                <th>Position</th>
+                                                <th data-name="account">Account</th>
+                                                <th data-name="username">Username</th>
+                                                <th data-name="position">Position</th>
                                                 <th>Manage</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach($users as $row){?>
-                                            <tr>
-                                                <td>
-                                                    <?php
-                                                        $display_name = mb_convert_case(
-                                                            trim((!empty($row->lname) ? $row->lname . ', ' : '') . $row->fname . (!empty($row->mname) ? ' ' . substr($row->mname, 0, 1) . '.' : '')),
-                                                            MB_CASE_TITLE,
-                                                            'UTF-8'
-                                                        );
-                                                        $initials = strtoupper(substr($row->fname, 0, 1) . (!empty($row->lname) ? substr($row->lname, 0, 1) : ''));
-                                                    ?>
-                                                    <div class="account-cell">
-                                                        <span class="account-avatar"><?= html_escape($initials); ?></span>
-                                                        <span class="account-name"><?= html_escape($display_name); ?></span>
-                                                    </div>
-                                                </td>
-                                                <td><span class="username-text"><?= html_escape($row->username); ?></span></td>
-                                                <td><span class="account-level"><?= html_escape($row->position); ?></span></td>
-                                                <td>
-                                                    <div class="user-actions">
-                                                    <?php if(in_array($this->session->position, array('admin', 'division', 'ict'), true)){ ?>
-                                                    <a class="btn btn-primary btn-sm" href="<?= base_url(); ?>pages/user_update/<?= $row->id; ?>"><i class="mdi mdi-pencil-outline"></i> Edit</a>
-                                                    <?php } ?>
-                                                    <?php if($this->session->position == 'admin'){ ?>
-                                                    <a href="#profile" class="open-AddBookDialog btn btn-primary btn-sm waves-effect waves-light" data-id="<?= $row->id; ?>" data-animation="slit" data-plugin="custommodal" data-overlayspeed="100" data-overlaycolor="#36404a">Change profile</a>
-                                                    <?php } ?>
-
-                                                    <?= form_open('pages/user_reset_password', array('style' => 'display:inline;', 'onsubmit' => "return confirm('Reset this user\\'s password?');")); ?>
-                                                        <input type="hidden" name="id" value="<?= $row->id; ?>">
-                                                        <button type="submit" class="btn btn-warning btn-sm waves-effect waves-light"><i class="mdi mdi-lock-reset"></i> Reset</button>
-                                                    </form>
-
-                                                    <?php if(in_array($this->session->position, array('admin', 'division', 'ict'), true) && (string) $row->id !== (string) $this->session->id){ ?>
-                                                    <a onclick="return confirm('Delete this user account?')" class="btn btn-danger btn-sm" href="<?= base_url(); ?>pages/user_delete/<?= $row->id; ?>"><i class="mdi mdi-trash-can-outline"></i> Delete</a>
-                                                    <?php } ?>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                            <?php } ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -538,14 +499,61 @@
                         }
 
                         $(document).ready(function() {
-                            $('#datatable').DataTable({
+                            var table = $('#datatable').DataTable({
+                                processing: true,
+                                serverSide: true,
+                                ajax: {
+                                    url: '<?= base_url(); ?>index.php/pages/userlist_ajax',
+                                    type: 'POST'
+                                },
                                 pageLength: 20,
                                 lengthMenu: [[10, 20, 50, 100], [10, 20, 50, 100]],
                                 order: [[0, 'asc']],
                                 responsive: true,
+                                columns: [
+                                    {
+                                        data: 'account',
+                                        render: function(data, type, row) {
+                                            return '<div class="account-cell">' +
+                                                '<span class="account-avatar">' + row.initials + '</span>' +
+                                                '<span class="account-name">' + data + '</span>' +
+                                                '</div>';
+                                        }
+                                    },
+                                    { data: 'username', render: function(data) { return '<span class="username-text">' + data + '</span>'; } },
+                                    { data: 'position', render: function(data) { return '<span class="account-level">' + data + '</span>'; } },
+                                    {
+                                        data: 'id',
+                                        render: function(data, type, row) {
+                                            var actions = '';
+                                            <?php if(in_array($this->session->position, array('admin', 'division', 'ict'), true)){ ?>
+                                            actions += '<a class="btn btn-primary btn-sm" href="<?= base_url(); ?>pages/user_update/' + data + '"><i class="mdi mdi-pencil-outline"></i> Edit</a> ';
+                                            <?php } ?>
+                                            <?php if($this->session->position == 'admin'){ ?>
+                                            actions += '<a href="#profile" class="open-AddBookDialog btn btn-primary btn-sm waves-effect waves-light" data-id="' + data + '" data-animation="slit" data-plugin="custommodal" data-overlayspeed="100" data-overlaycolor="#36404a">Change profile</a> ';
+                                            <?php } ?>
+                                            actions += '<form action="<?= base_url(); ?>pages/user_reset_password" method="post" style="display:inline;" onsubmit="return confirm(\'Reset this user\\\'s password?\');">' +
+                                                '<input type="hidden" name="id" value="' + data + '">' +
+                                                '<button type="submit" class="btn btn-warning btn-sm waves-effect waves-light"><i class="mdi mdi-lock-reset"></i> Reset</button>' +
+                                                '</form> ';
+                                            <?php if(in_array($this->session->position, array('admin', 'division', 'ict'), true)){ ?>
+                                            actions += '<a onclick="return confirm(\'Delete this user account?\')" class="btn btn-danger btn-sm" href="<?= base_url(); ?>pages/user_delete/' + data + '"><i class="mdi mdi-trash-can-outline"></i> Delete</a>';
+                                            <?php } ?>
+                                            return '<div class="user-actions">' + actions + '</div>';
+                                        }
+                                    }
+                                ],
                                 language: {
                                     search: "_INPUT_",
                                     searchPlaceholder: "Search users..."
+                                },
+                                initComplete: function() {
+                                    // Update account count from API response
+                                    table.on('xhr.dt', function(e, settings, json, xhr) {
+                                        if (json && json.recordsTotal !== undefined) {
+                                            $('.account-level').html('<i class="mdi mdi-account-multiple-outline"></i> ' + json.recordsTotal + ' account' + (json.recordsTotal === 1 ? '' : 's'));
+                                        }
+                                    });
                                 }
                             });
                         });

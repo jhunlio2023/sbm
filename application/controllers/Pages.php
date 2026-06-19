@@ -352,16 +352,102 @@ class Pages extends CI_Controller
         $data['title'] = "User List";
         $data['division_scope'] = false;
 
-        // Optimize query by selecting only needed columns and ordering
-        $this->db->select('id, fname, mname, lname, username, position');
-        $this->db->order_by('lname, fname', 'ASC');
-        $data['users'] = $this->db->get('users')->result();
+        // For server-side DataTables, don't fetch all users
+        // The AJAX endpoint will handle data fetching
+        $data['users'] = array();
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
         $this->load->view('pages/' . $page, $data);
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
+    }
+
+    public function userlist_ajax()
+    {
+        $this->require_user_manager();
+
+        // DataTables parameters
+        $draw = $this->input->post('draw');
+        $start = $this->input->post('start');
+        $length = $this->input->post('length');
+        $search = $this->input->post('search')['value'];
+        $order = $this->input->post('order');
+        $columns = $this->input->post('columns');
+
+        // Build query
+        $this->db->select('id, fname, mname, lname, username, position');
+
+        // Search
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('fname', $search);
+            $this->db->or_like('mname', $search);
+            $this->db->or_like('lname', $search);
+            $this->db->or_like('username', $search);
+            $this->db->or_like('position', $search);
+            $this->db->group_end();
+        }
+
+        // Get total records before filtering
+        $total_records = $this->db->count_all_results('users', false);
+
+        // Order
+        if (!empty($order)) {
+            $column_index = $order[0]['column'];
+            $column_name = $columns[$column_index]['data'];
+            $direction = $order[0]['dir'];
+
+            // Map column names to database fields
+            $column_map = array(
+                'account' => 'lname',
+                'username' => 'username',
+                'position' => 'position'
+            );
+
+            if (isset($column_map[$column_name])) {
+                $this->db->order_by($column_map[$column_name], $direction);
+            }
+        } else {
+            $this->db->order_by('lname, fname', 'ASC');
+        }
+
+        // Get filtered records count
+        $filtered_records = $this->db->count_all_results('', false);
+
+        // Apply pagination
+        if ($length > 0) {
+            $this->db->limit($length, $start);
+        }
+
+        // Get data
+        $data = $this->db->get('users')->result();
+
+        // Format data for DataTables
+        $formatted_data = array();
+        foreach ($data as $row) {
+            $display_name = mb_convert_case(
+                trim((!empty($row->lname) ? $row->lname . ', ' : '') . $row->fname . (!empty($row->mname) ? ' ' . substr($row->mname, 0, 1) . '.' : '')),
+                MB_CASE_TITLE,
+                'UTF-8'
+            );
+            $initials = strtoupper(substr($row->fname, 0, 1) . (!empty($row->lname) ? substr($row->lname, 0, 1) : ''));
+
+            $formatted_data[] = array(
+                'account' => $display_name,
+                'initials' => $initials,
+                'username' => $row->username,
+                'position' => $row->position,
+                'id' => $row->id
+            );
+        }
+
+        echo json_encode(array(
+            'draw' => intval($draw),
+            'recordsTotal' => $total_records,
+            'recordsFiltered' => $filtered_records,
+            'data' => $formatted_data
+        ));
     }
 
     public function userlist_division()
