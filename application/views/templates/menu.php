@@ -165,6 +165,7 @@
                                 <ul class="nav-second-level" aria-expanded="false">
                                     <li><a href="<?= base_url(); ?>pages/district_account/<?= $this->session->division; ?>">Districts</a></li>
                                     <li><a href="<?= base_url(); ?>pages/userlist_division">Manage Users</a></li>
+                                    <li><a href="<?= base_url(); ?>pages/schools_division/<?= $this->session->division; ?>">Manage Schools</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/division_setup">Division Setup</a></li>
                                 </ul>
                             </li>

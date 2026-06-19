@@ -3148,6 +3148,11 @@ class Pages extends CI_Controller
 
     public function school_update()
     {
+        $record_id = $this->uri->segment(3);
+
+        if (empty($record_id)) {
+            $record_id = $this->input->post('recID', true);
+        }
 
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
@@ -3163,8 +3168,13 @@ class Pages extends CI_Controller
                 show_404();
             }
 
-            $data['title'] = "Update Action Plan for Implementation of SBM";
-            $data['data'] = $this->Common->one_cond_row('schools', 'recID', $this->uri->segment(3));
+            $data['title'] = "Update School Information";
+            $data['data'] = $this->Common->one_cond_row('schools', 'recID', $record_id);
+
+            if (!$data['data']) {
+                show_404();
+            }
+
             $data['division'] = $this->Page_model->one_cond('division', 'region_id', 12);
             $data['districts'] = $this->Page_model->get_districts_by_division($data['data']->division_id);
 
@@ -3180,7 +3190,25 @@ class Pages extends CI_Controller
             $this->Page_model->user_updates();
             $this->Page_model->dd_updates();
             $this->session->set_flashdata('success', 'Successfully saved.');
-            redirect(base_url() . 'school/'. $this->session->username);
+
+            $school_id = trim((string) $this->input->post('schoolID', true));
+            $division_id = trim((string) $this->input->post('division_id', true));
+            $district_id = trim((string) $this->input->post('d_id', true));
+            $redirect_url = base_url();
+
+            if ($this->session->position === 'division') {
+                $redirect_url = base_url() . 'pages/schools_division/' . rawurlencode($division_id !== '' ? $division_id : (string) $this->session->division);
+            } elseif ($this->session->position === 'ict') {
+                $redirect_url = base_url() . 'pages/schools/' . rawurlencode($division_id !== '' ? $division_id : (string) $this->session->division);
+            } elseif ($this->session->position === 'district') {
+                $redirect_url = base_url() . 'pages/schools_district/' . rawurlencode($district_id !== '' ? $district_id : (string) $this->session->district);
+            } elseif (in_array($this->session->position, array('admin', 'region'), true)) {
+                $redirect_url = base_url() . 'pages/school_by_district';
+            } elseif ($school_id !== '') {
+                $redirect_url = base_url() . 'school/' . rawurlencode($school_id);
+            }
+
+            redirect($redirect_url);
         }
     }
 
