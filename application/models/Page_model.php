@@ -253,23 +253,25 @@ public function users_update_profile(){
 public function login(){
 
     $password = $this->input->post('password');
+    $login_input = $this->input->post('username', true);
     
-    $this->db->where('username', $this->input->post('username', true));
     $this->db->where('virified', 0);
-    //$this->db->where('status', 0);
-    //$this->db->where('Password', $this->input->post('Password', true));
+    $this->db->group_start();
+    $this->db->where('username', $login_input);
+    $this->db->or_where('email', $login_input);
+    $this->db->group_end();
     $result = $this->db->get('users');
 
     if($result->num_rows() == 1){
-      
-        $data = $result->row(); 
+
+        $data = $result->row();
 
        if (password_verify($password, $data->password)) {
             return $result->row_array();
        }
 
        // return $result->row_array();
-        
+
     }else{
         return false;
     }

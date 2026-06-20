@@ -82,7 +82,7 @@
                                 <?= form_open('log_in') ?>
 
                                     <div class="form-group mb-3">
-                                        <label for="emailaddress">Username :</label>
+                                        <label for="emailaddress">Username or Email :</label>
                                         <input class="form-control" type="text" id="Username" name="username"  autocomplete="off" >
                                     </div>
 
