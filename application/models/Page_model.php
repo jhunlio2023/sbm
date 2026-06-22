@@ -882,6 +882,29 @@ public function get_districts_by_division($division_id) {
     return $this->db->get_where('district', ['division_id' => $division_id])->result();
 }
 
+public function district_insert() {
+    $data = array(
+        'description' => $this->input->post('description'),
+        'division_id' => $this->input->post('division_id')
+    );
+    return $this->db->insert('district', $data);
+}
+
+public function district_update() {
+    $id = $this->input->post('id');
+    $data = array(
+        'description' => $this->input->post('description'),
+        'division_id' => $this->input->post('division_id')
+    );
+    $this->db->where('id', $id);
+    return $this->db->update('district', $data);
+}
+
+public function district_delete($id) {
+    $this->db->where('id', $id);
+    return $this->db->delete('district');
+}
+
 public function action_plan_insert()
 	{
 		$data = array(

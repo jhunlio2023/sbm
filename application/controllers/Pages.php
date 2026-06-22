@@ -1316,8 +1316,19 @@ class Pages extends CI_Controller
                 $this->session->set_userdata('fy', date('Y'));
                 $this->session->set_flashdata('user_log', 'You are now loged in as '
                     . $this->session->position);
+                
+                if ($this->input->is_ajax_request()) {
+                    echo json_encode(['success' => true]);
+                    return;
+                }
+                
                 redirect(base_url());
             } else {
+                if ($this->input->is_ajax_request()) {
+                    echo json_encode(['success' => false, 'message' => 'Invalid login. Either your account is not verified (please check your email for the verification link) or your username or password is incorrect.']);
+                    return;
+                }
+                
                 $this->session->set_flashdata('failed', 'Invalid login. Either your account is not verified (please check your email for the verification link) or your username or password is incorrect.”');
                 redirect(base_url() . 'log_in');
             }
@@ -1376,7 +1387,7 @@ class Pages extends CI_Controller
         $this->session->unset_userdata('logged_in');
 
         $this->session->set_flashdata('failed', 'You are logged out.');
-        redirect(base_url() . 'log_in');
+        redirect(base_url() . 'homepage');
     }
     public function lock()
     {
@@ -3135,12 +3146,19 @@ class Pages extends CI_Controller
             $email_check = $this->Common->one_cond_count_row('users', 'email', $this->input->post('email'));
             
             if ($email_check->num_rows() == 0) {
+                if ($this->input->is_ajax_request()) {
+                    echo json_encode(['success' => false, 'message' => 'We could not find your email address.']);
+                    return;
+                }
                 $this->session->set_flashdata('failed', 'We could not find your email address.');
                 redirect(base_url() . 'Pages/forgot_password');
             } else {
                 $this->Page_model->update_request_password();
+                if ($this->input->is_ajax_request()) {
+                    echo json_encode(['success' => true, 'message' => 'The new password has been sent to your email.']);
+                    return;
+                }
                 $this->session->set_flashdata('success', 'The new password has been sent to your email.');
-
                 redirect(base_url() . 'log_in');
             }
         }
@@ -3243,6 +3261,122 @@ class Pages extends CI_Controller
         $this->load->view('pages/' . $page, $data);
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
+    }
+
+    public function district_new()
+    {
+        if (!$this->session->logged_in || !in_array($this->session->position, array('division', 'Admin'), true)) {
+            show_error('Only division and admin users can access district settings.', 403);
+        }
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+        $this->form_validation->set_rules('description', 'District Name', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+            $page = "district_add";
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $data['title'] = "Add New District";
+            
+            if ($this->session->position === 'Admin') {
+                $data['divisions'] = $this->Page_model->no_cond('division');
+            } else {
+                $data['division'] = $this->Page_model->one_cond_row('division', 'id', $this->session->division);
+            }
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+        } else {
+            $this->Page_model->district_insert();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            
+            $division_id = $this->input->post('division_id');
+            redirect(base_url() . 'pages/district_account/' . $division_id);
+        }
+    }
+
+    public function district_update()
+    {
+        if (!$this->session->logged_in || !in_array($this->session->position, array('division', 'Admin'), true)) {
+            show_error('Only division and admin users can access district settings.', 403);
+        }
+
+        $district_id = $this->uri->segment(3);
+
+        if (empty($district_id)) {
+            $district_id = $this->input->post('id', true);
+        }
+
+        $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>', '</div>');
+        $this->form_validation->set_rules('description', 'District Name', 'required');
+
+        if ($this->form_validation->run() == FALSE) {
+            $page = "district_update";
+
+            if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+                show_404();
+            }
+
+            $data['title'] = "Update District";
+            $data['district'] = $this->Page_model->one_cond_row('district', 'id', $district_id);
+
+            if (!$data['district']) {
+                show_404();
+            }
+
+            if ($this->session->position !== 'Admin' && (string) $data['district']->division_id !== (string) $this->session->division) {
+                show_error('You can only update districts under your division.', 403);
+            }
+
+            $data['division'] = $this->Page_model->one_cond_row('division', 'id', $data['district']->division_id);
+
+            $this->load->view('templates/header');
+            $this->load->view('templates/menu');
+            $this->load->view('pages/' . $page, $data);
+            $this->load->view('templates/footer');
+            $this->load->view('templates/footer_basic');
+        } else {
+            $this->Page_model->district_update();
+            $this->session->set_flashdata('success', 'Successfully updated.');
+            
+            $division_id = $this->input->post('division_id');
+            redirect(base_url() . 'pages/district_account/' . $division_id);
+        }
+    }
+
+    public function district_delete()
+    {
+        if (!$this->session->logged_in || $this->session->position !== 'Admin') {
+            show_error('Only admin users can delete districts.', 403);
+        }
+
+        $district_id = $this->uri->segment(3);
+
+        if (empty($district_id)) {
+            show_404();
+        }
+
+        $district = $this->Page_model->one_cond_row('district', 'id', $district_id);
+
+        if (!$district) {
+            show_404();
+        }
+
+        $this->Page_model->district_delete($district_id);
+        $this->session->set_flashdata('success', 'Successfully deleted.');
+        redirect(base_url() . 'pages/district_account/' . $district->division_id);
     }
 
     public function division_setup()

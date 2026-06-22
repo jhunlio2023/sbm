@@ -333,22 +333,12 @@ $signup_rate = isset($signup_percentage) ? (float) $signup_percentage : 0;
                     <p>Manage account access for schools under <?= html_escape(mb_convert_case($division_name, MB_CASE_TITLE, 'UTF-8')); ?>.</p>
                 </div>
                 <div class="district-accounts-summary">
-                    <span class="summary-pill">
-                        <i class="mdi mdi-map-marker-multiple"></i>
-                        <?= $district_total; ?> <?= $district_total === 1 ? 'district' : 'districts'; ?>
-                    </span>
-                    <span class="summary-pill">
-                        <i class="mdi mdi-school-outline"></i>
-                        <?= (int) $school_count; ?> signed-up <?= (int) $school_count === 1 ? 'school' : 'schools'; ?>
-                    </span>
-                    <span class="summary-pill">
-                        <i class="mdi mdi-clipboard-text-outline"></i>
-                        <?= $encoded_school_total; ?> encoded total schools
-                    </span>
-                    <span class="summary-pill">
-                        <i class="mdi mdi-chart-donut"></i>
-                        <?= number_format($signup_rate, 1); ?>% signup coverage
-                    </span>
+                    <?php if($this->session->position == 'division' || $this->session->position == 'Admin'){ ?>
+                    <a href="<?= base_url(); ?>Pages/district_new" class="summary-pill" style="text-decoration: none; cursor: pointer;">
+                        <i class="mdi mdi-plus"></i>
+                        Add District
+                    </a>
+                    <?php } ?>
                 </div>
             </div>
 
@@ -425,6 +415,23 @@ $signup_rate = isset($signup_percentage) ? (float) $signup_percentage : 0;
                                     >
                                         <i class="mdi mdi-account-supervisor-outline"></i> District Accounts
                                     </a>
+                                    <?php if($this->session->position == 'division' || $this->session->position == 'Admin'){ ?>
+                                    <a
+                                        href="<?= base_url(); ?>Pages/district_update/<?= $district_row->id; ?>"
+                                        class="btn btn-outline-warning btn-sm"
+                                    >
+                                        <i class="mdi mdi-pencil-outline"></i> Edit District
+                                    </a>
+                                    <?php } ?>
+                                    <?php if($this->session->position == 'Admin'){ ?>
+                                    <a
+                                        onclick="return confirm('Delete this district and all its schools?');"
+                                        href="<?= base_url(); ?>Pages/district_delete/<?= $district_row->id; ?>"
+                                        class="btn btn-outline-danger btn-sm"
+                                    >
+                                        <i class="mdi mdi-trash-can-outline"></i> Delete District
+                                    </a>
+                                    <?php } ?>
                                 </div>
 
                                 <?php if (!empty($schools)) { ?>
