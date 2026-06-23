@@ -3233,7 +3233,12 @@ class Pages extends CI_Controller
             }
 
             $data['title'] = "Update School Information";
+            // Try to find by schoolID first, if not found try by recID
             $data['data'] = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
+            
+            if (!$data['data']) {
+                $data['data'] = $this->Common->one_cond_row('schools', 'recID', $school_id);
+            }
 
             if (!$data['data']) {
                 show_404();
