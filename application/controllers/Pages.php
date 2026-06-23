@@ -1794,8 +1794,8 @@ class Pages extends CI_Controller
     public function checklist_district()
     {
 
-
-        $data['sbmc'] = $this->Common->two_cond_row('sbm', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
+        $school_id = $this->uri->segment(3);
+        $data['sbmc'] = $this->Common->two_cond_row('sbm', 'school_id', $school_id, 'fy', $this->session->fy);
 
         $page = 'sbm_form_update';
 
@@ -1808,6 +1808,9 @@ class Pages extends CI_Controller
         $data['sbm'] = $this->Common->no_cond('sbm_indicator');
         $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
+        // Get school information
+        $school = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
+        $data['school_name'] = !empty($school) ? $school->schoolName : '';
 
         $this->load->view('templates/header');
         $this->load->view('templates/menu');

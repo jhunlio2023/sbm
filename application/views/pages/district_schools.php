@@ -361,13 +361,13 @@ $selected_label = isset($submission_labels[$selected_submission])
                             <tbody>
                                 <?php foreach ($data as $row) :
                                     $school_id = (string) $row->schoolID;
-                                    $school_name = mb_convert_case($row->schoolName, MB_CASE_TITLE, 'UTF-8');
-                                    
+                                    $school_name = !empty($row->schoolName) ? mb_convert_case($row->schoolName, MB_CASE_TITLE, 'UTF-8') : '';
+
                                     if ($is_admin_view) {
                                         // Get division and district names for admin view
                                         $division_name_display = !empty($row->division_name) ? mb_convert_case($row->division_name, MB_CASE_TITLE, 'UTF-8') : '';
                                         $district_name_display = !empty($row->district_name) ? mb_convert_case($row->district_name, MB_CASE_TITLE, 'UTF-8') : '';
-                                        
+
                                         // Check if school has completed Self-Assessment and Action Plan
                                         $has_action_plan = !empty($submission_status['sgod_action_plan'][$school_id]);
                                         $has_self_assessment = !empty($submission_status['sbm'][$school_id]);

@@ -1365,17 +1365,23 @@ if ($checklist_record && !$all_answered && $can_edit) {
             <h1>School-Based Management Self-Assessment Checklist</h1>
             <?php if ($is_region_user) : ?>
                 <p>Review the finalized checklist submission for this school and use the division context for regional monitoring.</p>
-                <div class="hero-meta">
-                    <span>
-                        <i class="mdi mdi-school-outline"></i>
-                        School: <?= $escape($school_name); ?>
-                    </span>
-                    <span>
-                        <i class="mdi mdi-domain"></i>
-                        Division: <?= $escape($division_name); ?>
-                    </span>
-                </div>
+            <?php elseif ($is_division_user) : ?>
+                <p>Review the checklist submission for this school.</p>
+            <?php else : ?>
+                <p>Complete the self-assessment checklist for your school.</p>
             <?php endif; ?>
+            <div class="hero-meta">
+                <span>
+                    <i class="mdi mdi-school-outline"></i>
+                    School: <?= $escape($school_name); ?>
+                </span>
+                <?php if ($is_region_user || $is_division_user) : ?>
+                <span>
+                    <i class="mdi mdi-domain"></i>
+                    Division: <?= $escape($division_name); ?>
+                </span>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="checklist-hero-side">
