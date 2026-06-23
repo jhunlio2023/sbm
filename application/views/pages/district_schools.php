@@ -1,5 +1,6 @@
 <?php
-$district_name = !empty($district) ? $district->description : 'District';
+$district_name = !empty($district) ? $district->description : 'All Schools';
+$is_admin_view = isset($is_admin_view) ? $is_admin_view : false;
 $submission_labels = array(
     'sgod_action_plan' => 'Action Plan',
     'sbm' => 'Self-Assessment',
@@ -288,7 +289,7 @@ $selected_label = isset($submission_labels[$selected_submission])
             <div class="division-schools-hero">
                 <div>
                     <h2><i class="mdi mdi-school-outline mr-2"></i><?= html_escape(mb_convert_case($district_name, MB_CASE_TITLE, 'UTF-8')); ?></h2>
-                    <p>View available SBM documents submitted by schools in this district.</p>
+                    <p><?= $is_admin_view ? 'Manage all schools in the system.' : 'View available SBM documents submitted by schools in this district.'; ?></p>
                 </div>
                 <div class="school-hero-actions">
                     <span class="school-count">
@@ -329,13 +330,15 @@ $selected_label = isset($submission_labels[$selected_submission])
                 <div class="card-body">
                     <div class="division-schools-toolbar">
                         <div>
-                            <h4>School Submissions</h4>
-                            <small class="text-muted">Open any available document in a new tab.</small>
+                            <h4><?= $is_admin_view ? 'School Management' : 'School Submissions'; ?></h4>
+                            <small class="text-muted"><?= $is_admin_view ? 'Edit or delete school records.' : 'Open any available document in a new tab.'; ?></small>
                         </div>
+                        <?php if (!$is_admin_view) : ?>
                         <span class="selected-submission">
                             <i class="mdi mdi-filter-outline"></i>
                             <?= html_escape($selected_label); ?>
                         </span>
+                        <?php endif; ?>
                     </div>
 
                     <div class="division-schools-table-wrap table-responsive">
@@ -344,20 +347,38 @@ $selected_label = isset($submission_labels[$selected_submission])
                                 <tr>
                                     <th>School</th>
                                     <th>School ID</th>
+                                    <?php if ($is_admin_view) : ?>
+                                    <th>Division</th>
+                                    <th>District</th>
+                                    <th class="text-center">Actions</th>
+                                    <?php else : ?>
                                     <th class="text-center">Action Plan</th>
                                     <th class="text-center">Self-Assessment</th>
                                     <th class="text-center">TA Form</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($data as $row) :
                                     $school_id = (string) $row->schoolID;
                                     $school_name = mb_convert_case($row->schoolName, MB_CASE_TITLE, 'UTF-8');
-                                    $links = array(
-                                        'sgod_action_plan' => base_url() . 'Pages/sbm_action_plan_pview_district/' . rawurlencode($school_id),
-                                        'sbm' => base_url() . 'Pages/checklist_district/' . rawurlencode($school_id),
-                                        'sbm_ta' => base_url() . 'Pages/tapr_form_district/' . rawurlencode($school_id)
-                                    );
+                                    
+                                    if ($is_admin_view) {
+                                        // Get division and district names for admin view
+                                        $division_name_display = !empty($row->division_name) ? mb_convert_case($row->division_name, MB_CASE_TITLE, 'UTF-8') : '';
+                                        $district_name_display = !empty($row->district_name) ? mb_convert_case($row->district_name, MB_CASE_TITLE, 'UTF-8') : '';
+                                        
+                                        // Check if school has completed Self-Assessment and Action Plan
+                                        $has_action_plan = !empty($submission_status['sgod_action_plan'][$school_id]);
+                                        $has_self_assessment = !empty($submission_status['sbm'][$school_id]);
+                                        $can_delete = !($has_action_plan && $has_self_assessment);
+                                    } else {
+                                        $links = array(
+                                            'sgod_action_plan' => base_url() . 'Pages/sbm_action_plan_pview_district/' . rawurlencode($school_id),
+                                            'sbm' => base_url() . 'Pages/checklist_district/' . rawurlencode($school_id),
+                                            'sbm_ta' => base_url() . 'Pages/tapr_form_district/' . rawurlencode($school_id)
+                                        );
+                                    }
                                 ?>
                                     <tr>
                                         <td>
@@ -367,7 +388,24 @@ $selected_label = isset($submission_labels[$selected_submission])
                                             </div>
                                         </td>
                                         <td><span class="school-id"><?= html_escape($school_id); ?></span></td>
-
+                                        <?php if ($is_admin_view) : ?>
+                                        <td><?= html_escape($division_name_display); ?></td>
+                                        <td><?= html_escape($district_name_display); ?></td>
+                                        <td class="text-center">
+                                            <a href="<?= base_url(); ?>pages/school_update/<?= rawurlencode($school_id); ?>" class="btn btn-sm btn-outline-warning">
+                                                <i class="mdi mdi-pencil-outline"></i> Edit
+                                            </a>
+                                            <?php if ($can_delete) : ?>
+                                            <a onclick="return confirm('Are you sure you want to delete this school?');" href="<?= base_url(); ?>pages/school_delete/<?= rawurlencode($school_id); ?>" class="btn btn-sm btn-outline-danger">
+                                                <i class="mdi mdi-trash-can-outline"></i> Delete
+                                            </a>
+                                            <?php else : ?>
+                                            <button class="btn btn-sm btn-outline-danger" disabled title="Cannot delete: School has completed Self-Assessment and Action Plan">
+                                                <i class="mdi mdi-trash-can-outline"></i> Delete
+                                            </button>
+                                            <?php endif; ?>
+                                        </td>
+                                        <?php else : ?>
                                         <?php foreach (array('sgod_action_plan', 'sbm', 'sbm_ta') as $submission) :
                                             $available = !empty($submission_status[$submission][$school_id]);
                                         ?>
@@ -388,6 +426,7 @@ $selected_label = isset($submission_labels[$selected_submission])
                                                 <?php } ?>
                                             </td>
                                         <?php endforeach; ?>
+                                        <?php endif; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

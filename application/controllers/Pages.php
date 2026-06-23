@@ -1174,13 +1174,37 @@ class Pages extends CI_Controller
 
     public function school_delete()
     {
-        $id = $this->uri->segment(3);
-        // $user = $this->Page_model->one_cond_row('users', 'username', $id);
-        // $this->Page_model->delete_with_attach('users', $id, $user->image);
-        $this->Page_model->delete('schools', 'schoolID', 3);
-        $this->Page_model->delete('users', 'username', 3);
-        $this->session->set_flashdata('danger', 'Successfully deleted.');
-        redirect($_SERVER['HTTP_REFERER']);
+        if (!$this->session->logged_in || $this->session->position !== 'admin') {
+            show_error('Only admin users can delete schools.', 403);
+        }
+
+        $school_id = $this->uri->segment(3);
+
+        if (empty($school_id)) {
+            show_404();
+        }
+
+        $school = $this->Page_model->one_cond_row('schools', 'schoolID', $school_id);
+
+        if (!$school) {
+            show_404();
+        }
+
+        // Check if school has completed Self-Assessment and Action Plan
+        $has_action_plan = $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, [$school_id]);
+        $has_self_assessment = $this->Page_model->submission_school_ids('sbm', $this->session->fy, [$school_id]);
+
+        if (!empty($has_action_plan[$school_id]) && !empty($has_self_assessment[$school_id])) {
+            $this->session->set_flashdata('danger', 'Cannot delete school: School has completed Self-Assessment and Action Plan.');
+            redirect(base_url() . 'pages/school_list');
+        }
+
+        // Delete school and associated user
+        $this->Page_model->delete('schools', 'schoolID', $school_id);
+        $this->Page_model->delete('users', 'username', $school_id);
+        
+        $this->session->set_flashdata('success', 'Successfully deleted.');
+        redirect(base_url() . 'pages/school_list');
     }
 
     public function confirm_signup()
@@ -1425,21 +1449,43 @@ class Pages extends CI_Controller
         $data['title'] = "School List";
         $data['division_school_scope'] = false;
 
-        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.fy', 'a.school_id = b.schoolID', 'a.fy', $this->session->fy, 'a.district', $this->session->district, 'b.schoolName', 'ASC');
-        $school_ids = array_map(function ($school) {
-            return $school->schoolID;
-        }, $data['data']);
+        if ($this->session->position == 'admin') {
+            // Load all schools for admin without filters - optimized with district and division joins
+            $this->db->select('s.schoolID, s.schoolName, s.district_id, s.division_id, d.description as district_name, div.description as division_name');
+            $this->db->from('schools s');
+            $this->db->join('district d', 's.district_id = d.id', 'left');
+            $this->db->join('division div', 's.division_id = div.id', 'left');
+            $this->db->order_by('s.schoolName', 'ASC');
+            $data['data'] = $this->db->get()->result();
+            
+            $school_ids = array_map(function ($school) {
+                return $school->schoolID;
+            }, $data['data']);
 
-        $data['submission_status'] = array(
-            'sgod_action_plan' => $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, $school_ids),
-            'sbm' => $this->Page_model->submission_school_ids('sbm', $this->session->fy, $school_ids),
-            'sbm_ta' => $this->Page_model->submission_school_ids('sbm_ta', $this->session->fy, $school_ids)
-        );
-        $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->session->district);
-        $data['selected_submission'] = 'sbm';
+            $data['submission_status'] = array(
+                'sgod_action_plan' => $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, $school_ids),
+                'sbm' => $this->Page_model->submission_school_ids('sbm', $this->session->fy, $school_ids),
+                'sbm_ta' => $this->Page_model->submission_school_ids('sbm_ta', $this->session->fy, $school_ids)
+            );
+            $data['district'] = null;
+            $data['selected_submission'] = 'sbm';
+            $data['is_admin_view'] = true;
+        } else {
+            // Original behavior for non-admin users
+            $data['data'] = $this->Common->two_join_two_cond('sbm', 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName,a.fy', 'a.school_id = b.schoolID', 'a.fy', $this->session->fy, 'a.district', $this->session->district, 'b.schoolName', 'ASC');
+            $school_ids = array_map(function ($school) {
+                return $school->schoolID;
+            }, $data['data']);
 
-        //$data['data'] = $this->Page_model->schools_with_district($this->session->district);
+            $data['submission_status'] = array(
+                'sgod_action_plan' => $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, $school_ids),
+                'sbm' => $this->Page_model->submission_school_ids('sbm', $this->session->fy, $school_ids),
+                'sbm_ta' => $this->Page_model->submission_school_ids('sbm_ta', $this->session->fy, $school_ids)
+            );
+            $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->session->division);
+            $data['selected_submission'] = 'sbm';
+            $data['is_admin_view'] = false;
+        }
 
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
@@ -3166,10 +3212,10 @@ class Pages extends CI_Controller
 
     public function school_update()
     {
-        $record_id = $this->uri->segment(3);
+        $school_id = $this->uri->segment(3);
 
-        if (empty($record_id)) {
-            $record_id = $this->input->post('recID', true);
+        if (empty($school_id)) {
+            $school_id = $this->input->post('schoolID', true);
         }
 
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -3187,7 +3233,7 @@ class Pages extends CI_Controller
             }
 
             $data['title'] = "Update School Information";
-            $data['data'] = $this->Common->one_cond_row('schools', 'recID', $record_id);
+            $data['data'] = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
 
             if (!$data['data']) {
                 show_404();

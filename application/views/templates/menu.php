@@ -227,7 +227,17 @@
                         <?php } ?>
 
                         <?php if ($this->session->position == 'admin') { ?>
-                            <li><a href="<?= base_url(); ?>pages/school_by_district" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="fas fa-school"></i>
+                                    <span> Schools</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>pages/school_by_district">Schools By Division</a></li>
+                                    <li><a href="<?= base_url(); ?>pages/school_list">List of Schools</a></li>
+                                </ul>
+                            </li>
                             <li><a href="<?= base_url(); ?>pages/userlist" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Users </span></a></li>
                             <li>
                                 <a href="javascript: void(0);" class="waves-effect">
