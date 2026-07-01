@@ -961,6 +961,16 @@ class Pages extends CI_Controller
         $this->load->view('templates/footer_dt');
     }
 
+    function data_privacy()
+    {
+        $page = "pages/data_privacy";
+
+        if (!file_exists(APPPATH . 'views/' . $page . '.php')) {
+            show_404();
+        }
+        $data['title'] = "Data Privacy";
+        $this->load->view($page, $data);
+    }
     public function sbm_rate_list_division()
     {
         $page = "sbm_list_rate";
