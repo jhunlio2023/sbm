@@ -317,10 +317,12 @@ $dashboard_url = base_url();
                                                     <i class="mdi mdi-pencil-outline"></i>
                                                     Edit
                                                 </a>
-                                                <a onclick="return confirm('Are you sure you want to delete this school?')" href="<?=base_url(); ?>Pages/school_delete/<?= $row->schoolID; ?>" class="action-btn action-btn-delete">
-                                                    <i class="mdi mdi-trash-can-outline"></i>
-                                                    Delete
-                                                </a>
+                                                <?php if (strtolower((string) $this->session->position) !== 'district') { ?>
+                                                    <a onclick="return confirm('Are you sure you want to delete this school?')" href="<?=base_url(); ?>Pages/school_delete/<?= $row->schoolID; ?>" class="action-btn action-btn-delete">
+                                                        <i class="mdi mdi-trash-can-outline"></i>
+                                                        Delete
+                                                    </a>
+                                                <?php } ?>
                                             </div>
                                         </td>
                                     </tr>

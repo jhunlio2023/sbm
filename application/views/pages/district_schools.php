@@ -9,12 +9,15 @@ $submission_labels = array(
 $selected_label = isset($submission_labels[$selected_submission])
     ? $submission_labels[$selected_submission]
     : 'Submission';
+$hero_title = (!$is_admin_view && empty($division_school_scope))
+    ? 'SBM Submissions'
+    : mb_convert_case($district_name, MB_CASE_TITLE, 'UTF-8');
 ?>
 
 <style>
     .division-schools-page {
-        --school-primary: #3157d5;
-        --school-primary-dark: #2445b4;
+        --school-primary: #8b1e3f;
+        --school-primary-dark: #64142d;
         --school-border: #e8ecf4;
         --school-muted: #6b7280;
     }
@@ -28,8 +31,10 @@ $selected_label = isset($submission_labels[$selected_submission])
         padding: 26px 28px;
         border-radius: 18px;
         color: #fff;
-        background: linear-gradient(135deg, #2445b4 0%, #5275e8 100%);
-        box-shadow: 0 14px 34px rgba(49, 87, 213, .22);
+        background:
+            radial-gradient(circle at 90% 15%, rgba(255, 255, 255, .2), transparent 25%),
+            linear-gradient(135deg, #64142d 0%, #a83255 100%);
+        box-shadow: 0 14px 34px rgba(139, 30, 63, .22);
     }
 
     .division-schools-hero h2 {
@@ -105,7 +110,7 @@ $selected_label = isset($submission_labels[$selected_submission])
         padding: 7px 11px;
         border-radius: 999px;
         color: var(--school-primary-dark);
-        background: #edf1ff;
+        background: #f9e9ee;
         font-size: 12px;
         font-weight: 700;
     }
@@ -164,7 +169,7 @@ $selected_label = isset($submission_labels[$selected_submission])
     }
 
     .division-schools-page table.dataTable tbody tr:hover td {
-        background: #f8faff;
+        background: #fff7f9;
     }
 
     .school-cell {
@@ -183,7 +188,7 @@ $selected_label = isset($submission_labels[$selected_submission])
         flex: 0 0 42px;
         border-radius: 12px;
         color: #fff;
-        background: linear-gradient(135deg, #3157d5, #7891eb);
+        background: linear-gradient(135deg, #8b1e3f, #c65a77);
         font-size: 19px;
     }
 
@@ -288,7 +293,7 @@ $selected_label = isset($submission_labels[$selected_submission])
         <div class="col-12">
             <div class="division-schools-hero">
                 <div>
-                    <h2><i class="mdi mdi-school-outline mr-2"></i><?= html_escape(mb_convert_case($district_name, MB_CASE_TITLE, 'UTF-8')); ?></h2>
+                    <h2><i class="mdi mdi-school-outline mr-2"></i><?= html_escape($hero_title); ?></h2>
                     <p><?= $is_admin_view ? 'Manage all schools in the system.' : 'View available SBM documents submitted by schools in this district.'; ?></p>
                 </div>
                 <div class="school-hero-actions">
@@ -296,7 +301,7 @@ $selected_label = isset($submission_labels[$selected_submission])
                         <i class="mdi mdi-school"></i>
                         <?= count($data); ?> <?= count($data) === 1 ? 'school' : 'schools'; ?>
                     </span>
-                    <?php if (!empty($division_school_scope)) { ?>
+                    <?php if (!empty($division_school_scope) && strtolower((string) $this->session->position) !== 'district') { ?>
                     <a class="school-back-link" href="<?= base_url(); ?>Pages/district_list">
                         <i class="mdi mdi-arrow-left"></i> Districts
                     </a>

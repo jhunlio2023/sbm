@@ -397,11 +397,14 @@ public function district_submission_counts($table, $division, $fy){
         return array();
     }
 
-    $this->db->select('district, COUNT(DISTINCT school_id) AS total', false);
-    $this->db->where('division', $division);
-    $this->db->where('fy', $fy);
-    $this->db->group_by('district');
-    $query = $this->db->get($table);
+    $query = $this->db
+        ->select('b.district_id AS district, COUNT(DISTINCT CAST(a.school_id AS CHAR)) AS total', false)
+        ->from($table . ' a')
+        ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'inner', false)
+        ->where('b.division_id', $division)
+        ->where('a.fy', $fy)
+        ->group_by('b.district_id')
+        ->get();
 
     $counts = array();
     foreach ($query->result() as $row) {
@@ -449,6 +452,23 @@ public function division_sgc_counts($division_id){
     return $counts;
 }
 
+public function district_sgc_counts($district_id){
+    $this->db->select('sgc, COUNT(*) AS total', false);
+    $this->db->where('district_id', $district_id);
+    $this->db->group_by('sgc');
+    $query = $this->db->get('schools');
+
+    $counts = array(1 => 0, 2 => 0, 3 => 0);
+    foreach ($query->result() as $row) {
+        $status = (int) $row->sgc;
+        if (isset($counts[$status])) {
+            $counts[$status] = (int) $row->total;
+        }
+    }
+
+    return $counts;
+}
+
 public function region_division_count($region_id){
     return (int) $this->db
         ->where('region_id', $region_id)
@@ -477,6 +497,31 @@ public function region_user_count($region_id){
     return (int) $this->db
         ->where('r_id', $region_id)
         ->count_all_results('users');
+}
+
+public function district_school_count($district_id){
+    return (int) $this->db
+        ->where('district_id', $district_id)
+        ->count_all_results('schools');
+}
+
+public function district_submission_count($table, $district_id, $fy){
+    $allowed_tables = array('sgod_action_plan', 'sbm', 'sbm_ta');
+
+    if (!in_array($table, $allowed_tables, true)) {
+        return 0;
+    }
+
+    $row = $this->db
+        ->select('COUNT(DISTINCT CAST(a.school_id AS CHAR)) AS total', false)
+        ->from($table . ' a')
+        ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'inner', false)
+        ->where('b.district_id', $district_id)
+        ->where('a.fy', $fy)
+        ->get()
+        ->row();
+
+    return $row ? (int) $row->total : 0;
 }
 
 public function region_division_setup_summary($region_id){
@@ -554,6 +599,49 @@ public function division_sbm_rate_counts($division_id, $fy, $indicator_numbers){
     return $counts;
 }
 
+public function district_sbm_rate_counts($district_id, $fy, $indicator_numbers){
+    if (empty($indicator_numbers)) {
+        return array();
+    }
+
+    $select = array();
+    foreach ($indicator_numbers as $indicator_number) {
+        $indicator_number = (int) $indicator_number;
+        if ($indicator_number < 1) {
+            continue;
+        }
+
+        for ($rate = 1; $rate <= 4; $rate++) {
+            $alias = 'q' . $indicator_number . '_r' . $rate;
+            $select[] = 'COUNT(DISTINCT CASE WHEN a.q' . $indicator_number . ' = ' . $rate . ' THEN CAST(a.school_id AS CHAR) END) AS ' . $alias;
+        }
+    }
+
+    if (empty($select)) {
+        return array();
+    }
+
+    $row = $this->db
+        ->select(implode(', ', $select), false)
+        ->from('sbm a')
+        ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'inner', false)
+        ->where('b.district_id', $district_id)
+        ->where('a.fy', $fy)
+        ->get()
+        ->row();
+
+    $counts = array();
+    foreach ($indicator_numbers as $indicator_number) {
+        $indicator_number = (int) $indicator_number;
+        for ($rate = 1; $rate <= 4; $rate++) {
+            $alias = 'q' . $indicator_number . '_r' . $rate;
+            $counts[$indicator_number][$rate] = $row && isset($row->$alias) ? (int) $row->$alias : 0;
+        }
+    }
+
+    return $counts;
+}
+
 public function region_sbm_rate_counts($region_id, $fy, $indicator_numbers){
     if (empty($indicator_numbers)) {
         return array();
@@ -610,6 +698,20 @@ public function division_sbm_completed_count($division_id, $fy){
     return $row ? (int) $row->total : 0;
 }
 
+public function district_sbm_completed_count($district_id, $fy){
+    $row = $this->db
+        ->select('COUNT(DISTINCT CAST(a.school_id AS CHAR)) AS total', false)
+        ->from('sbm a')
+        ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'inner', false)
+        ->where('b.district_id', $district_id)
+        ->where('a.fy', $fy)
+        ->where('a.stat', 1)
+        ->get()
+        ->row();
+
+    return $row ? (int) $row->total : 0;
+}
+
 public function region_sbm_completed_count($region_id, $fy){
     $row = $this->db
         ->select('COUNT(DISTINCT school_id) AS total', false)
@@ -620,6 +722,13 @@ public function region_sbm_completed_count($region_id, $fy){
         ->row();
 
     return $row ? (int) $row->total : 0;
+}
+
+public function district_tech_entry_count($district_id, $fy){
+    return (int) $this->db
+        ->where('district', $district_id)
+        ->where('fy', $fy)
+        ->count_all_results('sbm_tech');
 }
 
 public function division_completed_checklist_schools($division_id, $fy){

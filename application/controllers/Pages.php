@@ -521,6 +521,48 @@ class Pages extends CI_Controller
             $page = "dashboard_district";
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
+            $indicator_numbers = array_map(function ($indicator) {
+                return (int) $indicator->i_no;
+            }, $data['sbm_sub']);
+
+            $data['sbm_sub_by_principle'] = array();
+            foreach ($data['sbm_sub'] as $indicator) {
+                $data['sbm_sub_by_principle'][(string) $indicator->priciple_id][] = $indicator;
+            }
+
+            $district_id = (int) $this->session->district;
+            $data['district'] = $this->Page_model->one_cond_row('district', 'id', $district_id);
+            $data['division'] = $this->Page_model->one_cond_row('division', 'id', $this->session->division);
+            $data['school_total'] = $this->Page_model->district_school_count($district_id);
+            $data['sgc_counts'] = $this->Page_model->district_sgc_counts($district_id);
+            $data['checklist_submission_count'] = $this->Page_model->district_submission_count(
+                'sbm',
+                $district_id,
+                $this->session->fy
+            );
+            $data['ta_submission_count'] = $this->Page_model->district_submission_count(
+                'sbm_ta',
+                $district_id,
+                $this->session->fy
+            );
+            $data['action_plan_submission_count'] = $this->Page_model->district_submission_count(
+                'sgod_action_plan',
+                $district_id,
+                $this->session->fy
+            );
+            $data['completed_checklist_count'] = $this->Page_model->district_sbm_completed_count(
+                $district_id,
+                $this->session->fy
+            );
+            $data['tech_entry_count'] = $this->Page_model->district_tech_entry_count(
+                $district_id,
+                $this->session->fy
+            );
+            $data['sbm_rate_counts'] = $this->Page_model->district_sbm_rate_counts(
+                $district_id,
+                $this->session->fy,
+                $indicator_numbers
+            );
 
             $data['title'] = "Dashboard";
         } else {
@@ -941,7 +983,7 @@ class Pages extends CI_Controller
             ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'left', false)
             ->where('a.fy', $fy)
             ->where('a.' . $q, $val)
-            ->where('a.district', $district)
+            ->where('b.district_id', $district)
             ->group_by('a.school_id')
             ->order_by('schoolName', 'ASC')
             ->get()
@@ -1521,9 +1563,18 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        //$data['data'] = $this->Page_model->schools_with_district($this->uri->segment(3));
-        $data['data'] = $this->Common->two_join_two_cond_gb($table, 'schools', 'a.school_id,a.district,b.district_id, b.schoolID,b.schoolName', 'a.school_id = b.schoolID', 'fy', $this->session->fy, 'a.district', $this->uri->segment(3), 'b.schoolName', 'ASC','a.school_id');
+        $district_id = (int) $this->uri->segment(3);
+
+        $data['data'] = $this->db
+            ->select("CAST(a.school_id AS CHAR) AS school_id, COALESCE(MAX(NULLIF(TRIM(b.schoolID), '')), CAST(a.school_id AS CHAR)) AS schoolID, COALESCE(MAX(NULLIF(TRIM(b.schoolName), '')), '') AS schoolName", false)
+            ->from($table . ' a')
+            ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'inner', false)
+            ->where('a.fy', $this->session->fy)
+            ->where('b.district_id', $district_id)
+            ->group_by('a.school_id')
+            ->order_by('schoolName', 'ASC')
+            ->get()
+            ->result();
         $school_ids = array_map(function ($school) {
             return $school->schoolID;
         }, $data['data']);
@@ -1533,7 +1584,7 @@ class Pages extends CI_Controller
             'sbm' => $this->Page_model->submission_school_ids('sbm', $this->session->fy, $school_ids),
             'sbm_ta' => $this->Page_model->submission_school_ids('sbm_ta', $this->session->fy, $school_ids)
         );
-        $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->uri->segment(3));
+        $data['district'] = $this->Page_model->one_cond_row('district', 'id', $district_id);
         $data['selected_submission'] = $table;
         $data['division_school_scope'] = true;
 
@@ -2180,8 +2231,9 @@ class Pages extends CI_Controller
     public function tapr_form_district()
     {
         if ($this->form_validation->run() == FALSE) {
+            $view_school_id = (string) $this->uri->segment(3);
 
-            $data['sbm_remark'] = $this->Common->two_cond_row('sbm_remark_admin', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
+            $data['sbm_remark'] = $this->Common->two_cond_row('sbm_remark_admin', 'school_id', $view_school_id, 'fy', $this->session->fy);
 
             $page = !$data['sbm_remark'] ? 'sbm_ta_district' : 'sbm_ta_district_update';
 
@@ -2191,12 +2243,21 @@ class Pages extends CI_Controller
                 show_404();
             }
 
-            $data['title'] = "New Action Plan";
+            $data['title'] = "Technical Assistance Provision Review";
 
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
-            $data['sbmc_count'] = $this->Common->two_cond_count_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
-            $data['sbmc'] = $this->Common->two_cond_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy);
+            $data['sbmc_count'] = $this->Common->two_cond_count_row('sbm_ta', 'school_id', $view_school_id, 'fy', $this->session->fy);
+            $data['sbmc'] = $this->Common->two_cond_row('sbm_ta', 'school_id', $view_school_id, 'fy', $this->session->fy);
+            $data['view_school_id'] = $view_school_id;
+            $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $view_school_id);
+            $data['checklist_record'] = $this->Common->two_cond_row('sbm', 'school_id', $view_school_id, 'fy', $this->session->fy);
+            $data['division'] = ($data['school'] && !empty($data['school']->division_id))
+                ? $this->Page_model->one_cond_row('division', 'id', $data['school']->division_id)
+                : null;
+            $data['district'] = ($data['school'] && !empty($data['school']->district_id))
+                ? $this->Page_model->one_cond_row('district', 'id', $data['school']->district_id)
+                : null;
 
             //$data['lock'] = $this->Common->three_cond_count_row('sbm_ta', 'school_id', $this->uri->segment(3), 'fy', $this->session->fy,'stat',1);
 
@@ -2233,9 +2294,10 @@ class Pages extends CI_Controller
             show_404();
         }
 
-        $data['title'] = "Technical Assisstance Provision Form";
+        $data['title'] = "Technical Assistance Provision Form";
 
         $data['data'] = $this->Common->two_cond('sbm_tech', 'district', $this->session->district, 'fy', $this->session->fy);
+        $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->session->district);
 
 
         $this->load->view('templates/header');
@@ -2264,7 +2326,8 @@ class Pages extends CI_Controller
             }
 
 
-            $data['title'] = "Technical Assisstance Provision Form";
+            $data['title'] = "Create Technical Assistance Entry";
+            $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->session->district);
 
             $this->load->view('templates/header');
             $this->load->view('templates/menu');
@@ -2297,7 +2360,8 @@ class Pages extends CI_Controller
             }
 
             $data['data'] = $this->Common->one_cond_row('sbm_tech', 'id', $this->uri->segment(3));
-            $data['title'] = "New Action Plan";
+            $data['title'] = "Update Technical Assistance Entry";
+            $data['district'] = $this->Page_model->one_cond_row('district', 'id', $this->session->district);
 
             $this->load->view('templates/header');
             $this->load->view('templates/menu');
@@ -2313,7 +2377,16 @@ class Pages extends CI_Controller
 
     public function sbm_district_tech_del()
     {
-        $this->Page_model->delete('sbm_tech', 'id', 3);
+        $id = (int) $this->uri->segment(3);
+        $entry = $this->Common->one_cond_row('sbm_tech', 'id', $id);
+
+        if (!$entry || (int) $entry->district !== (int) $this->session->district) {
+            $this->session->set_flashdata('danger', 'Technical assistance entry not found.');
+            redirect(base_url() . 'pages/sbm_district_tech');
+            return;
+        }
+
+        $this->Page_model->delete('sbm_tech', 'id', $id);
         $this->session->set_flashdata('danger', 'Successfully deleted.');
         redirect(base_url() . 'pages/sbm_district_tech');
     }
@@ -2372,8 +2445,11 @@ class Pages extends CI_Controller
 
         $data['title'] = "List Of District";
 
-        //$data['data'] = $this->Page_model->one_cond('schools','p_id',$this->session->p_id);
-        $data['data'] = $this->Page_model->one_cond('district', 'division_id', $this->session->division);
+        $data['data'] = $this->db
+            ->where('division_id', $this->session->division)
+            ->order_by('description', 'ASC')
+            ->get('district')
+            ->result();
         $data['submission_counts'] = array(
             'sgod_action_plan' => $this->Page_model->district_submission_counts(
                 'sgod_action_plan',
