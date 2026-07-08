@@ -1330,6 +1330,11 @@ public function sbm_cecklist_lock_unloc($stat){
             if ($concern_id[$i] === '' || $average[$i] === '' || $average[$i] === null) {
                 continue;
             }
+
+            if (!isset($sequence[$i]) || $sequence[$i] === '' || $sequence[$i] === null) {
+                continue;
+            }
+
             $rows[] = [
                 'fy'         => $fy,
                 'school_id'  => $school,
@@ -1339,7 +1344,7 @@ public function sbm_cecklist_lock_unloc($stat){
                 'stat'       => 0,
                 'concern_id' => $concern_id[$i],
                 'average'    => $average[$i],
-                'sequence'   => ($sequence[$i] === '' ? null : (int)$sequence[$i]),
+                'sequence'   => (int) $sequence[$i],
             ];
         }
 

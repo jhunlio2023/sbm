@@ -439,7 +439,11 @@
                                                     foreach ($averages as $index => $avg):
                                                         $col = 'q' . $index;
 
-                                                        $text = ($ta && isset($ta->$col) && $ta->$col !== null) ? $ta->$col : '';
+                                                        $text = ($ta && isset($ta->$col) && $ta->$col !== null) ? trim((string) $ta->$col) : '';
+
+                                                        if ($text === '') {
+                                                            continue;
+                                                        }
 
                                                 ?>
                                                 <tr>
@@ -469,7 +473,11 @@
                                                     <?php 
                                                         foreach($ts as $row){
                                                         $col = 'q' . $row->concern_id;
-                                                        $text = ($ta && isset($ta->$col) && $ta->$col !== null) ? $ta->$col : '';
+                                                        $text = ($ta && isset($ta->$col) && $ta->$col !== null) ? trim((string) $ta->$col) : '';
+
+                                                        if ($text === '') {
+                                                            continue;
+                                                        }
                                                         
                                                         ?>
                                                     <tr>
@@ -517,9 +525,10 @@
                     <script>
                     document.addEventListener("DOMContentLoaded", function () {
                         const selects = document.querySelectorAll('.seq-select');
+                        const tableBody = document.querySelector('.tana-table tbody');
 
                         function updateDisabledOptions() {
-                            let selected = Array.from(selects)
+                            const selected = Array.from(selects)
                                 .map(sel => sel.value)
                                 .filter(v => v !== "" && v !== "0");
 
@@ -530,16 +539,66 @@
                                     }
                                 }
                             });
+
                             selects.forEach(sel => {
-                                for (let opt of sel.options) {
-                                    if (selected.includes(opt.value) && sel.value !== opt.value) {
-                                        opt.disabled = true;
+                                const currentValue = sel.value;
+                                if (currentValue === "" || currentValue === "0") return;
+
+                                selects.forEach(other => {
+                                    if (other === sel) return;
+                                    for (let opt of other.options) {
+                                        if (opt.value === currentValue) {
+                                            opt.disabled = true;
+                                        }
                                     }
-                                }
+                                });
                             });
                         }
+
+                        function reorderRows() {
+                            if (!tableBody) {
+                                return;
+                            }
+
+                            const rows = Array.from(tableBody.querySelectorAll('tr'));
+                            rows.sort((a, b) => {
+                                const aValue = parseInt(a.querySelector('.priority-select')?.value, 10);
+                                const bValue = parseInt(b.querySelector('.priority-select')?.value, 10);
+                                const aValid = Number.isInteger(aValue) && aValue > 0;
+                                const bValid = Number.isInteger(bValue) && bValue > 0;
+
+                                if (aValid && bValid) {
+                                    return aValue - bValue;
+                                }
+
+                                if (aValid) {
+                                    return -1;
+                                }
+
+                                if (bValid) {
+                                    return 1;
+                                }
+
+                                return 0;
+                            });
+
+                            rows.forEach((row, index) => {
+                                const numberNode = row.querySelector('.row-number');
+                                if (numberNode) {
+                                    numberNode.textContent = index + 1;
+                                }
+                                tableBody.appendChild(row);
+                            });
+                        }
+
                         selects.forEach(sel => {
-                            sel.addEventListener("change", updateDisabledOptions);
+                            sel.addEventListener("change", function () {
+                                updateDisabledOptions();
+                                reorderRows();
+                            });
                         });
+
+                        updateDisabledOptions();
+                        reorderRows();
                     });
                     </script>

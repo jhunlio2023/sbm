@@ -1265,19 +1265,6 @@ if (!$checklist_record) {
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-            <div class="ta-stat-card">
-                <div class="ta-stat-top">
-                    <div>
-                        <small>Submission Status</small>
-                        <h3><?= $escape($status_label); ?></h3>
-                        <p><?= !$ta_record ? 'No TA report has been saved yet for this fiscal year.' : ($is_locked_for_user ? 'The report is locked until a division reviewer unlocks it.' : 'Draft responses are still editable and can be finalized once reviewed.'); ?></p>
-                    </div>
-                    <span class="ta-stat-icon"><i class="mdi mdi-shield-check-outline"></i></span>
-                </div>
-                <div class="mini-progress"><span style="width: <?= !$ta_record ? 0 : ($is_finalized ? 100 : min(100, max(18, $guided_rate))); ?>%;"></span></div>
-            </div>
-        </div>
     </div>
 
     <div class="row">

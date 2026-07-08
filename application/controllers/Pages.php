@@ -2062,11 +2062,25 @@ class Pages extends CI_Controller
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');
 
+            $ta = $this->Common->two_cond_row('sbm_ta', 'school_id', $this->session->username, 'fy', $this->session->fy);
             $averages = $this->Page_model->get_averages($this->session->username, $this->session->fy);
             arsort($averages);
 
-            // Keep only top 20
-            $top20 = array_slice($averages, 0, 20, true);
+            $top20 = array();
+            foreach ($averages as $index => $avg) {
+                $col = 'q' . $index;
+                $text = ($ta && isset($ta->$col) && $ta->$col !== null) ? trim((string) $ta->$col) : '';
+
+                if ($text === '') {
+                    continue;
+                }
+
+                $top20[$index] = $avg;
+
+                if (count($top20) >= 20) {
+                    break;
+                }
+            }
 
             $data['averages'] = $top20;
 
