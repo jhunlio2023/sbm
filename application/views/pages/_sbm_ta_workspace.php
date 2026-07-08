@@ -1223,7 +1223,7 @@ if (!$checklist_record) {
     <?php endif; ?>
 
     <div class="row ta-stats">
-        <div class="col-md-6 col-xl-3">
+        <div class="col-12 col-md-4 col-lg-4 col-xl-4">
             <div class="ta-stat-card">
                 <div class="ta-stat-top">
                     <div>
@@ -1237,7 +1237,7 @@ if (!$checklist_record) {
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="col-12 col-md-4 col-lg-4 col-xl-4">
             <div class="ta-stat-card">
                 <div class="ta-stat-top">
                     <div>
@@ -1251,7 +1251,7 @@ if (!$checklist_record) {
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="col-12 col-md-4 col-lg-4 col-xl-4">
             <div class="ta-stat-card">
                 <div class="ta-stat-top">
                     <div>
