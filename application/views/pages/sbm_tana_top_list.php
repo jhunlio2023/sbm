@@ -485,7 +485,7 @@
                                                             <span class="average-badge"><?= $row->average; ?></span>
                                                         </td>
                                                         <td class="text-center">
-                                                            <select class="priority-select" name="sequence[]">
+                                                            <select class="priority-select seq-select" name="sequence[]">
                                                                 <option value="">Select</option>
                                                                 <?php for($i = 1; $i <= 20; $i++): ?>
                                                                     <option <?php if($row->stat != 0){echo ' disabled ';} ?> <?php if($i ==  $row->sequence){echo ' selected ';}?> value="<?= $i ?>"><?= $i ?></option>
