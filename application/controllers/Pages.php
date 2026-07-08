@@ -1980,7 +1980,10 @@ class Pages extends CI_Controller
     public function tapr_form_update()
     {
         $record = $this->Common->two_cond_row('sbm_ta', 'school_id', $this->session->username, 'fy', $this->session->fy);
-        if ($record && isset($record->stat) && (int) $record->stat === 1) {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_school_user = $position === 'school';
+
+        if ($record && isset($record->stat) && (int) $record->stat === 1 && !$is_school_user) {
             $this->session->set_flashdata('danger', 'This TA form is finalized and locked. Coordinate with your division reviewer if revisions are needed.');
             redirect(base_url() . 'pages/tapr_form');
             return;
@@ -2205,6 +2208,16 @@ class Pages extends CI_Controller
 
     public function tana_form_update()
     {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_school_user = $position === 'school';
+
+        if ($is_school_user) {
+            $this->Page_model->sbm_tana_update();
+            $this->session->set_flashdata('success', 'Successfully saved.');
+            redirect(base_url() . 'pages/tana_form');
+            return;
+        }
+
         $this->Page_model->sbm_tana_update();
         $this->session->set_flashdata('success', 'Successfully saved.');
         redirect(base_url() . 'pages/tana_form');
@@ -2212,6 +2225,15 @@ class Pages extends CI_Controller
 
     function sbm_ta_final()
     {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_school_user = $position === 'school';
+
+        if ($is_school_user) {
+            $this->session->set_flashdata('success', 'TA report saved. School accounts can continue editing at any time.');
+            redirect(base_url() . 'Pages/tapr_form');
+            return;
+        }
+
         $this->Page_model->sbm_ta_lock_unloc(1);
         $this->session->set_flashdata('success', 'Saved successfully.');
         redirect(base_url() . 'Pages/tapr_form');
@@ -3782,8 +3804,7 @@ class Pages extends CI_Controller
 
     function final_tana_summary()
 	{
-		$this->Page_model->tana_summary_final();
-		$this->session->set_flashdata('success', 'Saved successfully.');
+		$this->session->set_flashdata('success', 'TANA summary updates are always editable for school accounts.');
 		redirect($_SERVER['HTTP_REFERER']);
 	}
 

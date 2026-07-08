@@ -7,8 +7,11 @@ $school = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
 $division = ($school && !empty($school->division_id)) ? $this->Page_model->one_cond_row('division', 'id', $school->division_id) : null;
 $district = ($school && !empty($school->district_id)) ? $this->Page_model->one_cond_row('district', 'id', $school->district_id) : null;
 $checklist_record = $this->Common->two_cond_row('sbm', 'school_id', $school_id, 'fy', $this->session->fy);
+$position = strtolower(trim((string) $this->session->position));
+$is_school_user = $position === 'school';
 $is_finalized = $ta_record && isset($ta_record->stat) && (int) $ta_record->stat === 1;
-$can_edit = !$is_finalized;
+$is_locked_for_user = $is_finalized && !$is_school_user;
+$can_edit = $is_school_user || !$is_locked_for_user;
 $validation_markup = validation_errors();
 $form_action = $ta_record ? 'Pages/tapr_form_update' : 'Pages/tapr_form';
 
@@ -210,7 +213,7 @@ foreach ($principles as $principle) {
 
 $guided_rate = $total_questions > 0 ? ($guided_count / $total_questions) * 100 : 0;
 $touch_rate = $total_questions > 0 ? ($touched_count / $total_questions) * 100 : 0;
-$status_label = !$ta_record ? 'Not started' : ($is_finalized ? 'Finalized' : 'Draft saved');
+$status_label = !$ta_record ? 'Not started' : ($is_locked_for_user ? 'Finalized' : 'Draft saved');
 $dashboard_url = base_url();
 $profile_url = base_url() . 'school/' . rawurlencode($school_id);
 $checklist_url = base_url() . 'Pages/sbm_checklist';
@@ -247,7 +250,7 @@ if (!$checklist_record) {
         'secondary_url' => $tana_url,
         'secondary_cta' => 'Open TANA priorities',
     );
-} elseif ($is_finalized) {
+} elseif ($is_locked_for_user) {
     $next_step = array(
         'eyebrow' => 'Submission complete',
         'title' => 'Use the finalized TA report to support planning',
@@ -1209,7 +1212,7 @@ if (!$checklist_record) {
                 <p>The TA form will still accept drafts, but the manifestation-based guidance becomes more precise after the SBM checklist has been completed or updated.</p>
             </div>
         </div>
-    <?php elseif ($is_finalized) : ?>
+    <?php elseif ($is_locked_for_user) : ?>
         <div class="info-alert">
             <i class="mdi mdi-lock-check-outline"></i>
             <div>
@@ -1268,7 +1271,7 @@ if (!$checklist_record) {
                     <div>
                         <small>Submission Status</small>
                         <h3><?= $escape($status_label); ?></h3>
-                        <p><?= !$ta_record ? 'No TA report has been saved yet for this fiscal year.' : ($is_finalized ? 'The report is locked until a division reviewer unlocks it.' : 'Draft responses are still editable and can be finalized once reviewed.'); ?></p>
+                        <p><?= !$ta_record ? 'No TA report has been saved yet for this fiscal year.' : ($is_locked_for_user ? 'The report is locked until a division reviewer unlocks it.' : 'Draft responses are still editable and can be finalized once reviewed.'); ?></p>
                     </div>
                     <span class="ta-stat-icon"><i class="mdi mdi-shield-check-outline"></i></span>
                 </div>
@@ -1476,7 +1479,7 @@ if (!$checklist_record) {
                         <?php if ($can_edit) : ?>
                             <button type="submit" name="<?= $ta_record ? 'submit_edit' : 'submit'; ?>" class="workspace-button workspace-button-primary">
                                 <i class="mdi mdi-content-save-outline"></i>
-                                Save Draft
+                                Save
                             </button>
                         <?php endif; ?>
 
@@ -1485,7 +1488,7 @@ if (!$checklist_record) {
                                 <i class="mdi mdi-lock-check-outline"></i>
                                 Finalize TA Report
                             </a>
-                        <?php elseif ($is_finalized) : ?>
+                        <?php elseif ($is_locked_for_user) : ?>
                             <button type="button" class="workspace-button workspace-button-disabled" onclick="alert('This TA report is already finalized. Coordinate with your division reviewer if an unlock is needed.')">
                                 <i class="mdi mdi-lock-outline"></i>
                                 Finalized
@@ -1500,7 +1503,7 @@ if (!$checklist_record) {
 
                     <p class="workspace-note">
                         <?php if ($can_edit) : ?>
-                            Save Draft keeps the report editable. Finalizing locks the report until a division reviewer unlocks it, so review the narratives, category tags, and commitments carefully before final submission.
+                            Save Draft keeps the report editable. School accounts can continue editing this TA report at any time.
                         <?php else : ?>
                             This finalized TA report is in read-only mode. Use the quick links to continue with TANA prioritization or the school action plan.
                         <?php endif; ?>

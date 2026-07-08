@@ -500,25 +500,14 @@
 
                                     <!-- Action Bar -->
                                     <div class="action-bar">
-                                        <?php $check = $this->Common->two_cond_count_row('tana_summary','school_id',$this->session->username,'stat',1); if($check->num_rows() == 0){?>
-                                            <button type="submit" name="submit" class="action-button action-button-primary">
-                                                <i class="mdi mdi-content-save-outline"></i>
-                                                Save Rankings
-                                            </button>
-                                            <a href="<?= base_url(); ?>Pages/update_tana_summary" onclick="return confirm('Are you sure? If you press OK, everything currently saved will be deleted.');" class="action-button action-button-secondary">
-                                                <i class="mdi mdi-refresh"></i>
-                                                Update / Reset
-                                            </a>
-                                            <a href="<?= base_url(); ?>Pages/final_tana_summary" onclick="return confirm('Are you sure? If you press OK, you will not be able to update afterward.');" class="action-button action-button-tertiary">
-                                                <i class="mdi mdi-lock-check-outline"></i>
-                                                Finalize
-                                            </a>
-                                        <?php } else { ?>
-                                            <button type="button" class="action-button action-button-disabled" disabled>
-                                                <i class="mdi mdi-lock-outline"></i>
-                                                Finalized
-                                            </button>
-                                        <?php } ?>
+                                        <button type="submit" name="submit" class="action-button action-button-primary">
+                                            <i class="mdi mdi-content-save-outline"></i>
+                                            Save Rankings
+                                        </button>
+                                        <a href="<?= base_url(); ?>Pages/update_tana_summary" onclick="return confirm('Are you sure? If you press OK, everything currently saved will be deleted.');" class="action-button action-button-secondary">
+                                            <i class="mdi mdi-refresh"></i>
+                                            Update / Reset
+                                        </a>
                                     </div>
                                 </div>
                             </div>

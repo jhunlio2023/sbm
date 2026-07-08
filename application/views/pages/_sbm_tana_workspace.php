@@ -11,6 +11,9 @@ $ta_record = $this->Common->two_cond_row('sbm_ta', 'school_id', $school_id, 'fy'
 $summary_records = $this->Common->two_cond_order_by('tana_summary', 'school_id', $school_id, 'fy', $this->session->fy, 'sequence', 'ASC');
 $summary_record_count = $this->Common->two_cond_count_row('tana_summary', 'school_id', $school_id, 'fy', $this->session->fy)->num_rows();
 $summary_finalized = $this->Common->three_cond_count_row('tana_summary', 'school_id', $school_id, 'fy', $this->session->fy, 'stat', 1)->num_rows() > 0;
+$position = strtolower(trim((string) $this->session->position));
+$is_school_user = $position === 'school';
+$can_edit = $is_school_user;
 $validation_markup = validation_errors();
 $form_action = $tana_record ? 'Pages/tana_form_update' : 'Pages/tana_form';
 
@@ -1451,10 +1454,12 @@ if (!$ta_record || $ready_concern_count === 0) {
                     </div>
 
                     <div class="workspace-actions" id="tanaActions">
-                        <button type="submit" name="<?= $tana_record ? 'submit_edit' : 'submit'; ?>" class="workspace-button workspace-button-primary">
-                            <i class="mdi mdi-content-save-outline"></i>
-                            Save Draft
-                        </button>
+                        <?php if ($can_edit) : ?>
+                            <button type="submit" name="<?= $tana_record ? 'submit_edit' : 'submit'; ?>" class="workspace-button workspace-button-primary">
+                                <i class="mdi mdi-content-save-outline"></i>
+                                Save
+                            </button>
+                        <?php endif; ?>
                         <a href="<?= $summary_url; ?>" class="workspace-button workspace-button-success">
                             <i class="mdi mdi-format-list-numbered"></i>
                             Open TANA Summary
