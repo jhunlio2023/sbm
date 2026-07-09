@@ -897,7 +897,9 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
                                     <th>Outputs And Strategy</th>
                                     <th>Schedule And Ownership</th>
                                     <th>Budget And Remarks</th>
+                                    <?php if ($this->session->position != 'region') : ?>
                                     <th>Action</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -955,6 +957,7 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
                                                 <?= $remarks !== '' ? $escape($excerpt($remarks, 130)) : '<span class="muted-copy">No remarks added.</span>'; ?>
                                             </span>
                                         </td>
+                                        <?php if ($this->session->position != 'region') : ?>
                                         <td>
                                             <div class="plan-action-buttons">
                                                 <a href="<?= base_url(); ?>Pages/sbm_action_plan_update/<?= $row->id; ?>" class="plan-action-link edit-link">
@@ -967,6 +970,7 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
                                                 </a>
                                             </div>
                                         </td>
+                                        <?php endif; ?>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>

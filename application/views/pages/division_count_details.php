@@ -1,5 +1,36 @@
 <?php
 $result_count = count($records);
+
+// Calculate summaries per district
+$district_summary = array();
+foreach ($records as $record) {
+    $district_name = !empty($record->district_name) ? $record->district_name : 'Unassigned';
+    if (!isset($district_summary[$district_name])) {
+        $district_summary[$district_name] = 0;
+    }
+    $district_summary[$district_name]++;
+}
+
+// School category labels from signup
+$category_labels = array(
+    1 => 'Elementary',
+    2 => 'Integrated (Elem & JHS)',
+    3 => 'Integrated (Elem, JHS, & SHS)',
+    4 => 'Secondary (JHS only)',
+    5 => 'Secondary (JHS & SHS)',
+    6 => 'SHS - Stand Alone'
+);
+
+// Calculate summaries per school category
+$category_summary = array();
+foreach ($records as $record) {
+    $category_id = !empty($record->category) ? (int) $record->category : 0;
+    $category_name = isset($category_labels[$category_id]) ? $category_labels[$category_id] : 'Uncategorized';
+    if (!isset($category_summary[$category_name])) {
+        $category_summary[$category_name] = 0;
+    }
+    $category_summary[$category_name]++;
+}
 ?>
 
 <style>
@@ -230,6 +261,84 @@ $result_count = count($records);
         font-size: 34px;
     }
 
+    .summary-section {
+        margin-top: 24px;
+        padding: 24px;
+        border-radius: 16px;
+        background: #f8f9ff;
+        border: 1px solid var(--detail-border);
+    }
+
+    .summary-title {
+        margin: 0 0 16px;
+        color: #27324a;
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    .summary-card {
+        padding: 16px;
+        border-radius: 12px;
+        background: #fff;
+        border: 1px solid var(--detail-border);
+    }
+
+    .summary-card-title {
+        margin: 0 0 12px;
+        color: var(--detail-muted);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+    }
+
+    .summary-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f2f6;
+    }
+
+    .summary-item:last-child {
+        border-bottom: 0;
+    }
+
+    .summary-item-label {
+        color: #596277;
+        font-size: 13px;
+    }
+
+    .summary-item-count {
+        color: #27324a;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .summary-view-btn {
+        padding: 4px 10px;
+        border: 1px solid var(--detail-border);
+        border-radius: 6px;
+        color: var(--detail-primary);
+        background: #fff;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all .18s ease;
+    }
+
+    .summary-view-btn:hover {
+        color: #fff;
+        background: var(--detail-primary);
+        border-color: var(--detail-primary);
+    }
+
     @media (max-width: 767.98px) {
         .division-detail-hero {
             align-items: flex-start;
@@ -263,7 +372,7 @@ $result_count = count($records);
 <div class="division-detail-page">
     <div class="division-detail-hero">
         <div>
-            <h2><?= html_escape($hero_title); ?></h2>
+            <h2>School Governance Council - <?= html_escape($hero_title); ?></h2>
             <p><?= html_escape($hero_description); ?></p>
         </div>
         <div class="division-detail-actions">
@@ -347,6 +456,108 @@ $result_count = count($records);
                     </div>
                 <?php } ?>
             </div>
+
+            <?php if (!empty($records)) { ?>
+            <div class="summary-section">
+                <h3 class="summary-title">Summary Breakdown</h3>
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <h4 class="summary-card-title">By District</h4>
+                        <?php foreach ($district_summary as $district => $count) { ?>
+                            <div class="summary-item">
+                                <span class="summary-item-label"><?= html_escape($district); ?></span>
+                                <div>
+                                    <span class="summary-item-count"><?= $count; ?></span>
+                                    <button class="summary-view-btn ml-2" onclick="filterByDistrict('<?= html_escape($district); ?>')">View</button>
+                                </div>
+                            </div>
+                        <?php } ?>
+                    </div>
+                    <div class="summary-card">
+                        <h4 class="summary-card-title">By School Category</h4>
+                        <?php foreach ($category_summary as $category => $count) { ?>
+                            <div class="summary-item">
+                                <span class="summary-item-label"><?= html_escape($category); ?></span>
+                                <div>
+                                    <span class="summary-item-count"><?= $count; ?></span>
+                                    <a href="<?= base_url(); ?>Pages/division_sgc_category_printable/<?= $this->uri->segment(3); ?>/<?= array_search($category, $category_labels); ?>" class="summary-view-btn ml-2">View</a>
+                                </div>
+                            </div>
+                        <?php } ?>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="summary-view-btn" onclick="resetFilter()">Show All Schools</button>
+                </div>
+            </div>
+            <?php } ?>
         </div>
     </div>
 </div>
+
+<script>
+// Store records data for filtering
+const recordsData = <?php echo json_encode($records); ?>;
+
+// Category name to ID mapping for filtering
+const categoryToId = {
+    'Elementary': 1,
+    'Integrated (Elem & JHS)': 2,
+    'Integrated (Elem, JHS, & SHS)': 3,
+    'Secondary (JHS only)': 4,
+    'Secondary (JHS & SHS)': 5,
+    'SHS - Stand Alone': 6
+};
+
+function filterByDistrict(districtName) {
+    const table = document.getElementById('datatable');
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+
+    rows.forEach(row => {
+        const districtCell = row.cells[2];
+        if (districtCell) {
+            const rowDistrict = districtCell.textContent.trim();
+            if (rowDistrict === districtName) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    });
+
+    // Scroll to table
+    table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function filterByCategory(categoryName) {
+    const categoryId = categoryToId[categoryName];
+    if (!categoryId) return;
+
+    const table = document.getElementById('datatable');
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+
+    rows.forEach((row, index) => {
+        const record = recordsData[index];
+        if (record && record.category == categoryId) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Scroll to table
+    table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function resetFilter() {
+    const table = document.getElementById('datatable');
+    const tbody = table.querySelector('tbody');
+    const rows = tbody.querySelectorAll('tr');
+
+    rows.forEach(row => {
+        row.style.display = '';
+    });
+}
+</script>

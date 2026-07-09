@@ -1546,6 +1546,148 @@ class Pages extends CI_Controller
         $this->load->view('templates/footer_dt');
     }
 
+    public function school_list_region()
+    {
+        $this->require_region_dashboard_access();
+
+        $page = "school_list_region";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "School List";
+
+        // Load all schools with division info
+        $data['data'] = $this->db
+            ->select('s.schoolID, s.schoolName, d.description as division_name')
+            ->from('schools s')
+            ->join('division d', 's.division_id = d.id', 'left')
+            ->order_by('s.schoolName', 'ASC')
+            ->get()
+            ->result();
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function school_list_division_only()
+    {
+        $this->require_division_dashboard_access();
+
+        $page = "school_list_division_only";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "School List";
+
+        // Load schools for this division only with district info
+        $data['data'] = $this->db
+            ->select('s.schoolID, s.schoolName, d.description as district_name')
+            ->from('schools s')
+            ->join('district d', 's.district_id = d.id', 'left')
+            ->where('s.division_id', $this->session->division)
+            ->order_by('s.schoolName', 'ASC')
+            ->get()
+            ->result();
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function school_profile_region()
+    {
+        $this->require_region_dashboard_access();
+
+        $school_id = $this->uri->segment(3);
+
+        if (!$school_id) {
+            show_404();
+        }
+
+        $data['title'] = "School Profile";
+        $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
+
+        if (!$data['school']) {
+            show_404();
+        }
+
+        // Get school details with division
+        $data['school']->division = $this->Common->one_cond_row('division', 'id', $data['school']->division_id);
+        $data['school']->district = $this->Common->one_cond_row('district', 'id', $data['school']->district_id);
+
+        // Get SBM checklist data
+        $data['sbm'] = $this->Common->two_cond_row('sbm', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        // Get TA form data
+        $data['ta'] = $this->Common->two_cond_row('sbm_ta', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        // Get TANA form data
+        $data['tana'] = $this->Common->two_cond_row('tana', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        // Get Action Plan data
+        $data['action_plan'] = $this->Common->two_cond_row('sgod_action_plan', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/school_profile_region', $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function school_profile_division()
+    {
+        $this->require_division_dashboard_access();
+
+        $school_id = $this->uri->segment(3);
+
+        if (!$school_id) {
+            show_404();
+        }
+
+        $data['title'] = "School Profile";
+        $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
+
+        if (!$data['school']) {
+            show_404();
+        }
+
+        // Verify school belongs to this division
+        if ($data['school']->division_id != $this->session->division) {
+            show_404();
+        }
+
+        // Get school details with division
+        $data['school']->division = $this->Common->one_cond_row('division', 'id', $data['school']->division_id);
+        $data['school']->district = $this->Common->one_cond_row('district', 'id', $data['school']->district_id);
+
+        // Get SBM checklist data
+        $data['sbm'] = $this->Common->two_cond_row('sbm', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        // Get TA form data
+        $data['ta'] = $this->Common->two_cond_row('sbm_ta', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        // Get TANA form data
+        $data['tana'] = $this->Common->two_cond_row('tana', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        // Get Action Plan data
+        $data['action_plan'] = $this->Common->two_cond_row('sgod_action_plan', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/school_profile_region', $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
     public function school_list_division()
     {
 
@@ -1744,6 +1886,33 @@ class Pages extends CI_Controller
         $data['data'] = $this->Common->two_cond('sgod_action_plan', 'fy', $this->session->fy, 'school_id', $this->uri->segment(3));
 
         $this->load->view('pages/' . $page, $data);
+    }
+
+    public function sbm_action_plan_list()
+    {
+        $this->require_region_dashboard_access();
+
+        $school_id = $this->uri->segment(3);
+
+        if (!$school_id) {
+            show_404();
+        }
+
+        $page = "action_plan_list";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "Action Plan for Implementation of SBM";
+        $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
+        $data['data'] = $this->Common->two_cond('sgod_action_plan', 'school_id', $school_id, 'fy', $this->session->fy);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
     }
 
     public function action_plan_new()
@@ -3631,6 +3800,55 @@ class Pages extends CI_Controller
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
         $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function division_sgc_category_printable()
+    {
+        $this->require_division_dashboard_access();
+
+        $status = (int) $this->uri->segment(3);
+        $category_id = (int) $this->uri->segment(4);
+
+        $status_labels = array(
+            1 => 'Not Yet Organized',
+            2 => 'Organized, Not Functional',
+            3 => 'Functional'
+        );
+
+        $category_labels = array(
+            1 => 'Elementary',
+            2 => 'Integrated (Elem & JHS)',
+            3 => 'Integrated (Elem, JHS, & SHS)',
+            4 => 'Secondary (JHS only)',
+            5 => 'Secondary (JHS & SHS)',
+            6 => 'SHS - Stand Alone'
+        );
+
+        if (!isset($status_labels[$status]) || !isset($category_labels[$category_id])) {
+            show_404();
+        }
+
+        $all_records = $this->Page_model->division_schools_by_sgc_status($this->session->division, $status);
+
+        // Filter by category
+        $filtered_records = array();
+        foreach ($all_records as $record) {
+            if ((int) $record->category === $category_id) {
+                $filtered_records[] = $record;
+            }
+        }
+
+        $data['title'] = 'SGC Category Schools';
+        $data['status_label'] = $status_labels[$status];
+        $data['category_label'] = $category_labels[$category_id];
+        $data['records'] = $filtered_records;
+        $data['division'] = $this->Page_model->one_cond_row('division', 'id', $this->session->division);
+
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/division_sgc_category_printable', $data);
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
     }

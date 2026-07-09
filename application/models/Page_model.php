@@ -812,7 +812,7 @@ public function division_schools_by_sgc_status($division_id, $sgc_status){
         : 'Unknown';
 
     return $this->db
-        ->select('s.recID, s.schoolID, s.schoolName, d.description AS district_name, ' . $this->db->escape($detail_status) . ' AS detail_status', false)
+        ->select('s.recID, s.schoolID, s.schoolName, s.category, d.description AS district_name, ' . $this->db->escape($detail_status) . ' AS detail_status', false)
         ->from('schools s')
         ->join('district d', 'd.id = s.district_id', 'left')
         ->where('s.division_id', $division_id)

@@ -177,6 +177,7 @@
                                 </a>
                                 <ul class="nav-second-level" aria-expanded="false">
                                     <li><a href="<?= base_url(); ?>Pages/district_list">District List</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/school_list_division_only">School List</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/tana_summary_division">TANA</a></li>
                                 </ul>
 
@@ -206,6 +207,7 @@
                                 <ul class="nav-second-level" aria-expanded="false">
                                     <li><a href="<?= base_url(); ?>Pages/division_list">Division List</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/tana_summary_region">TANA</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/school_list_region">School List</a></li>
                                 </ul>
 
                             </li>
