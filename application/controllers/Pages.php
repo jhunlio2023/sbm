@@ -2456,7 +2456,7 @@ class Pages extends CI_Controller
     public function tapr_form_district()
     {
         if ($this->form_validation->run() == FALSE) {
-            $view_school_id = (string) $this->uri->segment(3);
+            $view_school_id = rawurldecode((string) $this->uri->segment(3));
 
             $data['sbm_remark'] = $this->Common->two_cond_row('sbm_remark_admin', 'school_id', $view_school_id, 'fy', $this->session->fy);
 
@@ -2475,7 +2475,16 @@ class Pages extends CI_Controller
             $data['sbmc_count'] = $this->Common->two_cond_count_row('sbm_ta', 'school_id', $view_school_id, 'fy', $this->session->fy);
             $data['sbmc'] = $this->Common->two_cond_row('sbm_ta', 'school_id', $view_school_id, 'fy', $this->session->fy);
             $data['view_school_id'] = $view_school_id;
-            $data['school'] = $this->Common->one_cond_row('schools', 'schoolID', $view_school_id);
+            $data['school'] = $this->db->query(
+                "SELECT * FROM schools WHERE TRIM(schoolID) = ? LIMIT 1",
+                array(trim($view_school_id))
+            )->row();
+            if (!$data['school'] && $data['sbmc']) {
+                $data['school'] = $this->db->query(
+                    "SELECT * FROM schools WHERE TRIM(schoolID) = ? LIMIT 1",
+                    array(trim((string) $data['sbmc']->school_id))
+                )->row();
+            }
             $data['checklist_record'] = $this->Common->two_cond_row('sbm', 'school_id', $view_school_id, 'fy', $this->session->fy);
             $data['division'] = ($data['school'] && !empty($data['school']->division_id))
                 ? $this->Page_model->one_cond_row('division', 'id', $data['school']->division_id)

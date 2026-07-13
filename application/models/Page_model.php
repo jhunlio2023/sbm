@@ -428,15 +428,20 @@ public function submission_school_ids($table, $fy, $school_ids){
         return array();
     }
 
-    $this->db->select('school_id');
-    $this->db->distinct();
-    $this->db->where('fy', $fy);
-    $this->db->where_in('school_id', $school_ids);
-    $query = $this->db->get($table);
+    // Normalize school_ids to trimmed strings for comparison
+    $normalized_ids = array_map('trim', array_map('strval', $school_ids));
+
+    // Build placeholders for parameterized query
+    $placeholders = implode(',', array_fill(0, count($normalized_ids), '?'));
+    $params = array_merge(array($fy), $normalized_ids);
+    $query = $this->db->query(
+        "SELECT DISTINCT TRIM(school_id) AS school_id FROM `{$table}` WHERE fy = ? AND TRIM(school_id) IN ({$placeholders})",
+        $params
+    );
 
     $submitted = array();
     foreach ($query->result() as $row) {
-        $submitted[(string) $row->school_id] = true;
+        $submitted[trim((string) $row->school_id)] = true;
     }
 
     return $submitted;

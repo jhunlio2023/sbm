@@ -365,7 +365,7 @@ $hero_title = (!$is_admin_view && empty($division_school_scope))
                             </thead>
                             <tbody>
                                 <?php foreach ($data as $row) :
-                                    $school_id = (string) $row->schoolID;
+                                    $school_id = trim((string) $row->schoolID);
                                     $school_name = !empty($row->schoolName) ? mb_convert_case($row->schoolName, MB_CASE_TITLE, 'UTF-8') : '';
 
                                     if ($is_admin_view) {
