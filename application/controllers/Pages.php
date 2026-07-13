@@ -1226,8 +1226,8 @@ class Pages extends CI_Controller
 
     public function school_delete()
     {
-        if (!$this->session->logged_in || $this->session->position !== 'admin') {
-            show_error('Only admin users can delete schools.', 403);
+        if (!$this->session->logged_in || ($this->session->position !== 'admin' && $this->session->position !== 'division')) {
+            show_error('Only admin and division users can delete schools.', 403);
         }
 
         $school_id = $this->uri->segment(3);
@@ -1242,6 +1242,11 @@ class Pages extends CI_Controller
             show_404();
         }
 
+        // For division users, verify school belongs to their division
+        if ($this->session->position === 'division' && $school->division_id != $this->session->division) {
+            show_error('You can only delete schools from your own division.', 403);
+        }
+
         // Check if school has completed Self-Assessment and Action Plan
         $has_action_plan = $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, [$school_id]);
         $has_self_assessment = $this->Page_model->submission_school_ids('sbm', $this->session->fy, [$school_id]);
@@ -1251,10 +1256,13 @@ class Pages extends CI_Controller
             redirect(base_url() . 'pages/school_list');
         }
 
+        // Log audit trail before deletion
+        $this->Page_model->log_audit_trail('DELETE', 'schools', $school_id, $school, null);
+
         // Delete school and associated user
         $this->Page_model->delete('schools', 'schoolID', $school_id);
         $this->Page_model->delete('users', 'username', $school_id);
-        
+
         $this->session->set_flashdata('success', 'Successfully deleted.');
         redirect(base_url() . 'pages/school_list');
     }

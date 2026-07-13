@@ -308,7 +308,7 @@
         <?php $att = array('class' => 'parsley-examples', 'id' => 'school-update-form'); ?>
         <?= form_open('Pages/school_update', $att); ?>
             <input type="hidden" name="recID" value="<?= html_escape($data->recID); ?>">
-            <input type="hidden" name="schoolID" value="<?= html_escape($data->schoolID); ?>">
+            <input type="hidden" name="old_schoolID" value="<?= html_escape($data->schoolID); ?>">
 
             <section class="form-section">
                 <div class="section-heading">
@@ -320,6 +320,12 @@
                 </div>
 
                 <div class="form-row">
+                    <div class="form-group col-lg-6">
+                        <label for="schoolID">School ID</label>
+                        <input type="text" class="form-control" id="schoolID" name="schoolID"
+                               value="<?= html_escape($data->schoolID); ?>" required>
+                        <small class="field-note">Changing the School ID will update it in the users table as well.</small>
+                    </div>
                     <div class="form-group col-lg-6">
                         <label for="schoolName">School Name</label>
                         <input type="text" class="form-control" id="schoolName" name="schoolName"

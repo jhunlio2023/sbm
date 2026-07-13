@@ -314,45 +314,52 @@ public function check_dup_user($fname,$lname,$username){
 
 
 public function school_insert(){
-    
+
     $data = array(
-    'schoolID' => $this->input->post('schoolID'), 
-    'schoolName' => $this->input->post('schoolName'), 
-    'course' => $this->input->post('course'), 
-    'yearEstab' => $this->input->post('yearEstab'), 
-    'schoolEmail' => $this->input->post('schoolEmail'), 
-    'congDist' => $this->input->post('congDist'), 
-    'province' => $this->input->post('province'), 
-    'city' => $this->input->post('city'), 
-    'brgy' => $this->input->post('brgy'), 
-    'sitio' => $this->input->post('sitio'), 
-    'adminFName' => $this->input->post('adminFName'), 
-    'adminMName' => $this->input->post('adminMName'), 
-    'adminLName' => $this->input->post('adminLName'), 
-    'adminMobile' => $this->input->post('adminMobile'), 
-    'adminTel' => $this->input->post('adminTel'), 
-    'adminEmail' => $this->input->post('adminEmail'), 
-    'adminDesignation' => $this->input->post('adminDesignation'), 
-    'permitNo' => $this->input->post('permitNo'), 
-    //'recogNo' => $this->input->post('recogNo'), 
-    //'offers' => $this->input->post('offers'), 
-    //'schoolLogo' => $this->input->post('schoolLogo'), 
-    //'type' => $this->input->post('type'), 
-    'electricity' => $this->input->post('electricity'), 
-    'internet' => $this->input->post('internet'), 
-    'mb' => $this->input->post('mb'), 
-    'provider' => $this->input->post('provider'), 
-    'coor' => $this->input->post('coor'), 
-    'r_id' => $this->session->r_id, 
-    'p_id' => $this->session->p_id, 
-    'd_id' => $this->input->post('district'), 
+    'schoolID' => $this->input->post('schoolID'),
+    'schoolName' => $this->input->post('schoolName'),
+    'course' => $this->input->post('course'),
+    'yearEstab' => $this->input->post('yearEstab'),
+    'schoolEmail' => $this->input->post('schoolEmail'),
+    'congDist' => $this->input->post('congDist'),
+    'province' => $this->input->post('province'),
+    'city' => $this->input->post('city'),
+    'brgy' => $this->input->post('brgy'),
+    'sitio' => $this->input->post('sitio'),
+    'adminFName' => $this->input->post('adminFName'),
+    'adminMName' => $this->input->post('adminMName'),
+    'adminLName' => $this->input->post('adminLName'),
+    'adminMobile' => $this->input->post('adminMobile'),
+    'adminTel' => $this->input->post('adminTel'),
+    'adminEmail' => $this->input->post('adminEmail'),
+    'adminDesignation' => $this->input->post('adminDesignation'),
+    'permitNo' => $this->input->post('permitNo'),
+    //'recogNo' => $this->input->post('recogNo'),
+    //'offers' => $this->input->post('offers'),
+    //'schoolLogo' => $this->input->post('schoolLogo'),
+    //'type' => $this->input->post('type'),
+    'electricity' => $this->input->post('electricity'),
+    'internet' => $this->input->post('internet'),
+    'mb' => $this->input->post('mb'),
+    'provider' => $this->input->post('provider'),
+    'coor' => $this->input->post('coor'),
+    'r_id' => $this->session->r_id,
+    'p_id' => $this->session->p_id,
+    'd_id' => $this->input->post('district'),
     'schoolType' => $this->input->post('schoolType'),
     'sitio' => '',
     'adminTel' => ''
-    ); 
+    );
 
-    return $this->db->insert('schools', $data);
-    
+    $result = $this->db->insert('schools', $data);
+
+    // Log audit trail
+    if ($result) {
+        $this->log_audit_trail('ADD', 'schools', $this->input->post('schoolID'), null, $data);
+    }
+
+    return $result;
+
 }
 
 
@@ -1516,8 +1523,15 @@ public function sbm_cecklist_lock_unloc($stat){
 
 public function school_updates()
 	{
+		$old_school_id = $this->input->post('old_schoolID');
+		$new_school_id = $this->input->post('schoolID');
+		$rec_id = $this->input->post('recID');
+
+		// Get old values for audit trail
+		$old_record = $this->one_cond_row('schools', 'recID', $rec_id);
 
 		$data = array(
+			'schoolID' => $new_school_id,
 			'schoolName' => $this->input->post('schoolName'),
             'adminFName' => $this->input->post('adminFName'),
             'adminMName' => $this->input->post('adminMName'),
@@ -1538,8 +1552,21 @@ public function school_updates()
 
 		);
 
-		$this->db->where('recID', $this->input->post('recID'));
-		return $this->db->update('schools', $data);
+		$this->db->where('recID', $rec_id);
+		$result = $this->db->update('schools', $data);
+
+		// Update users table if schoolID changed
+		if ($result && $old_school_id && $new_school_id && $old_school_id != $new_school_id) {
+			$this->db->where('username', $old_school_id);
+			$this->db->update('users', array('username' => $new_school_id));
+		}
+
+		// Log audit trail
+		if ($result) {
+			$this->log_audit_trail('UPDATE', 'schools', $new_school_id, $old_record, $data);
+		}
+
+		return $result;
 }
 
 public function update_district_id()
@@ -1698,13 +1725,22 @@ public function dd_updates()
         'district' => $this->input->post('d_id'),
     ];
 
-    $schoolID = $this->input->post('schoolID');
+    $old_school_id = $this->input->post('old_schoolID');
+    $new_school_id = $this->input->post('schoolID');
     $tables = ['sgod_action_plan', 'sbm', 'sbm_ta', 'tana'];
 
     $this->db->trans_start();
 
     foreach ($tables as $table) {
-        $this->db->where('school_id', $schoolID)->update($table, $data);
+        // Update division and district using old schoolID
+        $this->db->where('school_id', $old_school_id);
+        $this->db->update($table, $data);
+
+        // If schoolID changed, update the school_id field in these tables too
+        if ($old_school_id && $new_school_id && $old_school_id != $new_school_id) {
+            $this->db->where('school_id', $old_school_id);
+            $this->db->update($table, array('school_id' => $new_school_id));
+        }
     }
 
     $this->db->trans_complete();
@@ -1716,6 +1752,24 @@ public function tana_summary_del(){
     $this->db->where('school_id',$this->session->username);
     $this->db->delete('tana_summary');
     return true;
+}
+
+public function log_audit_trail($action, $table_name, $record_id = null, $old_values = null, $new_values = null)
+{
+    $data = array(
+        'user_id' => isset($this->session->user_id) ? $this->session->user_id : null,
+        'username' => isset($this->session->username) ? $this->session->username : null,
+        'user_position' => isset($this->session->position) ? $this->session->position : null,
+        'action' => $action,
+        'table_name' => $table_name,
+        'record_id' => $record_id,
+        'old_values' => $old_values ? json_encode($old_values) : null,
+        'new_values' => $new_values ? json_encode($new_values) : null,
+        'ip_address' => $this->input->ip_address(),
+        'user_agent' => $this->input->user_agent()
+    );
+
+    return $this->db->insert('audit_trail', $data);
 }
 
 
