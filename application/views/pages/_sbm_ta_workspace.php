@@ -9,9 +9,10 @@ $district = ($school && !empty($school->district_id)) ? $this->Page_model->one_c
 $checklist_record = $this->Common->two_cond_row('sbm', 'school_id', $school_id, 'fy', $this->session->fy);
 $position = strtolower(trim((string) $this->session->position));
 $is_school_user = $position === 'school';
+$is_division_user = $position === 'division';
 $is_finalized = $ta_record && isset($ta_record->stat) && (int) $ta_record->stat === 1;
-$is_locked_for_user = $is_finalized && !$is_school_user;
-$can_edit = $is_school_user || !$is_locked_for_user;
+$is_locked_for_user = $is_finalized;
+$can_edit = !$is_locked_for_user;
 $validation_markup = validation_errors();
 $form_action = $ta_record ? 'Pages/tapr_form_update' : 'Pages/tapr_form';
 
@@ -1463,10 +1464,10 @@ if (!$checklist_record) {
                     </div>
 
                     <div class="workspace-actions" id="taActions">
-                        <?php if ($can_edit) : ?>
+                        <?php if ($can_edit && !$is_finalized) : ?>
                             <button type="submit" name="<?= $ta_record ? 'submit_edit' : 'submit'; ?>" class="workspace-button workspace-button-primary">
                                 <i class="mdi mdi-content-save-outline"></i>
-                                Save
+                                Save Draft
                             </button>
                         <?php endif; ?>
 
@@ -1475,11 +1476,11 @@ if (!$checklist_record) {
                                 <i class="mdi mdi-lock-check-outline"></i>
                                 Finalize TA Report
                             </a>
-                        <?php elseif ($is_locked_for_user) : ?>
-                            <button type="button" class="workspace-button workspace-button-disabled" onclick="alert('This TA report is already finalized. Coordinate with your division reviewer if an unlock is needed.')">
-                                <i class="mdi mdi-lock-outline"></i>
-                                Finalized
-                            </button>
+                        <?php elseif ($is_locked_for_user && $is_division_user) : ?>
+                            <a href="<?= base_url(); ?>Pages/sbm_ta_unlock/<?= $ta_record->id; ?>" onclick="return confirm('Are you sure you want to unlock this TA report? The school will be able to edit it again.')" class="workspace-button workspace-button-primary">
+                                <i class="mdi mdi-lock-open-outline"></i>
+                                Unlock TA Report
+                            </a>
                         <?php endif; ?>
 
                         <a href="<?= $dashboard_url; ?>" class="workspace-button workspace-button-secondary">

@@ -2157,10 +2157,8 @@ class Pages extends CI_Controller
     public function tapr_form_update()
     {
         $record = $this->Common->two_cond_row('sbm_ta', 'school_id', $this->session->username, 'fy', $this->session->fy);
-        $position = strtolower(trim((string) $this->session->position));
-        $is_school_user = $position === 'school';
 
-        if ($record && isset($record->stat) && (int) $record->stat === 1 && !$is_school_user) {
+        if ($record && isset($record->stat) && (int) $record->stat === 1) {
             $this->session->set_flashdata('danger', 'This TA form is finalized and locked. Coordinate with your division reviewer if revisions are needed.');
             redirect(base_url() . 'pages/tapr_form');
             return;
@@ -2416,18 +2414,30 @@ class Pages extends CI_Controller
 
     function sbm_ta_final()
     {
-        $position = strtolower(trim((string) $this->session->position));
-        $is_school_user = $position === 'school';
+        $this->Page_model->sbm_ta_lock_unloc(1);
+        $this->session->set_flashdata('success', 'TA report finalized successfully. It is now locked until a division reviewer unlocks it.');
+        redirect(base_url() . 'Pages/tapr_form');
+    }
 
-        if ($is_school_user) {
-            $this->session->set_flashdata('success', 'TA report saved. School accounts can continue editing at any time.');
-            redirect(base_url() . 'Pages/tapr_form');
-            return;
+    public function sbm_ta_unlock()
+    {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_division_user = $position === 'division';
+
+        if (!$is_division_user) {
+            show_error('Only division users can unlock TA reports.', 403);
         }
 
-        $this->Page_model->sbm_ta_lock_unloc(1);
-        $this->session->set_flashdata('success', 'Saved successfully.');
-        redirect(base_url() . 'Pages/tapr_form');
+        $this->Page_model->sbm_ta_lock_unloc(0);
+        $this->session->set_flashdata('success', 'TA report unlocked successfully. The school can now edit it again.');
+
+        // Check if this is called from division view (has school_id parameter)
+        $school_id = $this->uri->segment(4);
+        if ($school_id) {
+            redirect(base_url() . 'Pages/tapr_form_district/' . rawurldecode($school_id));
+        } else {
+            redirect(base_url() . 'Pages/tapr_form');
+        }
     }
 
 
@@ -4027,13 +4037,6 @@ class Pages extends CI_Controller
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
     }
-
-    function sbm_ta_unlock()
-	{
-		$this->Page_model->sbm_ta_lock_unloc(0);
-		$this->session->set_flashdata('success', 'Saved successfully.');
-		redirect($_SERVER['HTTP_REFERER']);
-	}
 
     function update_tana_summary()
 	{
