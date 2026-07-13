@@ -1715,13 +1715,11 @@ class Pages extends CI_Controller
 
         $district_id = (int) $this->uri->segment(3);
 
+        // Get all schools in the district, not just those with submissions to the selected table
         $data['data'] = $this->db
-            ->select("CAST(a.school_id AS CHAR) AS school_id, COALESCE(MAX(NULLIF(TRIM(b.schoolID), '')), CAST(a.school_id AS CHAR)) AS schoolID, COALESCE(MAX(NULLIF(TRIM(b.schoolName), '')), '') AS schoolName", false)
-            ->from($table . ' a')
-            ->join('schools b', 'TRIM(CAST(a.school_id AS CHAR)) = TRIM(b.schoolID)', 'inner', false)
-            ->where('a.fy', $this->session->fy)
-            ->where('b.district_id', $district_id)
-            ->group_by('a.school_id')
+            ->select('schoolID, schoolName')
+            ->from('schools')
+            ->where('district_id', $district_id)
             ->order_by('schoolName', 'ASC')
             ->get()
             ->result();

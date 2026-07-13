@@ -71,6 +71,16 @@ $manifestation_details = array(
     ),
 );
 
+$category_labels = array(
+    1 => 'Technical',
+    2 => 'Institutional',
+    3 => 'Financial',
+    4 => 'Political',
+    5 => 'Infrastructure',
+    6 => 'Social',
+    7 => 'Gender',
+);
+
 $school_name = $school && trim((string) $school->schoolName) !== ''
     ? $title_case($school->schoolName)
     : 'Unknown School';
@@ -857,9 +867,8 @@ $form_attributes = array(
                         <i class="mdi mdi-lifebuoy"></i>
                         District TA Review
                     </span>
-                    <h1>Technical Assistance Provision Review Workspace</h1>
+                    <h1><?= $escape($school_name); ?></h1>
                     <div class="review-meta">
-                        <span><i class="mdi mdi-school-outline"></i><?= $escape($school_name); ?></span>
                         <span><i class="mdi mdi-card-account-details-outline"></i><?= $escape($view_school_id); ?></span>
                         <span><i class="mdi mdi-map-marker-outline"></i><?= $escape($district_name); ?></span>
                         <span><i class="mdi mdi-domain"></i><?= $escape($division_name); ?></span>
@@ -868,12 +877,6 @@ $form_attributes = array(
                 </div>
 
                 <div class="review-side">
-                    <div class="school-badge">
-                        <small>School Code</small>
-                        <strong><?= $escape($school_initials); ?></strong>
-                        <small><?= $escape($view_school_id); ?></small>
-                    </div>
-
                     <div class="hero-status-card">
                         <div class="hero-status-row">
                             <div>
@@ -922,29 +925,6 @@ $form_attributes = array(
                     <?= $validation_markup; ?>
                 </div>
             <?php endif; ?>
-
-            <section class="summary-grid">
-                <article class="summary-card">
-                    <small>Total Indicators</small>
-                    <strong><?= count($indicators); ?></strong>
-                    <span>All TA review prompts for this school in the active fiscal year.</span>
-                </article>
-                <article class="summary-card">
-                    <small>School TA Entries</small>
-                    <strong><?= (int) $school_entry_count; ?></strong>
-                    <span>Indicators with at least one school-provided TA narrative or category.</span>
-                </article>
-                <article class="summary-card">
-                    <small>Reviewer Notes</small>
-                    <strong><?= (int) $review_count; ?></strong>
-                    <span>Indicators already carrying district findings or remarks.</span>
-                </article>
-                <article class="summary-card">
-                    <small>Checklist Balance</small>
-                    <strong><?= (int) $always_manifested_count; ?>/<?= (int) $manifestation_gap_count; ?></strong>
-                    <span>Always manifested indicators versus those still showing gaps or missing basis.</span>
-                </article>
-            </section>
 
             <?php if (!$has_ta_submission) : ?>
                 <section class="empty-state">
@@ -1095,7 +1075,12 @@ $form_attributes = array(
                                                             <section class="indicator-panel">
                                                                 <small>Category</small>
                                                                 <strong>Submitted support category</strong>
-                                                                <?php if ($school_category !== '') : ?>
+                                                                <?php if ($school_category !== '' && isset($category_labels[$school_category])) : ?>
+                                                                    <span class="category-chip">
+                                                                        <i class="mdi mdi-tag-outline"></i>
+                                                                        <?= $escape($category_labels[$school_category]); ?>
+                                                                    </span>
+                                                                <?php elseif ($school_category !== '') : ?>
                                                                     <span class="category-chip">
                                                                         <i class="mdi mdi-tag-outline"></i>
                                                                         <?= $escape($school_category); ?>
