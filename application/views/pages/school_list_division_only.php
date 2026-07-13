@@ -151,7 +151,7 @@
                                         <a href="<?= base_url(); ?>Pages/school_update/<?= html_escape($row->schoolID); ?>" class="btn btn-sm btn-warning" title="Edit">
                                             <i class="mdi mdi-pencil"></i>
                                         </a>
-                                        <a href="<?= base_url(); ?>Pages/school_delete/<?= html_escape($row->schoolID); ?>" onclick="return confirm('Are you sure you want to delete this school?')" class="btn btn-sm btn-danger" title="Delete">
+                                        <a href="<?= base_url(); ?>Pages/school_delete/<?= html_escape($row->recID); ?>" onclick="return confirm('Are you sure you want to delete this school?')" class="btn btn-sm btn-danger" title="Delete">
                                             <i class="mdi mdi-delete"></i>
                                         </a>
                                     </td>

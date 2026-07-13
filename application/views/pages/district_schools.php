@@ -401,7 +401,7 @@ $hero_title = (!$is_admin_view && empty($division_school_scope))
                                                 <i class="mdi mdi-pencil-outline"></i> Edit
                                             </a>
                                             <?php if ($can_delete) : ?>
-                                            <a onclick="return confirm('Are you sure you want to delete this school?');" href="<?= base_url(); ?>pages/school_delete/<?= rawurlencode($school_id); ?>" class="btn btn-sm btn-outline-danger">
+                                            <a onclick="return confirm('Are you sure you want to delete this school?');" href="<?= base_url(); ?>pages/school_delete/<?= html_escape($row->recID); ?>" class="btn btn-sm btn-outline-danger">
                                                 <i class="mdi mdi-trash-can-outline"></i> Delete
                                             </a>
                                             <?php else : ?>

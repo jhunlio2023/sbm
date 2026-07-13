@@ -1230,17 +1230,19 @@ class Pages extends CI_Controller
             show_error('Only admin and division users can delete schools.', 403);
         }
 
-        $school_id = $this->uri->segment(3);
+        $rec_id = $this->uri->segment(3);
 
-        if (empty($school_id)) {
+        if (empty($rec_id)) {
             show_404();
         }
 
-        $school = $this->Page_model->one_cond_row('schools', 'schoolID', $school_id);
+        $school = $this->Page_model->one_cond_row('schools', 'recID', $rec_id);
 
         if (!$school) {
             show_404();
         }
+
+        $school_id = $school->schoolID;
 
         // For division users, verify school belongs to their division
         if ($this->session->position === 'division' && $school->division_id != $this->session->division) {
@@ -1260,8 +1262,10 @@ class Pages extends CI_Controller
         $this->Page_model->log_audit_trail('DELETE', 'schools', $school_id, $school, null);
 
         // Delete school and associated user
-        $this->Page_model->delete('schools', 'schoolID', $school_id);
-        $this->Page_model->delete('users', 'username', $school_id);
+        $this->db->where('schoolID', $school_id);
+        $this->db->delete('schools');
+        $this->db->where('username', $school_id);
+        $this->db->delete('users');
 
         $this->session->set_flashdata('success', 'Successfully deleted.');
         redirect(base_url() . 'pages/school_list');
@@ -1596,7 +1600,7 @@ class Pages extends CI_Controller
 
         // Load schools for this division only with district info
         $data['data'] = $this->db
-            ->select('s.schoolID, s.schoolName, d.description as district_name')
+            ->select('s.recID, s.schoolID, s.schoolName, d.description as district_name')
             ->from('schools s')
             ->join('district d', 's.district_id = d.id', 'left')
             ->where('s.division_id', $this->session->division)

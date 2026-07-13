@@ -498,7 +498,7 @@ $signup_rate = isset($signup_percentage) ? (float) $signup_percentage : 0;
                                                                 </a>
                                                                 <a
                                                                     onclick="return confirm('Delete this school and its account?');"
-                                                                    href="<?= base_url(); ?>Pages/school_delete/<?= rawurlencode($school_id); ?>"
+                                                                    href="<?= base_url(); ?>Pages/school_delete/<?= html_escape($school->recID); ?>"
                                                                     class="btn btn-danger btn-sm"
                                                                 >
                                                                     <i class="mdi mdi-trash-can-outline"></i> Delete
