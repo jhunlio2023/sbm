@@ -234,8 +234,8 @@ $workflow_cards = array(
     array(
         'title' => 'TANA Scoring',
         'icon' => 'mdi-chart-line',
-        'status' => !$tana_form ? 'Not started' : 'Draft saved',
-        'state_class' => !$tana_form ? 'state-empty' : 'state-draft',
+        'status' => !$tana_form ? 'Not started' : ($tana_indicator_count === 42 ? 'Completed' : 'Draft saved'),
+        'state_class' => !$tana_form ? 'state-empty' : ($tana_indicator_count === 42 ? 'state-complete' : 'state-draft'),
         'summary' => !$tana_form
             ? 'Score indicators to surface the strongest technical assistance needs.'
             : $tana_indicator_count . ' of 42 indicators have TANA scores.',
@@ -245,7 +245,7 @@ $workflow_cards = array(
     array(
         'title' => 'Priority Ranking',
         'icon' => 'mdi-format-list-numbered',
-        'status' => !$tana_summary_count ? 'Not started' : ($tana_summary_finalized ? 'Finalized' : 'In progress'),
+        'status' => !$tana_summary_count ? 'Not started' : ($tana_summary_finalized ? 'Finalized' : ''),
         'state_class' => !$tana_summary_count ? 'state-empty' : ($tana_summary_finalized ? 'state-complete' : 'state-draft'),
         'summary' => !$tana_summary_count
             ? 'Rank the top concerns after scoring your TANA indicators.'
@@ -1247,7 +1247,7 @@ if (!$checklist) {
                 <div class="dashboard-stat-top">
                     <div>
                         <small>TANA Priorities</small>
-                        <h3><?= (int) $tana_summary_count; ?>/20</h3>
+                        <h3><?= (int) $tana_summary_count; ?></h3>
                         <p><?= $tana_summary_finalized ? 'Priority list finalized and ready for follow-through.' : 'Ranked TANA priorities saved for this fiscal year.'; ?></p>
                     </div>
                     <span class="dashboard-stat-icon"><i class="mdi mdi-format-list-numbered"></i></span>
@@ -1386,86 +1386,6 @@ if (!$checklist) {
         </div>
 
         <div class="col-xl-4">
-            <section class="dashboard-panel">
-                <div class="dashboard-panel-header">
-                    <div>
-                        <h4>What To Do Next</h4>
-                        <p>A focused recommendation based on the current state of the school’s submissions.</p>
-                    </div>
-                </div>
-                <div class="dashboard-panel-body">
-                    <div class="next-step-card">
-                        <span class="next-step-eyebrow">
-                            <i class="mdi mdi-compass-outline"></i>
-                            <?= html_escape($next_step['eyebrow']); ?>
-                        </span>
-                        <h5><?= html_escape($next_step['title']); ?></h5>
-                        <p><?= html_escape($next_step['description']); ?></p>
-                        <div class="next-step-actions">
-                            <a href="<?= $next_step['url']; ?>" class="module-link">
-                                <i class="mdi mdi-arrow-right"></i>
-                                <?= html_escape($next_step['cta']); ?>
-                            </a>
-                            <a href="<?= $next_step['secondary_url']; ?>" class="module-link module-link-secondary">
-                                <i class="mdi mdi-open-in-new"></i>
-                                <?= html_escape($next_step['secondary_cta']); ?>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="dashboard-panel">
-                <div class="dashboard-panel-header">
-                    <div>
-                        <h4>School Snapshot</h4>
-                        <p>Key school details pulled into one place for quick checking before you work on the forms.</p>
-                    </div>
-                </div>
-                <div class="dashboard-panel-body">
-                    <div class="snapshot-grid">
-                        <div class="snapshot-card">
-                            <i class="mdi mdi-account-tie-outline"></i>
-                            <small>School Head</small>
-                            <strong><?= html_escape($school_head_name); ?></strong>
-                            <p>Keep leadership details current so reports and records stay aligned.</p>
-                        </div>
-                        <div class="snapshot-card">
-                            <i class="mdi mdi-email-outline"></i>
-                            <small>School Email</small>
-                            <div class="email-box">
-                                <strong><?= html_escape($school_email); ?></strong>
-                            </div>
-                            <p><?= $school_email !== 'Not provided' ? 'Main school contact listed in the system.' : 'No school email has been saved yet.'; ?></p>
-                        </div>
-                        <div class="snapshot-card">
-                            <i class="mdi mdi-shield-check-outline"></i>
-                            <small>SGC Status</small>
-                            <strong><?= html_escape($school_sgc); ?></strong>
-                            <p>Governance status recorded on the school profile.</p>
-                        </div>
-                        <div class="snapshot-card">
-                            <i class="mdi mdi-book-education-outline"></i>
-                            <small>School Category</small>
-                            <strong><?= html_escape($school_category); ?></strong>
-                            <p><?= html_escape($school_offering); ?></p>
-                        </div>
-                        <div class="snapshot-card">
-                            <i class="mdi mdi-map-marker-outline"></i>
-                            <small>Location</small>
-                            <strong><?= html_escape($location); ?></strong>
-                            <p><?= html_escape($district_name); ?>, <?= html_escape($division_name); ?></p>
-                        </div>
-                        <div class="snapshot-card">
-                            <i class="mdi mdi-file-document-edit-outline"></i>
-                            <small>Action Plan</small>
-                            <strong><?= (int) $action_plan_count; ?> item<?= $action_plan_count === 1 ? '' : 's'; ?></strong>
-                            <p><?= $action_plan_count > 0 ? 'There are already action plan entries to review or print.' : 'No action plan entries have been recorded yet.'; ?></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
             <section class="dashboard-panel">
                 <div class="dashboard-panel-header">
                     <div>

@@ -10,7 +10,7 @@ if ($this->session->logged_in == false || $this->session->virified == 1) {
 
     <head>
         <meta charset="utf-8" />
-        <title>SBM - School-Based Management</title>
+        <title>FTAD OneView</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta content="Responsive bootstrap 4 admin template" name="description" />
         <meta content="Coderthemes" name="author" />

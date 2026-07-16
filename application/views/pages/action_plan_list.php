@@ -808,7 +808,7 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
     </div>
 
     <div class="row plan-stats">
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4 col-xl-4">
             <div class="plan-stat-card">
                 <div class="plan-stat-top">
                     <div>
@@ -822,21 +822,7 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
-            <div class="plan-stat-card">
-                <div class="plan-stat-top">
-                    <div>
-                        <small>People Involved</small>
-                        <h3><?= $unique_owners; ?></h3>
-                        <p><?= $unique_owners > 0 ? 'Distinct owners or teams identified across the action plan.' : 'No people involved have been assigned yet.'; ?></p>
-                    </div>
-                    <span class="plan-stat-icon"><i class="mdi mdi-account-group-outline"></i></span>
-                </div>
-                <div class="mini-progress"><span style="width: <?= $total_entries > 0 ? min(100, ($unique_owners / $total_entries) * 100) : 0; ?>%;"></span></div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4 col-xl-4">
             <div class="plan-stat-card">
                 <div class="plan-stat-top">
                     <div>
@@ -850,7 +836,7 @@ if ($total_entries > 0 && $budgeted_entries < $total_entries) {
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4 col-xl-4">
             <div class="plan-stat-card">
                 <div class="plan-stat-top">
                     <div>

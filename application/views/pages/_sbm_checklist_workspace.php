@@ -1658,6 +1658,11 @@ if ($checklist_record && !$all_answered && $can_edit) {
                                 <i class="mdi mdi-alert-circle-outline"></i>
                                 Finalize Checklist
                             </button>
+                        <?php elseif ($is_finalized && $is_school_user) : ?>
+                            <a href="<?= base_url(); ?>Pages/sbm_checklist_unlock_request/<?= $checklist_record->id; ?>" onclick="return confirm('Are you sure you want to request an unlock for this checklist? A notification will be sent to your division reviewer.')" class="workspace-button workspace-button-warning">
+                                <i class="mdi mdi-lock-open-variant-outline"></i>
+                                Request to Unlock
+                            </a>
                         <?php endif; ?>
 
                         <?php if ($can_unlock) : ?>

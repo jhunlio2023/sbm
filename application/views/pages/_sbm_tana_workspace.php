@@ -170,7 +170,7 @@ foreach ($principles as $principle) {
 }
 
 $mean_priority_score = $fully_scored_count > 0 ? $full_priority_total / $fully_scored_count : 0;
-$status_label = !$tana_record ? 'Not started' : 'Draft saved';
+$status_label = !$tana_record ? 'Not started' : ($fully_scored_count === $total_questions ? 'Completed' : 'Draft saved');
 $summary_status_label = $summary_record_count === 0 ? 'Not generated' : ($summary_finalized ? 'Finalized' : 'Draft shortlist');
 $dimension_averages = array();
 foreach ($score_dimensions as $prefix => $dimension) {
@@ -1223,7 +1223,7 @@ if (!$ta_record || $ready_concern_count === 0) {
     <?php endif; ?>
 
     <div class="row tana-stats">
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4 col-xl-4">
             <div class="tana-stat-card">
                 <div class="tana-stat-top">
                     <div>
@@ -1237,7 +1237,7 @@ if (!$ta_record || $ready_concern_count === 0) {
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4 col-xl-4">
             <div class="tana-stat-card">
                 <div class="tana-stat-top">
                     <div>
@@ -1251,7 +1251,7 @@ if (!$ta_record || $ready_concern_count === 0) {
             </div>
         </div>
 
-        <div class="col-md-6 col-xl-3">
+        <div class="col-md-4 col-xl-4">
             <div class="tana-stat-card">
                 <div class="tana-stat-top">
                     <div>
@@ -1262,20 +1262,6 @@ if (!$ta_record || $ready_concern_count === 0) {
                     <span class="tana-stat-icon"><i class="mdi mdi-chart-box-outline"></i></span>
                 </div>
                 <div class="mini-progress"><span style="width: <?= $fully_scored_count > 0 ? min(100, ($mean_priority_score / 5) * 100) : 0; ?>%;"></span></div>
-            </div>
-        </div>
-
-        <div class="col-md-6 col-xl-3">
-            <div class="tana-stat-card">
-                <div class="tana-stat-top">
-                    <div>
-                        <small>Summary Status</small>
-                        <h3><?= $escape($summary_status_label); ?></h3>
-                        <p><?= $summary_record_count === 0 ? 'No TANA shortlist has been generated yet.' : ($summary_finalized ? 'The TANA shortlist has been finalized for this fiscal year.' : $summary_record_count . ' shortlist item(s) are currently saved and can still be reviewed.'); ?></p>
-                    </div>
-                    <span class="tana-stat-icon"><i class="mdi mdi-format-list-numbered"></i></span>
-                </div>
-                <div class="mini-progress"><span style="width: <?= $summary_record_count > 0 ? ($summary_finalized ? 100 : min(100, $summary_record_count * 5)) : 0; ?>%;"></span></div>
             </div>
         </div>
     </div>

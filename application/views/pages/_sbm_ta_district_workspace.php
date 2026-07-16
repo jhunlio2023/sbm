@@ -875,31 +875,6 @@ $form_attributes = array(
                         <span><i class="mdi mdi-calendar-range"></i><?= $escape($fiscal_year_label); ?></span>
                     </div>
                 </div>
-
-                <div class="review-side">
-                    <div class="hero-status-card">
-                        <div class="hero-status-row">
-                            <div>
-                                <small>Review Status</small>
-                                <strong><?= $escape($status_label); ?></strong>
-                            </div>
-                            <span class="status-pill <?= $escape($status_class); ?>">
-                                <i class="mdi <?= $is_locked ? 'mdi-lock-outline' : ($has_ta_submission ? 'mdi-file-document-edit-outline' : 'mdi-alert-circle-outline'); ?>"></i>
-                                <?= $escape($has_ta_submission ? ($is_locked ? 'Locked' : 'Active') : 'Waiting'); ?>
-                            </span>
-                        </div>
-                        <div class="hero-status-row">
-                            <div>
-                                <small>Reviewer Coverage</small>
-                                <strong><?= (int) $review_count; ?> of <?= count($indicators); ?> indicators</strong>
-                            </div>
-                            <span class="status-pill status-active">
-                                <i class="mdi mdi-clipboard-text-outline"></i>
-                                <?= $escape($submit_label); ?>
-                            </span>
-                        </div>
-                    </div>
-                </div>
             </section>
 
             <?php if ($this->session->flashdata('success')) : ?>
@@ -1101,7 +1076,7 @@ $form_attributes = array(
 
                                                             <section class="indicator-panel panel-review">
                                                                 <small>Reviewer finding</small>
-                                                                <strong>Significant finding</strong>
+                                                                <strong>Significant Findings</strong>
                                                                 <textarea
                                                                     class="review-textarea"
                                                                     name="fs<?= (int) $indicator_no; ?>"

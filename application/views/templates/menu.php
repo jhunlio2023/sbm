@@ -8,6 +8,90 @@
         <div class="navbar-custom">
             <ul class="list-unstyled topnav-menu float-right mb-0">
 
+                <?php if ($this->session->position == 'division') : ?>
+                    <?php
+                    // Ensure table exists before querying
+                    $this->db->query("CREATE TABLE IF NOT EXISTS `unlock_request` (
+                      `id` int(11) NOT NULL AUTO_INCREMENT,
+                      `request_type` enum('ta','checklist') NOT NULL DEFAULT 'ta',
+                      `ta_id` int(11) DEFAULT NULL,
+                      `checklist_id` int(11) DEFAULT NULL,
+                      `school_id` varchar(255) NOT NULL,
+                      `division_id` int(11) NOT NULL,
+                      `requested_by` varchar(255) NOT NULL,
+                      `request_date` datetime NOT NULL,
+                      `status` enum('pending','approved','cleared') DEFAULT 'pending',
+                      `processed_date` datetime DEFAULT NULL,
+                      `processed_by` varchar(255) DEFAULT NULL,
+                      PRIMARY KEY (`id`),
+                      KEY `request_type` (`request_type`),
+                      KEY `ta_id` (`ta_id`),
+                      KEY `checklist_id` (`checklist_id`),
+                      KEY `school_id` (`school_id`),
+                      KEY `division_id` (`division_id`),
+                      KEY `status` (`status`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+                    $pending_requests = $this->db->where('division_id', $this->session->division)
+                        ->where('status', 'pending')
+                        ->order_by('request_date', 'DESC')
+                        ->get('unlock_request')
+                        ->result();
+                    $request_count = count($pending_requests);
+                    ?>
+                    <li class="dropdown notification-list">
+                        <a class="nav-link dropdown-toggle arrow-none waves-effect" data-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">
+                            <i class="mdi mdi-bell-outline noti-icon"></i>
+                            <?php if ($request_count > 0) : ?>
+                                <span class="noti-icon-badge"><?= $request_count; ?></span>
+                            <?php endif; ?>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right dropdown-menu-animated dropdown-lg">
+                            <div class="dropdown-item noti-title">
+                                <h5 class="m-0">
+                                    <span class="float-right">
+                                        <a href="<?= base_url(); ?>Pages/clear_unlock_requests" class="text-dark">
+                                            <small>Clear All</small>
+                                        </a>
+                                    </span>
+                                    Unlock Requests
+                                </h5>
+                            </div>
+                            <?php if ($request_count > 0) : ?>
+                                <?php foreach ($pending_requests as $request) : ?>
+                                    <?php
+                                    $school = $this->Common->one_cond_row('schools', 'schoolID', $request->school_id);
+                                    $school_name = $school ? $school->schoolName : 'Unknown School';
+                                    $request_type_label = $request->request_type == 'ta' ? 'TA Report' : 'Checklist';
+                                    ?>
+                                    <a href="<?= base_url(); ?>Pages/unlock_request_view/<?= $request->id; ?>" class="dropdown-item notify-item active">
+                                        <div class="notify-icon">
+                                            <i class="mdi mdi-lock-open-variant-outline text-primary"></i>
+                                        </div>
+                                        <p class="notify-details">
+                                            <strong><?= html_escape($school_name); ?></strong>
+                                            <small class="text-muted">Requested <?= html_escape($request_type_label); ?> unlock</small>
+                                            <small class="text-muted"><?= date('M d, H:i', strtotime($request->request_date)); ?></small>
+                                        </p>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php else : ?>
+                                <div class="dropdown-item notify-item">
+                                    <div class="notify-icon">
+                                        <i class="mdi mdi-check-circle-outline text-success"></i>
+                                    </div>
+                                    <p class="notify-details">
+                                        <strong>No pending requests</strong>
+                                        <small class="text-muted">All unlock requests have been processed</small>
+                                    </p>
+                                </div>
+                            <?php endif; ?>
+                            <a href="<?= base_url(); ?>Pages/unlock_requests" class="dropdown-item notify-item text-center text-primary">
+                                View All Requests
+                            </a>
+                        </div>
+                    </li>
+                <?php endif; ?>
 
                 <li class="dropdown notification-list">
                     <a class="nav-link dropdown-toggle nav-user mr-0 waves-effect" data-toggle="dropdown" href="#" role="button" aria-haspopup="false" aria-expanded="false">

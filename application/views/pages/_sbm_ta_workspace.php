@@ -1481,6 +1481,11 @@ if (!$checklist_record) {
                                 <i class="mdi mdi-lock-open-outline"></i>
                                 Unlock TA Report
                             </a>
+                        <?php elseif ($is_locked_for_user && $is_school_user) : ?>
+                            <a href="<?= base_url(); ?>Pages/sbm_ta_unlock_request/<?= $ta_record->id; ?>" onclick="return confirm('Are you sure you want to request an unlock for this TA report? A notification will be sent to your division reviewer.')" class="workspace-button workspace-button-warning">
+                                <i class="mdi mdi-lock-open-variant-outline"></i>
+                                Request to Unlock
+                            </a>
                         <?php endif; ?>
 
                         <a href="<?= $dashboard_url; ?>" class="workspace-button workspace-button-secondary">

@@ -11,7 +11,7 @@
                     <div class="container-fluid">
                         <div class="row">
                             <div class="col-md-12">
-                                2022 - <?= date('Y'); ?> &copy;
+                                &copy; <?= date('Y'); ?> FTAD OneView. All Rights Reserved.
                             </div>
                         </div>
                     </div>

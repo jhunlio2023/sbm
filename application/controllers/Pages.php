@@ -2430,6 +2430,20 @@ class Pages extends CI_Controller
             show_error('Only division users can unlock TA reports.', 403);
         }
 
+        $this->ensure_unlock_request_table();
+
+        $ta_id = $this->uri->segment(3);
+        if ($ta_id) {
+            // Mark any pending unlock requests for this TA as approved
+            $this->db->where('ta_id', $ta_id)
+                ->where('status', 'pending')
+                ->update('unlock_request', array(
+                    'status' => 'approved',
+                    'processed_date' => date('Y-m-d H:i:s'),
+                    'processed_by' => $this->session->username
+                ));
+        }
+
         $this->Page_model->sbm_ta_lock_unloc(0);
         $this->session->set_flashdata('success', 'TA report unlocked successfully. The school can now edit it again.');
 
@@ -2440,6 +2454,252 @@ class Pages extends CI_Controller
         } else {
             redirect(base_url() . 'Pages/tapr_form');
         }
+    }
+
+    private function ensure_unlock_request_table()
+    {
+        // Create table if it doesn't exist
+        $this->db->query("CREATE TABLE IF NOT EXISTS `unlock_request` (
+          `id` int(11) NOT NULL AUTO_INCREMENT,
+          `ta_id` int(11) NOT NULL,
+          `school_id` varchar(255) NOT NULL,
+          `division_id` int(11) NOT NULL,
+          `requested_by` varchar(255) NOT NULL,
+          `request_date` datetime NOT NULL,
+          `status` enum('pending','approved','cleared') DEFAULT 'pending',
+          `processed_date` datetime DEFAULT NULL,
+          `processed_by` varchar(255) DEFAULT NULL,
+          PRIMARY KEY (`id`),
+          KEY `ta_id` (`ta_id`),
+          KEY `school_id` (`school_id`),
+          KEY `division_id` (`division_id`),
+          KEY `status` (`status`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+        // Check if request_type column exists, if not add it
+        $columns = $this->db->query("SHOW COLUMNS FROM `unlock_request` LIKE 'request_type'")->num_rows();
+        if ($columns == 0) {
+            $this->db->query("ALTER TABLE `unlock_request` ADD COLUMN `request_type` enum('ta','checklist') NOT NULL DEFAULT 'ta' AFTER `id`");
+            $this->db->query("ALTER TABLE `unlock_request` ADD INDEX `request_type` (`request_type`)");
+        }
+
+        // Check if checklist_id column exists, if not add it
+        $columns = $this->db->query("SHOW COLUMNS FROM `unlock_request` LIKE 'checklist_id'")->num_rows();
+        if ($columns == 0) {
+            $this->db->query("ALTER TABLE `unlock_request` ADD COLUMN `checklist_id` int(11) DEFAULT NULL AFTER `ta_id`");
+            $this->db->query("ALTER TABLE `unlock_request` ADD INDEX `checklist_id` (`checklist_id`)");
+        }
+
+        // Make ta_id nullable if it's not
+        $this->db->query("ALTER TABLE `unlock_request` MODIFY COLUMN `ta_id` int(11) DEFAULT NULL");
+    }
+
+    public function sbm_ta_unlock_request()
+    {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_school_user = $position === 'school';
+
+        if (!$is_school_user) {
+            show_error('Only school users can request TA report unlocks.', 403);
+        }
+
+        $ta_id = $this->uri->segment(3);
+        if (empty($ta_id)) {
+            show_404();
+        }
+
+        // Ensure table exists
+        $this->ensure_unlock_request_table();
+
+        // Get the TA record to get school_id
+        $ta_record = $this->Common->one_cond_row('sbm_ta', 'id', $ta_id);
+        if (!$ta_record) {
+            show_404();
+        }
+
+        // Get school to get division_id
+        $school = $this->Common->one_cond_row('schools', 'schoolID', $ta_record->school_id);
+        if (!$school) {
+            show_error('School not found.', 404);
+        }
+
+        // Check if request already exists
+        $existing_request = $this->db->where('ta_id', $ta_id)
+            ->where('status', 'pending')
+            ->get('unlock_request')
+            ->row();
+
+        if ($existing_request) {
+            $this->session->set_flashdata('danger', 'An unlock request is already pending for this TA report.');
+            redirect(base_url() . 'Pages/tapr_form');
+        }
+
+        // Create unlock request
+        $request_data = array(
+            'request_type' => 'ta',
+            'ta_id' => $ta_id,
+            'school_id' => $ta_record->school_id,
+            'division_id' => $school->division_id,
+            'requested_by' => $this->session->username,
+            'request_date' => date('Y-m-d H:i:s'),
+            'status' => 'pending'
+        );
+
+        $this->db->insert('unlock_request', $request_data);
+
+        $this->session->set_flashdata('success', 'Unlock request sent to your division reviewer. You will be notified when it is approved.');
+        redirect(base_url() . 'Pages/tapr_form');
+    }
+
+    public function sbm_checklist_unlock_request()
+    {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_school_user = $position === 'school';
+
+        if (!$is_school_user) {
+            show_error('Only school users can request checklist unlocks.', 403);
+        }
+
+        $checklist_id = $this->uri->segment(3);
+        if (empty($checklist_id)) {
+            show_404();
+        }
+
+        $this->ensure_unlock_request_table();
+
+        // Get the checklist record to get school_id
+        $checklist_record = $this->Common->one_cond_row('sbm', 'id', $checklist_id);
+        if (!$checklist_record) {
+            show_404();
+        }
+
+        // Get school to get division_id
+        $school = $this->Common->one_cond_row('schools', 'schoolID', $checklist_record->school_id);
+        if (!$school) {
+            show_error('School not found.', 404);
+        }
+
+        // Check if request already exists
+        $existing_request = $this->db->where('checklist_id', $checklist_id)
+            ->where('status', 'pending')
+            ->get('unlock_request')
+            ->row();
+
+        if ($existing_request) {
+            $this->session->set_flashdata('danger', 'An unlock request is already pending for this checklist.');
+            redirect(base_url() . 'Pages/sbm_checklist');
+        }
+
+        // Create unlock request
+        $request_data = array(
+            'request_type' => 'checklist',
+            'checklist_id' => $checklist_id,
+            'school_id' => $checklist_record->school_id,
+            'division_id' => $school->division_id,
+            'requested_by' => $this->session->username,
+            'request_date' => date('Y-m-d H:i:s'),
+            'status' => 'pending'
+        );
+
+        $this->db->insert('unlock_request', $request_data);
+
+        $this->session->set_flashdata('success', 'Unlock request sent to your division reviewer. You will be notified when it is approved.');
+        redirect(base_url() . 'Pages/sbm_checklist');
+    }
+
+    public function clear_unlock_requests()
+    {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_division_user = $position === 'division';
+
+        if (!$is_division_user) {
+            show_error('Only division users can clear unlock requests.', 403);
+        }
+
+        $this->ensure_unlock_request_table();
+
+        $this->db->where('division_id', $this->session->division)
+            ->where('status', 'pending')
+            ->update('unlock_request', array('status' => 'cleared'));
+
+        $this->session->set_flashdata('success', 'All pending unlock requests have been cleared.');
+        redirect(base_url());
+    }
+
+    public function unlock_requests()
+    {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_division_user = $position === 'division';
+
+        if (!$is_division_user) {
+            show_error('Only division users can view unlock requests.', 403);
+        }
+
+        $this->ensure_unlock_request_table();
+
+        $page = "unlock_requests";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "TA Unlock Requests";
+        $data['requests'] = $this->db->where('division_id', $this->session->division)
+            ->order_by('request_date', 'DESC')
+            ->get('unlock_request')
+            ->result();
+
+        $this->load->view('templates/header');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_basic');
+    }
+
+    public function unlock_request_view()
+    {
+        $position = strtolower(trim((string) $this->session->position));
+        $is_division_user = $position === 'division';
+
+        if (!$is_division_user) {
+            show_error('Only division users can view unlock requests.', 403);
+        }
+
+        $this->ensure_unlock_request_table();
+
+        $request_id = $this->uri->segment(3);
+        if (empty($request_id)) {
+            show_404();
+        }
+
+        $request = $this->db->where('id', $request_id)
+            ->where('division_id', $this->session->division)
+            ->get('unlock_request')
+            ->row();
+
+        if (!$request) {
+            show_404();
+        }
+
+        $school = $this->Common->one_cond_row('schools', 'schoolID', $request->school_id);
+        $ta_record = $this->Common->one_cond_row('sbm_ta', 'id', $request->ta_id);
+
+        $page = "unlock_request_view";
+
+        if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
+            show_404();
+        }
+
+        $data['title'] = "TA Unlock Request Details";
+        $data['request'] = $request;
+        $data['school'] = $school;
+        $data['ta_record'] = $ta_record;
+
+        $this->load->view('templates/header');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/' . $page, $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_basic');
     }
 
 
@@ -4012,9 +4272,30 @@ class Pages extends CI_Controller
 
     function sbm_checklist_unlock()
 	{
+        $position = strtolower(trim((string) $this->session->position));
+        $is_division_user = $position === 'division';
+
+        if (!$is_division_user) {
+            show_error('Only division users can unlock checklists.', 403);
+        }
+
+        $this->ensure_unlock_request_table();
+
+        $checklist_id = $this->uri->segment(3);
+        if ($checklist_id) {
+            // Mark any pending unlock requests for this checklist as approved
+            $this->db->where('checklist_id', $checklist_id)
+                ->where('status', 'pending')
+                ->update('unlock_request', array(
+                    'status' => 'approved',
+                    'processed_date' => date('Y-m-d H:i:s'),
+                    'processed_by' => $this->session->username
+                ));
+        }
+
 		$this->Page_model->sbm_cecklist_lock_unloc(0);
-		$this->session->set_flashdata('success', 'Saved successfully.');
-		redirect($_SERVER['HTTP_REFERER']);
+		$this->session->set_flashdata('success', 'Checklist unlocked successfully. The school can now edit it again.');
+        redirect($_SERVER['HTTP_REFERER']);
 	}
 
     public function district_userlist_by_division()
