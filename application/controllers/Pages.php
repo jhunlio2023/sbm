@@ -434,7 +434,7 @@ class Pages extends CI_Controller
                 ? ($data['completed_checklist_count'] / $data['encoded_total_schools']) * 100
                 : 0;
             $data['title'] = "Dashboard";
-        } elseif ($this->session->position == 'division') {
+        } elseif ($this->session->position == 'division' || $this->session->position == 'division_head') {
             $page = "dashboard_division";
             $data['sbm'] = $this->Common->no_cond('sbm_indicator');
             $data['sbm_sub'] = $this->Common->no_cond('sbm_sub_indicator');

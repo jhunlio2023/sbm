@@ -280,6 +280,36 @@
 
                         <?php } ?>
 
+                        <?php if ($this->session->position == 'division_head') { ?>
+                            <!-- <li><a href="<?= base_url(); ?>pages/schools_division/<?= $this->session->division; ?>" class="waves-effect"><i class="fas fa-school"></i><span>Schools</span></a></li> -->
+                            
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-format-list-checks"></i>
+                                    <span> SBM</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/district_list">District List</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/school_list_division_only">School List</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/tana_summary_division">TANA</a></li>
+                                </ul>
+
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect">
+                                    <i class="mdi mdi-chart-line"></i>
+                                    <span> Reports</span>
+                                    <span class="menu-arrow"></span>
+                                </a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url(); ?>Pages/division_checklist_completed_details">Checklist Completion</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
+
+                        <?php } ?>
+
                         <?php if ($this->session->position == 'region') { ?>
 
                             <li>
