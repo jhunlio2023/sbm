@@ -423,7 +423,7 @@ $signup_rate = isset($signup_percentage) ? (float) $signup_percentage : 0;
                                         <i class="mdi mdi-pencil-outline"></i> Edit District
                                     </a>
                                     <?php } ?>
-                                    <?php if($this->session->position == 'Admin'){ ?>
+                                    <?php if($this->session->position == 'division' || $this->session->position == 'Admin'){ ?>
                                     <a
                                         onclick="return confirm('Delete this district and all its schools?');"
                                         href="<?= base_url(); ?>Pages/district_delete/<?= $district_row->id; ?>"

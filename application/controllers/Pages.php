@@ -3992,8 +3992,8 @@ class Pages extends CI_Controller
 
     public function district_delete()
     {
-        if (!$this->session->logged_in || $this->session->position !== 'Admin') {
-            show_error('Only admin users can delete districts.', 403);
+        if (!$this->session->logged_in || !in_array($this->session->position, array('division', 'Admin'), true)) {
+            show_error('Only division and admin users can delete districts.', 403);
         }
 
         $district_id = $this->uri->segment(3);
@@ -4006,6 +4006,11 @@ class Pages extends CI_Controller
 
         if (!$district) {
             show_404();
+        }
+
+        // Division users can only delete districts in their own division
+        if ($this->session->position === 'division' && (int) $district->division_id !== (int) $this->session->division) {
+            show_error('You can only delete districts within your own division.', 403);
         }
 
         $this->Page_model->district_delete($district_id);
