@@ -318,10 +318,9 @@ $dashboard_url = base_url();
                                                     Edit
                                                 </a>
                                                 <?php if (strtolower((string) $this->session->position) !== 'district') { ?>
-                                                    <a onclick="return confirm('Are you sure you want to delete this school?')" href="<?=base_url(); ?>Pages/school_delete/<?= $row->recID; ?>" class="action-btn action-btn-delete">
-                                                        <i class="mdi mdi-trash-can-outline"></i>
-                                                        Delete
-                                                    </a>
+                                                    <form method="post" action="<?= base_url(); ?>Pages/school_delete/<?= $row->recID; ?>" style="display:inline;" onsubmit="return confirm('This permanently deletes the school, its account, and all associated submissions. Continue?');">
+                                                        <button type="submit" class="action-btn action-btn-delete"><i class="mdi mdi-trash-can-outline"></i> Delete</button>
+                                                    </form>
                                                 <?php } ?>
                                             </div>
                                         </td>

@@ -496,13 +496,9 @@ $signup_rate = isset($signup_percentage) ? (float) $signup_percentage : 0;
                                                                 <a href="<?= base_url(); ?>Pages/school_update/<?= $school->recID; ?>" class="btn btn-primary btn-sm">
                                                                     <i class="mdi mdi-pencil-outline"></i> Edit
                                                                 </a>
-                                                                <a
-                                                                    onclick="return confirm('Delete this school and its account?');"
-                                                                    href="<?= base_url(); ?>Pages/school_delete/<?= html_escape($school->recID); ?>"
-                                                                    class="btn btn-danger btn-sm"
-                                                                >
-                                                                    <i class="mdi mdi-trash-can-outline"></i> Delete
-                                                                </a>
+                                                                <form method="post" action="<?= base_url(); ?>Pages/school_delete/<?= html_escape($school->recID); ?>" style="display:inline;" onsubmit="return confirm('This permanently deletes the school, its account, and all associated submissions. Continue?');">
+                                                                    <button type="submit" class="btn btn-danger btn-sm"><i class="mdi mdi-trash-can-outline"></i> Delete</button>
+                                                                </form>
                                                             </div>
                                                         </td>
                                                     </tr>

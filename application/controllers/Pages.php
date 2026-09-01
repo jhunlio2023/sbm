@@ -1230,6 +1230,10 @@ class Pages extends CI_Controller
             show_error('Only admin and division users can delete schools.', 403);
         }
 
+        if (strtoupper($this->input->method(TRUE)) !== 'POST') {
+            show_error('School deletion must be confirmed before it can be processed.', 405);
+        }
+
         $rec_id = $this->uri->segment(3);
 
         if (empty($rec_id)) {
@@ -1249,25 +1253,41 @@ class Pages extends CI_Controller
             show_error('You can only delete schools from your own division.', 403);
         }
 
-        // Check if school has completed Self-Assessment and Action Plan
-        $has_action_plan = $this->Page_model->submission_school_ids('sgod_action_plan', $this->session->fy, [$school_id]);
-        $has_self_assessment = $this->Page_model->submission_school_ids('sbm', $this->session->fy, [$school_id]);
+        // A confirmed deletion permanently removes the school and every record tied to its school ID.
+        // Keep this list explicit so reference/configuration tables can never be deleted accidentally.
+        $associated_tables = array(
+            'sgod_action_plan',
+            'sbm',
+            'sbm_remark',
+            'sbm_remark_admin',
+            'sbm_submitted',
+            'sbm_ta',
+            'tana',
+            'tana_summary'
+        );
 
-        if (!empty($has_action_plan[$school_id]) && !empty($has_self_assessment[$school_id])) {
-            $this->session->set_flashdata('danger', 'Cannot delete school: School has completed Self-Assessment and Action Plan.');
+        $this->db->trans_start();
+
+        // Log before deleting, so the audit trail retains the deleted school's details.
+        $this->Page_model->log_audit_trail('DELETE', 'schools', $school_id, $school, array(
+            'associated_records_deleted' => $associated_tables
+        ));
+
+        foreach ($associated_tables as $table) {
+            $this->db->where('school_id', $school_id)->delete($table);
+        }
+
+        $this->db->where('schoolID', $school_id)->delete('schools');
+        $this->db->where('username', $school_id)->delete('users');
+
+        $this->db->trans_complete();
+
+        if (!$this->db->trans_status()) {
+            $this->session->set_flashdata('danger', 'The school could not be deleted. No records were removed.');
             redirect(base_url() . 'pages/school_list');
         }
 
-        // Log audit trail before deletion
-        $this->Page_model->log_audit_trail('DELETE', 'schools', $school_id, $school, null);
-
-        // Delete school and associated user
-        $this->db->where('schoolID', $school_id);
-        $this->db->delete('schools');
-        $this->db->where('username', $school_id);
-        $this->db->delete('users');
-
-        $this->session->set_flashdata('success', 'Successfully deleted.');
+        $this->session->set_flashdata('success', 'School and all associated records were permanently deleted.');
         redirect(base_url() . 'pages/school_list');
     }
 
@@ -1515,7 +1535,7 @@ class Pages extends CI_Controller
 
         if ($this->session->position == 'admin') {
             // Load all schools for admin without filters - optimized with district and division joins
-            $this->db->select('s.schoolID, s.schoolName, s.district_id, s.division_id, d.description as district_name, div.description as division_name');
+            $this->db->select('s.recID, s.schoolID, s.schoolName, s.district_id, s.division_id, d.description as district_name, div.description as division_name');
             $this->db->from('schools s');
             $this->db->join('district d', 's.district_id = d.id', 'left');
             $this->db->join('division div', 's.division_id = div.id', 'left');

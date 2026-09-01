@@ -373,10 +373,6 @@ $hero_title = (!$is_admin_view && empty($division_school_scope))
                                         $division_name_display = !empty($row->division_name) ? mb_convert_case($row->division_name, MB_CASE_TITLE, 'UTF-8') : '';
                                         $district_name_display = !empty($row->district_name) ? mb_convert_case($row->district_name, MB_CASE_TITLE, 'UTF-8') : '';
 
-                                        // Check if school has completed Self-Assessment and Action Plan
-                                        $has_action_plan = !empty($submission_status['sgod_action_plan'][$school_id]);
-                                        $has_self_assessment = !empty($submission_status['sbm'][$school_id]);
-                                        $can_delete = !($has_action_plan && $has_self_assessment);
                                     } else {
                                         $links = array(
                                             'sgod_action_plan' => base_url() . 'Pages/sbm_action_plan_pview_district/' . rawurlencode($school_id),
@@ -397,18 +393,19 @@ $hero_title = (!$is_admin_view && empty($division_school_scope))
                                         <td><?= html_escape($division_name_display); ?></td>
                                         <td><?= html_escape($district_name_display); ?></td>
                                         <td class="text-center">
-                                            <a href="<?= base_url(); ?>pages/school_update/<?= rawurlencode($school_id); ?>" class="btn btn-sm btn-outline-warning">
+                                            <a href="<?= base_url(); ?>pages/school_update/<?= rawurlencode($row->recID); ?>" class="btn btn-sm btn-outline-warning">
                                                 <i class="mdi mdi-pencil-outline"></i> Edit
                                             </a>
-                                            <?php if ($can_delete) : ?>
-                                            <a onclick="return confirm('Are you sure you want to delete this school?');" href="<?= base_url(); ?>pages/school_delete/<?= html_escape($row->recID); ?>" class="btn btn-sm btn-outline-danger">
-                                                <i class="mdi mdi-trash-can-outline"></i> Delete
-                                            </a>
-                                            <?php else : ?>
-                                            <button class="btn btn-sm btn-outline-danger" disabled title="Cannot delete: School has completed Self-Assessment and Action Plan">
+                                            <button
+                                                type="button"
+                                                class="btn btn-sm btn-outline-danger js-delete-school"
+                                                data-toggle="modal"
+                                                data-target="#deleteSchoolModal"
+                                                data-delete-url="<?= base_url(); ?>pages/school_delete/<?= rawurlencode($row->recID); ?>"
+                                                data-school-name="<?= html_escape($school_name); ?>"
+                                            >
                                                 <i class="mdi mdi-trash-can-outline"></i> Delete
                                             </button>
-                                            <?php endif; ?>
                                         </td>
                                         <?php else : ?>
                                         <?php foreach (array('sgod_action_plan', 'sbm', 'sbm_ta') as $submission) :
@@ -442,3 +439,38 @@ $hero_title = (!$is_admin_view && empty($division_school_scope))
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="deleteSchoolModal" tabindex="-1" role="dialog" aria-labelledby="deleteSchoolModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <form id="deleteSchoolForm" method="post">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title" id="deleteSchoolModalLabel"><i class="mdi mdi-alert-outline"></i> Permanently delete school?</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">You are about to permanently delete <strong id="deleteSchoolName"></strong>.</p>
+                    <div class="alert alert-warning mb-0" role="alert">
+                        <strong>This cannot be undone.</strong> Continuing will remove the school account and all associated Self-Assessment, Action Plan, TA Form, TNA, summaries, and review records for every fiscal year.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="mdi mdi-trash-can-outline"></i> Delete permanently</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('click', function (event) {
+    var deleteButton = event.target.closest('.js-delete-school');
+    if (!deleteButton) {
+        return;
+    }
+
+    document.getElementById('deleteSchoolForm').action = deleteButton.getAttribute('data-delete-url');
+    document.getElementById('deleteSchoolName').textContent = deleteButton.getAttribute('data-school-name');
+});
+</script>
