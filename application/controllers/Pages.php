@@ -42,6 +42,35 @@ class Pages extends CI_Controller
         }
     }
 
+    private function get_school_management_record($rec_id)
+    {
+        $school = $this->Page_model->one_cond_row('schools', 'recID', $rec_id);
+
+        if (!$school) {
+            show_404();
+        }
+
+        if (!$this->session->logged_in) {
+            show_error('You must be signed in to manage schools.', 403);
+        }
+
+        $position = (string) $this->session->position;
+        $allowed = $position === 'admin'
+            || $position === 'region'
+            || (in_array($position, array('division', 'ict'), true)
+                && (string) $school->division_id === (string) $this->session->division)
+            || ($position === 'district'
+                && (string) $school->district_id === (string) $this->session->district)
+            || ($position === 'school'
+                && (string) $school->schoolID === (string) $this->session->username);
+
+        if (!$allowed) {
+            show_error('You are not authorized to manage this school.', 403);
+        }
+
+        return $school;
+    }
+
     private function build_checklist_report_groups($records)
     {
         $groups = array();
@@ -1247,6 +1276,7 @@ class Pages extends CI_Controller
         }
 
         $school_id = $school->schoolID;
+        $return_division_id = $school->division_id;
 
         // For division users, verify school belongs to their division
         if ($this->session->position === 'division' && $school->division_id != $this->session->division) {
@@ -1266,29 +1296,50 @@ class Pages extends CI_Controller
             'tana_summary'
         );
 
+        // A school ID can appear on more than one imported school record.  The
+        // delete URL identifies one record by recID, so do not remove the
+        // remaining records (or the data/account they share) just because the
+        // selected record has a duplicate school ID.
+        $duplicate_school_count = (int) $this->db->query(
+            'SELECT COUNT(*) AS total FROM schools WHERE TRIM(CAST(schoolID AS CHAR)) = ? AND recID != ?',
+            array(trim((string) $school_id), $rec_id)
+        )->row()->total;
+        $has_matching_school_id = $duplicate_school_count > 0;
+
         $this->db->trans_start();
 
         // Log before deleting, so the audit trail retains the deleted school's details.
         $this->Page_model->log_audit_trail('DELETE', 'schools', $school_id, $school, array(
-            'associated_records_deleted' => $associated_tables
+            'associated_records_deleted' => $has_matching_school_id ? array() : $associated_tables,
+            'matching_school_id_records_retained' => $duplicate_school_count
         ));
 
-        foreach ($associated_tables as $table) {
-            $this->db->where('school_id', $school_id)->delete($table);
+        if (!$has_matching_school_id) {
+            foreach ($associated_tables as $table) {
+                $this->db->where('school_id', $school_id)->delete($table);
+            }
+
+            $this->db->where('username', $school_id)->delete('users');
         }
 
-        $this->db->where('schoolID', $school_id)->delete('schools');
-        $this->db->where('username', $school_id)->delete('users');
+        // Delete only the school record selected from the list, never all rows
+        // that happen to have its school ID.
+        $this->db->where('recID', $rec_id)->delete('schools');
 
         $this->db->trans_complete();
 
         if (!$this->db->trans_status()) {
             $this->session->set_flashdata('danger', 'The school could not be deleted. No records were removed.');
-            redirect(base_url() . 'pages/school_list');
+            redirect(base_url() . 'pages/schools_division/' . rawurlencode($return_division_id));
         }
 
-        $this->session->set_flashdata('success', 'School and all associated records were permanently deleted.');
-        redirect(base_url() . 'pages/school_list');
+        $this->session->set_flashdata(
+            'success',
+            $has_matching_school_id
+                ? 'School record was permanently deleted. Other records with the same school ID and their associated data were retained.'
+                : 'School and all associated records were permanently deleted.'
+        );
+        redirect(base_url() . 'pages/schools_division/' . rawurlencode($return_division_id));
     }
 
     public function confirm_signup()
@@ -1592,9 +1643,10 @@ class Pages extends CI_Controller
 
         // Load all schools with division info
         $data['data'] = $this->db
-            ->select('s.schoolID, s.schoolName, d.description as division_name')
+            ->select('s.recID, s.schoolID, s.schoolName, d.description as division_name, u.id as account_id, u.virified as account_verified')
             ->from('schools s')
             ->join('division d', 's.division_id = d.id', 'left')
+            ->join('users u', "u.username = s.schoolID AND u.position = 'school'", 'left')
             ->order_by('s.schoolName', 'ASC')
             ->get()
             ->result();
@@ -3821,6 +3873,18 @@ class Pages extends CI_Controller
             $school_id = $this->input->post('schoolID', true);
         }
 
+        $rec_id = $this->input->post('recID', true);
+        if (empty($rec_id) && !empty($school_id)) {
+            // Regional management links use the unambiguous school record ID;
+            // retain school-ID URLs used by existing screens as a fallback.
+            $school = $this->Common->one_cond_row('schools', 'recID', $school_id);
+            if (!$school) {
+                $school = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
+            }
+            $rec_id = $school ? $school->recID : null;
+        }
+        $managed_school = $this->get_school_management_record($rec_id);
+
         $this->form_validation->set_error_delimiters('<div class="alert alert-danger alert-dismissible fade show" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
@@ -3837,15 +3901,7 @@ class Pages extends CI_Controller
 
             $data['title'] = "Update School Information";
             // Try to find by schoolID first, if not found try by recID
-            $data['data'] = $this->Common->one_cond_row('schools', 'schoolID', $school_id);
-            
-            if (!$data['data']) {
-                $data['data'] = $this->Common->one_cond_row('schools', 'recID', $school_id);
-            }
-
-            if (!$data['data']) {
-                show_404();
-            }
+            $data['data'] = $managed_school;
 
             $data['division'] = $this->Page_model->one_cond('division', 'region_id', 12);
             $data['districts'] = $this->Page_model->get_districts_by_division($data['data']->division_id);
@@ -3856,6 +3912,8 @@ class Pages extends CI_Controller
             $this->load->view('templates/footer');
             $this->load->view('templates/footer_basic');
         } else {
+
+            $this->get_school_management_record($this->input->post('recID', true));
 
             $this->Page_model->school_updates();
             $this->Page_model->update_district_id();
@@ -3874,7 +3932,9 @@ class Pages extends CI_Controller
                 $redirect_url = base_url() . 'pages/schools/' . rawurlencode($division_id !== '' ? $division_id : (string) $this->session->division);
             } elseif ($this->session->position === 'district') {
                 $redirect_url = base_url() . 'pages/schools_district/' . rawurlencode($district_id !== '' ? $district_id : (string) $this->session->district);
-            } elseif (in_array($this->session->position, array('admin', 'region'), true)) {
+            } elseif ($this->session->position === 'region') {
+                $redirect_url = base_url() . 'pages/school_list_region';
+            } elseif ($this->session->position === 'admin') {
                 $redirect_url = base_url() . 'pages/school_by_district';
             } elseif ($school_id !== '') {
                 $redirect_url = base_url() . 'school/' . rawurlencode($school_id);
@@ -3882,6 +3942,66 @@ class Pages extends CI_Controller
 
             redirect($redirect_url);
         }
+    }
+
+    public function region_school_reset_password()
+    {
+        $this->require_region_dashboard_access();
+
+        if (strtoupper($this->input->method(TRUE)) !== 'POST') {
+            show_error('Password reset requests must use POST.', 405);
+        }
+
+        $school = $this->get_school_management_record($this->input->post('recID', true));
+        $user = $this->db->where('username', $school->schoolID)
+            ->where('position', 'school')
+            ->get('users')
+            ->row();
+
+        if (!$user) {
+            $this->session->set_flashdata('danger', 'This school does not have a login account to reset.');
+            redirect(base_url() . 'pages/school_list_region');
+        }
+
+        $password = $this->Page_model->random_password();
+        if ($this->Page_model->reset_user_password($user->id, $password)) {
+            $this->session->set_flashdata(
+                'success',
+                'Password reset for <strong>' . html_escape($school->schoolName)
+                . '</strong>. Temporary password: <strong><code>' . html_escape($password) . '</code></strong>'
+            );
+        } else {
+            $this->session->set_flashdata('danger', 'Unable to reset the school password.');
+        }
+
+        redirect(base_url() . 'pages/school_list_region');
+    }
+
+    public function region_school_verify_account()
+    {
+        $this->require_region_dashboard_access();
+
+        if (strtoupper($this->input->method(TRUE)) !== 'POST') {
+            show_error('Account verification requests must use POST.', 405);
+        }
+
+        $school = $this->get_school_management_record($this->input->post('recID', true));
+        $user = $this->db->where('username', $school->schoolID)
+            ->where('position', 'school')
+            ->get('users')
+            ->row();
+
+        if (!$user) {
+            $this->session->set_flashdata('danger', 'This school does not have a login account to verify.');
+        } elseif ((int) $user->virified === 0) {
+            $this->session->set_flashdata('success', 'The school account is already verified.');
+        } elseif ($this->db->where('id', $user->id)->update('users', array('virified' => 0))) {
+            $this->session->set_flashdata('success', 'School account verified. The school can now sign in.');
+        } else {
+            $this->session->set_flashdata('danger', 'Unable to verify the school account.');
+        }
+
+        redirect(base_url() . 'pages/school_list_region');
     }
 
     public function district_account()

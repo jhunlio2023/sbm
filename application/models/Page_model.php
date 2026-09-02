@@ -1717,6 +1717,8 @@ public function user_updates(){
     $data = array(
         'p_id' => $this->input->post('division_id'),
         'd_id' => $this->input->post('d_id'),
+        'email' => $this->input->post('schoolEmail'),
+        'fname' => $this->input->post('schoolName'),
     );
 
     $this->db->where('username', $this->input->post('schoolID'));

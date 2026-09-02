@@ -118,6 +118,19 @@
         </div>
     </div>
 
+    <?php if ($this->session->flashdata('success')) : ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <?= $this->session->flashdata('success'); ?>
+        </div>
+    <?php endif; ?>
+    <?php if ($this->session->flashdata('danger')) : ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <?= $this->session->flashdata('danger'); ?>
+        </div>
+    <?php endif; ?>
+
     <div class="card school-list-card">
         <div class="card-body">
             <div class="school-list-toolbar">
@@ -134,6 +147,7 @@
                             <th>School Name</th>
                             <th>School ID</th>
                             <th>Division</th>
+                            <th>Account Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -145,15 +159,41 @@
                                     <td><?= html_escape($row->schoolID); ?></td>
                                     <td><?= html_escape($row->division_name); ?></td>
                                     <td>
+                                        <?php if (empty($row->account_id)) : ?>
+                                            <span class="badge badge-secondary">No account</span>
+                                        <?php elseif ((int) $row->account_verified === 0) : ?>
+                                            <span class="badge badge-success">Verified</span>
+                                        <?php else : ?>
+                                            <span class="badge badge-warning">Not verified</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
                                         <a href="<?= base_url(); ?>Pages/school_profile_region/<?= html_escape($row->schoolID); ?>" class="btn btn-sm btn-primary">
                                             <i class="mdi mdi-eye"></i> View
                                         </a>
+                                        <a href="<?= base_url(); ?>Pages/school_update/<?= rawurlencode($row->recID); ?>" class="btn btn-sm btn-info">
+                                            <i class="mdi mdi-pencil"></i> Manage
+                                        </a>
+                                        <form action="<?= base_url(); ?>Pages/region_school_reset_password" method="post" style="display:inline;" onsubmit="return confirm('Reset this school account password?');">
+                                            <input type="hidden" name="recID" value="<?= html_escape($row->recID); ?>">
+                                            <button type="submit" class="btn btn-sm btn-warning">
+                                                <i class="mdi mdi-lock-reset"></i> Reset Password
+                                            </button>
+                                        </form>
+                                        <?php if (!empty($row->account_id) && (int) $row->account_verified !== 0) : ?>
+                                            <form action="<?= base_url(); ?>Pages/region_school_verify_account" method="post" style="display:inline;" onsubmit="return confirm('Verify this school account and allow it to sign in?');">
+                                                <input type="hidden" name="recID" value="<?= html_escape($row->recID); ?>">
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="mdi mdi-account-check"></i> Verify
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else : ?>
                             <tr>
-                                <td colspan="4" style="text-align: center;">No schools found.</td>
+                                <td colspan="5" style="text-align: center;">No schools found.</td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
