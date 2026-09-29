@@ -9,6 +9,87 @@ class Page_model extends CI_Model{
     }
 
 
+// Fetch each workflow in bulk so the report does not issue queries per school.
+public function division_school_submission_report($division, $fy){
+    if (empty($division)) {
+        return array();
+    }
+    $schools = $this->db->select('s.*, d.description AS district_name')
+        ->from('schools s')
+        ->join('district d', 'd.id = s.district_id', 'left')
+        ->where('s.division_id', $division)
+        ->order_by('d.description', 'ASC')
+        ->order_by('s.schoolName', 'ASC')->get()->result();
+    if (!$schools) {
+        return array();
+    }
+    $records = array();
+    foreach (array('sbm', 'sbm_ta', 'tana', 'tana_summary', 'sgod_action_plan') as $table) {
+        $records[$table] = array();
+        $rows = $this->db->query(
+            "SELECT a.* FROM `{$table}` a WHERE a.fy = ? AND EXISTS
+             (SELECT 1 FROM schools s WHERE s.division_id = ?
+              AND TRIM(s.schoolID) = TRIM(CAST(a.school_id AS CHAR))) ORDER BY a.id ASC",
+            array($fy, $division)
+        )->result();
+        foreach ($rows as $row) {
+            $id = trim((string) $row->school_id);
+            if ($table === 'tana_summary' || $table === 'sgod_action_plan') {
+                if (!isset($records[$table][$id])) {
+                    $records[$table][$id] = array('count' => 0, 'final' => false);
+                }
+                $records[$table][$id]['count']++;
+                $records[$table][$id]['final'] = $records[$table][$id]['final']
+                    || (isset($row->stat) && (int) $row->stat === 1);
+            } else {
+                // Prefer the latest saved record if historical duplicates exist.
+                $records[$table][$id] = $row;
+            }
+        }
+    }
+    foreach ($schools as $school) {
+        $id = trim((string) $school->schoolID);
+        // Same 13 key profile checks used by the school dashboard.
+        $filled = 0;
+        foreach (array('schoolName', 'schoolEmail', 'adminEmail', 'adminMobile', 'province', 'city', 'brgy') as $field) {
+            $filled += isset($school->$field) && trim((string) $school->$field) !== '' ? 1 : 0;
+        }
+        $filled += trim($school->adminFName . ' ' . $school->adminMName . ' ' . $school->adminLName) !== '' ? 1 : 0;
+        foreach (array('division_id', 'district_id', 'category', 'schoolType', 'sgc') as $field) {
+            $filled += !empty($school->$field) ? 1 : 0;
+        }
+        $school->profile_filled = $filled;
+        $school->profile_percentage = round($filled / 13 * 100);
+        $school->statuses = array();
+        foreach (array('sbm', 'sbm_ta') as $table) {
+            $record = isset($records[$table][$id]) ? $records[$table][$id] : null;
+            $school->statuses[] = !$record ? 'Not started'
+                : ((isset($record->stat) && (int) $record->stat === 1) ? 'Finalized' : 'Draft saved');
+        }
+        $tana = isset($records['tana'][$id]) ? $records['tana'][$id] : null;
+        $scored = 0;
+        if ($tana) {
+            for ($i = 1; $i <= 42; $i++) {
+                foreach (array('a', 'b', 'c', 'd') as $prefix) {
+                    $field = $prefix . $i;
+                    if (isset($tana->$field) && (float) $tana->$field > 0) {
+                        $scored++;
+                        break;
+                    }
+                }
+            }
+        }
+        $school->statuses[] = !$tana ? 'Not started' : ($scored === 42 ? 'Completed' : 'Draft saved');
+        $school->scored = $scored;
+        $ranking = isset($records['tana_summary'][$id]) ? $records['tana_summary'][$id] : null;
+        $school->statuses[] = !$ranking ? 'Not started' : ($ranking['final'] ? 'Finalized' : 'Draft saved');
+        $school->priority_count = $ranking ? $ranking['count'] : 0;
+        $school->action_count = isset($records['sgod_action_plan'][$id]) ? $records['sgod_action_plan'][$id]['count'] : 0;
+        $school->statuses[] = $school->action_count ? 'Active' : 'No entries yet';
+    }
+    return $schools;
+}
+
 public function profile_insert(){
     
     $data = array(

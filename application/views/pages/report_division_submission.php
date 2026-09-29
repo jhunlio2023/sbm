@@ -307,7 +307,7 @@ $dashboard_url = base_url();
                                             </td>
                                             <td class="stat-cell">
                                                 <span class="stat-value"><?= html_escape($row->action_plan_count); ?></span>
-                                                <span class="stat-label">Action Plan</span>
+                                                <span class="stat-label">Schools with Action Plans</span>
                                                 <div class="progress-wrapper">
                                                     <div class="progress">
                                                         <div class="progress-bar progress-bar-danger" style="width: <?= html_escape($row->action_plan_percentage); ?>%;"></div>

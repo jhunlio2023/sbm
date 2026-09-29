@@ -1,6 +1,43 @@
 <?php
 $division_total = count($data);
+$is_division_report = $this->session->position === 'division';
+$is_region_report = $this->session->position === 'region';
 $dashboard_url = base_url();
+$schools = isset($schools) ? $schools : array();
+$sgc_labels = array(1 => 'Not Yet Organized', 2 => 'Organized (Not Functional)', 3 => 'Functional');
+$sgc_colors = array(1 => 'danger', 2 => 'warning', 3 => 'success');
+$summary_labels = $sgc_labels + array(0 => 'Not Yet Responded');
+$status_counts = array(1 => 0, 2 => 0, 3 => 0, 0 => 0);
+$district_groups = array();
+if ($is_division_report) {
+    foreach ($schools as $school) {
+        $district = trim((string) $school->district_name);
+        $district = $district !== '' ? $district : 'Unassigned District';
+        $district_groups[$district][] = $school;
+        $status = (int) $school->sgc;
+        $status_counts[isset($sgc_labels[$status]) ? $status : 0]++;
+    }
+    ksort($district_groups, SORT_NATURAL | SORT_FLAG_CASE);
+} else {
+    foreach ($data as $row) {
+        $status_counts[1] += (int) $row->not_yet_organized;
+        $status_counts[2] += (int) $row->organized_not_functional;
+        $status_counts[3] += (int) $row->functional;
+        $status_counts[0] += (int) $row->not_yet_responded;
+    }
+}
+$group_names = array();
+if ($is_region_report) {
+    foreach ($data as $division) {
+        $district_groups[$division->id] = array();
+        $group_names[$division->id] = $division->description;
+    }
+    foreach ($schools as $school) {
+        if (isset($district_groups[$school->division_id])) {
+            $district_groups[$school->division_id][] = $school;
+        }
+    }
+}
 ?>
 
 <style>
@@ -191,6 +228,17 @@ $dashboard_url = base_url();
         color: var(--report-muted);
     }
 
+    .sgc-district { margin: 16px 24px; border: 1px solid var(--report-border); border-radius: 10px; }
+    .sgc-district summary { padding: 16px; cursor: pointer; color: #27324a; font-weight: 700; background: #f8f9fc; }
+    .sgc-district summary:focus-visible { outline: 2px solid var(--report-primary); }
+    .sgc-district summary .badge { margin-left: 10px; }
+    .sgc-district-actions { padding: 16px 24px 0; display: flex; gap: 8px; }
+    .sgc-summary { margin-top: 24px; }
+    .sgc-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; padding: 24px; }
+    .sgc-summary-item { padding: 18px; border: 1px solid var(--report-border); border-radius: 10px; }
+    .sgc-summary-item strong { display: block; margin-top: 10px; font-size: 26px; color: #27324a; }
+    @media print { .sgc-district-actions { display: none; } }
+
     .report-empty {
         padding: 48px 24px;
         color: var(--report-muted);
@@ -211,12 +259,12 @@ $dashboard_url = base_url();
             <div class="report-hero">
                 <div>
                     <h2><i class="mdi mdi-account-group mr-2"></i>School Governance Council Report</h2>
-                    <p>View the SGC status across divisions, including schools that have not yet submitted an SGC response.</p>
+                    <p><?= $is_division_report ? 'View the SGC status for your division, including schools that have not yet submitted an SGC response.' : 'View the SGC status across divisions, including schools that have not yet submitted an SGC response.'; ?></p>
                 </div>
                 <div class="report-actions">
                     <span class="report-pill">
                         <i class="mdi mdi-office-building"></i>
-                        <?= $division_total; ?> <?= $division_total === 1 ? 'division' : 'divisions'; ?>
+                        <?= $is_division_report ? count($schools) : $division_total; ?> <?= $is_division_report ? (count($schools) === 1 ? 'school' : 'schools') : ($division_total === 1 ? 'division' : 'divisions'); ?>
                     </span>
                 </div>
             </div>
@@ -248,13 +296,69 @@ $dashboard_url = base_url();
                     <div class="report-card-header">
                         <div>
                             <h4><?= html_escape($title); ?></h4>
-                            <p>SGC status breakdown per division, with schools that have not yet responded based on total encoded schools.</p>
+                            <p><?= $is_division_report ? 'All schools in your division and their current School Governance Council status.' : ($is_region_report ? 'Expand a division to view its schools and SGC status summary. Division summaries count recorded schools; the overall summary uses configured division totals.' : 'SGC status breakdown per division, with schools that have not yet responded based on total encoded schools.'); ?></p>
                         </div>
                     </div>
 
-                    <?php if (!empty($data)) { ?>
+                    <?php if ($is_division_report || $is_region_report) { ?>
+                        <?php if ($district_groups) { ?>
+                        <div class="sgc-district-actions">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-sgc-expand="true">Expand All</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-sgc-expand="false">Collapse All</button>
+                        </div>
+                        <?php foreach ($district_groups as $district => $district_schools) :
+                            $district = $is_region_report ? $group_names[$district] : $district;
+                            $district_status_counts = array(1 => 0, 2 => 0, 3 => 0, 0 => 0);
+                            foreach ($district_schools as $district_school) {
+                                $district_status = (int) $district_school->sgc;
+                                $district_status_counts[isset($sgc_labels[$district_status]) ? $district_status : 0]++;
+                            }
+                        ?>
+                        <details class="sgc-district">
+                            <summary><?= html_escape($district); ?><span class="badge badge-light"><?= count($district_schools); ?> schools</span></summary>
                         <div class="report-table-wrap table-responsive">
-                            <table id="datatable" class="table dt-responsive" style="width: 100%;">
+                            <table class="table dt-responsive sgc-school-table" style="width:100%">
+                                <thead><tr><th>No.</th><th>School ID</th><th>School Name</th><th>District</th><th>SGC Status</th></tr></thead>
+                                <tbody>
+                                <?php foreach ($district_schools as $index => $school) :
+                                    $status = (int) $school->sgc;
+                                ?>
+                                    <tr>
+                                        <td><?= $index + 1; ?></td>
+                                        <td><?= html_escape($school->schoolID); ?></td>
+                                        <td><?php if ($is_division_report) : ?><a class="stat-value" href="<?= base_url('Pages/school_profile_division/' . rawurlencode($school->schoolID)); ?>"><?= html_escape($school->schoolName); ?></a><?php else : ?><span class="stat-value"><?= html_escape($school->schoolName); ?></span><?php endif; ?></td>
+                                        <td><?= html_escape(trim((string) $school->district_name) !== '' ? $school->district_name : 'Unassigned District'); ?></td>
+                                        <td><span class="badge badge-<?= isset($sgc_colors[$status]) ? $sgc_colors[$status] : 'secondary'; ?>"><?= isset($sgc_labels[$status]) ? $sgc_labels[$status] : 'Not Yet Responded'; ?></span></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                            <section class="sgc-district-summary">
+                                <div class="report-card-header">
+                                    <div><h4>SGC Status Summary</h4><p>All recorded schools in <?= html_escape($district); ?>. Select a count to show matching schools above.</p></div>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm sgc-district-reset">Show All Schools</button>
+                                </div>
+                                <div class="sgc-summary-grid">
+                                    <?php foreach ($summary_labels as $district_status => $district_label) : ?>
+                                        <div class="sgc-summary-item">
+                                            <span class="badge badge-<?= isset($sgc_colors[$district_status]) ? $sgc_colors[$district_status] : 'secondary'; ?>"><?= html_escape($district_label); ?></span>
+                                            <button type="button" class="btn btn-link sgc-district-status p-0" data-status="<?= html_escape($district_label); ?>" aria-label="<?= html_escape('View ' . $district_label . ' schools in ' . $district); ?>">
+                                                <strong><?= number_format($district_status_counts[$district_status]); ?></strong>
+                                                <span>View details &rarr;</span>
+                                            </button>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+                            </section>
+                        </details>
+                        <?php endforeach; ?>
+                        <?php } else { ?>
+                            <div class="report-empty"><?= $is_region_report ? 'No divisions are available for your assigned region.' : 'No schools are available for your assigned division.'; ?></div>
+                        <?php } ?>
+                    <?php } elseif (!empty($data)) { ?>
+                        <div class="report-table-wrap table-responsive">
+                            <table id="sgc-report-table" class="table dt-responsive" style="width: 100%;">
                                 <thead>
                                     <tr>
                                         <th>No.</th>
@@ -338,9 +442,22 @@ $dashboard_url = base_url();
                     <?php } else { ?>
                         <div class="report-empty">
                             <i class="mdi mdi-office-building-remove-outline"></i>
-                            No divisions are available for the active region.
+                            <?= $is_division_report ? 'No division is assigned or available for your account.' : 'No divisions are available for the active region.'; ?>
                         </div>
                     <?php } ?>
+                </div>
+            </div>
+            <div class="card report-card sgc-summary">
+                <div class="report-card-header">
+                    <div><h4>SGC Status Summary</h4><p>Counts for all schools in this report, regardless of table searches or collapsed districts.</p></div>
+                </div>
+                <div class="sgc-summary-grid">
+                    <?php foreach ($summary_labels as $status => $label) : ?>
+                        <div class="sgc-summary-item">
+                            <span class="badge badge-<?= isset($sgc_colors[$status]) ? $sgc_colors[$status] : 'secondary'; ?>"><?= html_escape($label); ?></span>
+                            <a href="<?= base_url('Pages/report_sgc_details/' . $status); ?>" aria-label="<?= html_escape('View ' . $label . ' school details'); ?>"><strong><?= number_format($status_counts[$status]); ?></strong><span>View details &rarr;</span></a>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
         </div>
@@ -348,15 +465,40 @@ $dashboard_url = base_url();
 </div>
 
 <script>
-$(document).ready(function() {
-    $('#datatable').DataTable({
+window.addEventListener('load', function() {
+    document.querySelectorAll('[data-sgc-expand]').forEach(function (button) {
+        button.addEventListener('click', function () {
+            document.querySelectorAll('.sgc-district').forEach(function (district) {
+                district.open = button.dataset.sgcExpand === 'true';
+            });
+        });
+    });
+    document.querySelectorAll('.sgc-district').forEach(function (district) {
+        district.addEventListener('toggle', function () {
+            if (district.open) {
+                $(district).find('table').DataTable().columns.adjust().responsive.recalc();
+            }
+        });
+    });
+    $('.sgc-district-status, .sgc-district-reset').on('click', function () {
+        var district = $(this).closest('.sgc-district');
+        var table = district.find('.sgc-school-table').DataTable();
+        var status = $(this).attr('data-status');
+        table.search('').columns().search('');
+        if (status) {
+            table.column(4).search('^' + $.fn.dataTable.util.escapeRegex(status) + '$', true, false);
+        }
+        table.draw();
+        district.find('.report-table-wrap')[0].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    $('#sgc-report-table, .sgc-school-table').DataTable({
         pageLength: 20,
         lengthMenu: [[10, 20, 50, 100], [10, 20, 50, 100]],
         order: [[0, 'asc']],
         responsive: true,
         language: {
             search: "_INPUT_",
-            searchPlaceholder: "Search divisions..."
+            searchPlaceholder: "<?= ($is_division_report || $is_region_report) ? 'Search schools...' : 'Search divisions...'; ?>"
         }
     });
 });

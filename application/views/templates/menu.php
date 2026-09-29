@@ -274,6 +274,8 @@
                                 </a>
                                 <ul class="nav-second-level" aria-expanded="false">
                                     <li><a href="<?= base_url(); ?>Pages/division_checklist_completed_details">Checklist Completion</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/division_submission_report">Submission Report</a></li>
+                                    <li><a href="<?= base_url(); ?>Pages/report_sgc">School Governance Council</a></li>
                                 </ul>
                             </li>
                             <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>

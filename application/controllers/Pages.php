@@ -3157,7 +3157,9 @@ class Pages extends CI_Controller
             $this->db->reset_query();
             $this->db->where('division', $division->id);
             $this->db->where('fy', $this->session->fy);
-            $action_plan_count = $this->db->count_all_results('sgod_action_plan');
+            // A school may save many action plan items; count it only once.
+            $this->db->select("COUNT(DISTINCT NULLIF(TRIM(school_id), '')) AS school_count", false);
+            $action_plan_count = (int) $this->db->get('sgod_action_plan')->row()->school_count;
 
             $this->db->reset_query();
             $this->db->where('division', $division->id);
@@ -3275,6 +3277,11 @@ class Pages extends CI_Controller
 
     public function report_sgc()
     {
+        if (!$this->session->logged_in || !in_array($this->session->position, array('admin', 'region', 'division'), true)) {
+            show_error('You are not authorized to view this report.', 403);
+            return;
+        }
+
         $page = "report_sgc";
 
         if (!file_exists(APPPATH . 'views/pages/' . $page . '.php')) {
@@ -3284,8 +3291,28 @@ class Pages extends CI_Controller
         $data['title'] = "School Governance Council Report";
 
         // Get divisions based on user role
-        if ($this->session->position == 'region') {
-            $divisions = $this->Page_model->one_cond('division', 'region_id', $this->session->region);
+        if ($this->session->position == 'division') {
+            // Scope from the session only; request parameters cannot select another division.
+            $divisions = array();
+            $data['schools'] = !empty($this->session->division)
+                ? $this->db->select('s.schoolID, s.schoolName, s.sgc, d.description AS district_name')
+                    ->from('schools s')
+                    ->join('district d', 'd.id = s.district_id', 'left')
+                    ->where('s.division_id', $this->session->division)
+                    ->order_by('s.schoolName', 'ASC')->get()->result()
+                : array();
+        } elseif ($this->session->position == 'region') {
+            $divisions = !empty($this->session->region)
+                ? $this->Page_model->one_cond('division', 'region_id', $this->session->region)
+                : array();
+            $data['schools'] = !empty($this->session->region)
+                ? $this->db->select('s.schoolID, s.schoolName, s.sgc, s.division_id, d.description AS district_name')
+                    ->from('schools s')
+                    ->join('division v', 'v.id = s.division_id', 'inner')
+                    ->join('district d', 'd.id = s.district_id', 'left')
+                    ->where('v.region_id', $this->session->region)
+                    ->order_by('s.schoolName', 'ASC')->get()->result()
+                : array();
         } elseif ($this->session->position == 'admin') {
             $divisions = $this->Page_model->no_cond('division');
         } else {
@@ -4201,6 +4228,53 @@ class Pages extends CI_Controller
         redirect(base_url() . 'pages/division_setup');
     }
 
+    public function report_sgc_details()
+    {
+        if (!$this->session->logged_in || !in_array($this->session->position, array('admin', 'region', 'division'), true)) {
+            show_error('You are not authorized to view this report.', 403);
+            return;
+        }
+
+        $status = $this->uri->segment(3);
+        $labels = array('0' => 'Not Yet Responded', '1' => 'Not Yet Organized', '2' => 'Organized (Not Functional)', '3' => 'Functional');
+        if (!is_string($status) || !array_key_exists($status, $labels)) {
+            show_404();
+            return;
+        }
+
+        $this->db->select('s.schoolID, s.schoolName, s.division_id, d.id AS district_id, d.description AS district_name, v.description AS division_name')
+            ->from('schools s')
+            ->join('district d', 'd.id = s.district_id', 'left')
+            ->join('division v', 'v.id = s.division_id', 'left');
+        if ($this->session->position === 'division') {
+            if (empty($this->session->division)) {
+                $this->db->where('1 = 0', null, false);
+            } else {
+                $this->db->where('s.division_id', $this->session->division);
+            }
+        } elseif ($this->session->position === 'region') {
+            if (empty($this->session->region)) {
+                $this->db->where('1 = 0', null, false);
+            } else {
+                $this->db->where('v.region_id', $this->session->region);
+            }
+        }
+        if ($status === '0') {
+            $this->db->group_start()->where_not_in('s.sgc', array(1, 2, 3))->or_where('s.sgc IS NULL', null, false)->group_end();
+        } else {
+            $this->db->where('s.sgc', (int) $status);
+        }
+        $data['records'] = $this->db->order_by('v.description', 'ASC')->order_by('d.description', 'ASC')->order_by('s.schoolName', 'ASC')->get()->result();
+        $data['title'] = $labels[$status] . ' — SGC Details';
+        $data['status_label'] = $labels[$status];
+        $data['show_count_note'] = $status === '0' && $this->session->position !== 'division';
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/report_sgc_details', $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
     public function division_sgc_details()
     {
         $this->require_division_dashboard_access();
@@ -4283,6 +4357,121 @@ class Pages extends CI_Controller
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
         $this->load->view('pages/division_sgc_category_printable', $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function division_submission_details($rec_id = null, $kind = null)
+    {
+        $this->require_division_dashboard_access();
+        $types = array('profile' => 'School Profile', 'sbm' => 'Self-Assessment Checklist',
+            'sbm_ta' => 'TA Form', 'tana' => 'TANA Scoring',
+            'tana_summary' => 'Priority Ranking', 'sgod_action_plan' => 'Action Plan');
+        if (!isset($types[$kind])) {
+            show_404();
+            return;
+        }
+        $school = $this->db->where('recID', $rec_id)
+            ->where('division_id', $this->session->division)->get('schools')->row();
+        if (!$school || empty($this->session->division)) {
+            show_404();
+            return;
+        }
+        $data = array('title' => $types[$kind], 'school' => $school, 'rows' => array(), 'headers' => array());
+        if ($kind === 'profile') {
+            $data['headers'] = array('Profile Field', 'Details');
+            $fields = array('schoolID' => 'School ID', 'schoolName' => 'School Name', 'schoolEmail' => 'School Email',
+                'adminFName' => 'School Head First Name', 'adminMName' => 'School Head Middle Name',
+                'adminLName' => 'School Head Last Name', 'adminDesignation' => 'Designation',
+                'adminEmail' => 'School Head Email', 'adminMobile' => 'Mobile Number',
+                'province' => 'Province', 'city' => 'City / Municipality', 'brgy' => 'Barangay', 'sitio' => 'Sitio');
+            foreach ($fields as $field => $label) {
+                $data['rows'][] = array($label, isset($school->$field) ? $school->$field : '');
+            }
+            foreach (array('division' => 'division_id', 'district' => 'district_id') as $table => $field) {
+                $record = $this->db->where('id', $school->$field)->get($table)->row();
+                $data['rows'][] = array(ucfirst($table), $record ? $record->description : 'Not assigned');
+            }
+            $labels = array(
+                'category' => array('School Category', array(1 => 'Elementary', 2 => 'Integrated (Elementary & JHS)', 3 => 'Integrated (Elementary, JHS & SHS)', 4 => 'Secondary (JHS only)', 5 => 'Secondary (JHS & SHS)', 6 => 'SHS - Stand Alone')),
+                'schoolType' => array('Program Offerings', array(1 => 'None', 2 => 'School-Based ALS Program', 3 => 'TLE-TVL Course Offerings', 4 => 'School-Based ALS and TLE-TVL')),
+                'sgc' => array('School Governance Council', array(1 => 'Not Yet Organized', 2 => 'Organized, Not Functional', 3 => 'Functional'))
+            );
+            foreach ($labels as $field => $options) {
+                $data['rows'][] = array($options[0], isset($options[1][$school->$field]) ? $options[1][$school->$field] : 'Not provided');
+            }
+        } else {
+            // The kind is allowlisted above; school and fiscal year are always server-scoped.
+            $records = $this->db->where('TRIM(CAST(school_id AS CHAR)) =', trim((string) $school->schoolID))
+                ->where('fy', $this->session->fy)->order_by($kind === 'tana_summary' ? 'sequence' : 'id', $kind === 'tana_summary' ? 'ASC' : 'DESC')
+                ->get($kind)->result();
+            $indicator_map = array();
+            foreach ($this->db->get('sbm_sub_indicator')->result() as $indicator) {
+                $indicator_map[(int) $indicator->i_no] = $indicator->description;
+            }
+            if ($kind === 'sgod_action_plan') {
+                $fields = array('activity' => 'Activity', 'objective' => 'Objective', 'ex_output' => 'Expected Output',
+                    'metho_strategy' => 'Methodology / Strategy', 'time_frame' => 'Time Frame',
+                    'person_involved' => 'Persons Involved', 'bud_req' => 'Budget Requirements', 'remarks' => 'Remarks');
+                $data['headers'] = array_values($fields);
+                foreach ($records as $record) {
+                    $row = array();
+                    foreach ($fields as $field => $label) { $row[] = $record->$field; }
+                    $data['rows'][] = $row;
+                }
+            } elseif ($kind === 'tana_summary') {
+                $data['headers'] = array('Priority', 'Indicator', 'Concern', 'Average', 'Status');
+                $ta = $this->db->where('TRIM(school_id) =', trim((string) $school->schoolID))
+                    ->where('fy', $this->session->fy)->order_by('id', 'DESC')->get('sbm_ta')->row();
+                foreach ($records as $record) {
+                    $field = 'q' . $record->concern_id;
+                    $data['rows'][] = array($record->sequence > 0 ? $record->sequence : 'Not ranked',
+                        isset($indicator_map[$record->concern_id]) ? $indicator_map[$record->concern_id] : $record->concern_id,
+                        $ta && isset($ta->$field) ? $ta->$field : '', $record->average,
+                        (int) $record->stat === 1 ? 'Finalized' : 'Draft saved');
+                }
+            } else {
+                $columns = array(
+                    'sbm' => array('q' => 'Assessment'),
+                    'sbm_ta' => array('q' => 'Concerns / Issues / Gaps', 'qq' => 'Facilitating Factors', 'a' => 'Concern Category', 'f' => 'Proposed Resolution / Commitment'),
+                    'tana' => array('a' => 'Strategic Importance', 'b' => 'Urgency', 'c' => 'Magnitude', 'd' => 'Feasibility')
+                );
+                $data['headers'] = array_merge(array('No.', 'Indicator'), array_values($columns[$kind]));
+                $assessments = array(1 => 'Not Yet Manifested', 2 => 'Rarely Manifested', 3 => 'Frequently Manifested', 4 => 'Always Manifested', 5 => 'No Data');
+                $categories = array(1 => 'Technical', 2 => 'Institutional', 3 => 'Financial', 4 => 'Political', 5 => 'Infrastructure', 6 => 'Social', 7 => 'Gender');
+                if ($records) {
+                    $record = $records[0];
+                    for ($i = 1; $i <= 42; $i++) {
+                        $row = array($i, isset($indicator_map[$i]) ? $indicator_map[$i] : 'Indicator ' . $i);
+                        foreach ($columns[$kind] as $prefix => $label) {
+                            $field = $prefix . $i;
+                            $value = isset($record->$field) ? $record->$field : '';
+                            if ($kind === 'sbm') { $value = isset($assessments[$value]) ? $assessments[$value] : 'Not answered'; }
+                            if ($kind === 'sbm_ta' && $prefix === 'a') { $value = isset($categories[$value]) ? $categories[$value] : ''; }
+                            $row[] = $value;
+                        }
+                        $data['rows'][] = $row;
+                    }
+                }
+            }
+        }
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/division_submission_details', $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt');
+    }
+
+    public function division_submission_report()
+    {
+        $this->require_division_dashboard_access();
+        $data['title'] = 'Submission Report';
+        $data['schools'] = $this->Page_model->division_school_submission_report(
+            $this->session->division, $this->session->fy
+        );
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/division_submission_report', $data);
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt');
     }
