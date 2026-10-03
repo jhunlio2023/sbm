@@ -22,6 +22,7 @@ function access_status($page, $status, $id = null) {
 }
 $db = $model->db;
 foreach (array(
+    'CREATE TABLE monitoring_section_monitors (section_id INTEGER, monitor_id INTEGER, PRIMARY KEY (section_id, monitor_id))',
     'CREATE TABLE monitoring_sections (id INTEGER PRIMARY KEY, title TEXT, sort_order INTEGER, monitor_id INTEGER)',
     'CREATE TABLE monitoring_indicators (id INTEGER PRIMARY KEY, section_id INTEGER, description TEXT, sort_order INTEGER)',
     'CREATE TABLE monitoring_tool_records (id INTEGER PRIMARY KEY AUTOINCREMENT, created_by TEXT, school_name TEXT, school_year TEXT, payload TEXT, created_at TEXT, updated_at TEXT)',
@@ -33,6 +34,9 @@ check($model->save('', array('first_name' => 'Team', 'middle_name' => '', 'last_
 $monitor = $model->all()[0]; $user = $db->get_where('users', array('id' => $monitor['user_id']))->row_array();
 $db->insert('monitoring_sections', array('id' => 1, 'title' => 'Assigned', 'sort_order' => 1, 'monitor_id' => $monitor['id']));
 $db->insert('monitoring_sections', array('id' => 2, 'title' => 'Private', 'sort_order' => 2, 'monitor_id' => 999));
+$db->insert('monitoring_section_monitors', array('section_id' => 1, 'monitor_id' => $monitor['id']));
+$db->insert('monitoring_section_monitors', array('section_id' => 1, 'monitor_id' => 999));
+$db->insert('monitoring_section_monitors', array('section_id' => 2, 'monitor_id' => 999));
 foreach (array(1, 2) as $group) $db->insert('monitoring_indicators', array('id' => $group, 'section_id' => $group, 'description' => 'Question ' . $group, 'sort_order' => 1));
 $db->insert('division', array('id' => 1, 'description' => 'Division'));
 $db->insert('district', array('id' => 1, 'division_id' => 1, 'description' => 'District'));
@@ -65,7 +69,7 @@ $page->input->post['group_notes'][0] = $notes;
 $page->input->method = 'get';
 $db->insert('monitoring_tool_records', array('created_by' => 'someone_else', 'payload' => $record['payload']));
 access_status($page, 404, $db->insert_id());
-$db->where('id', 1)->update('monitoring_sections', array('monitor_id' => 999));
+$db->where('section_id', 1)->where('monitor_id', $monitor['id'])->delete('monitoring_section_monitors');
 access_status($page, 403, $record['id']);
 $page->input->method = 'post'; access_status($page, 403);
 $page->input->method = 'get'; $page->monitoring_tool();

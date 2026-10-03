@@ -79,6 +79,7 @@ class Regional_accounts_model extends CI_Model
         if ($action === 'delete') {
             $monitor = $this->db->get_where('monitoring_monitors', array('user_id' => $id))->row_array();
             if ($monitor) {
+                $this->db->where('monitor_id', $monitor['id'])->delete('monitoring_section_monitors');
                 $this->db->where('monitor_id', $monitor['id'])->update('monitoring_sections', array('monitor_id' => null));
                 $this->db->where('id', $monitor['id'])->delete('monitoring_monitors');
             }

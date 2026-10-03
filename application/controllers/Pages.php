@@ -289,7 +289,7 @@ class Pages extends CI_Controller
             $this->session->set_userdata('monitoring_token', bin2hex(random_bytes(32)));
         }
         $errors = array();
-        $form = array('entity' => 'indicator', 'id' => '', 'text' => '', 'section_id' => '', 'monitor_id' => '', 'sort_order' => '1');
+        $form = array('entity' => 'indicator', 'id' => '', 'text' => '', 'section_id' => '', 'monitor_ids' => array(), 'sort_order' => '1');
         if ($this->input->method() === 'post') {
             $token = $this->input->post('monitoring_token');
             if (!is_string($token) || !hash_equals($this->session->userdata('monitoring_token'), $token)) {
@@ -297,7 +297,16 @@ class Pages extends CI_Controller
             }
             foreach ($form as $key => $default) {
                 $value = $this->input->post($key);
-                $form[$key] = is_string($value) ? trim($value) : '';
+                if ($key === 'monitor_ids') {
+                    $form[$key] = array();
+                    if ($value !== null && !is_array($value)) { $errors[] = 'Select valid monitors.'; }
+                    foreach (is_array($value) ? $value : array() as $monitor_id) {
+                        if (!is_string($monitor_id) || !ctype_digit($monitor_id) || (int) $monitor_id < 1) {
+                            $errors[] = 'Select valid monitors.';
+                        } else { $form[$key][] = (int) $monitor_id; }
+                    }
+                    $form[$key] = array_values(array_unique($form[$key]));
+                } else { $form[$key] = is_string($value) ? trim($value) : ''; }
             }
             $action = $this->input->post('action');
             if (!in_array($form['entity'], array('section', 'indicator'), true)
@@ -314,10 +323,7 @@ class Pages extends CI_Controller
                     if (!ctype_digit($form['section_id'])) { $errors[] = 'Select a Domain.'; }
                     $row['section_id'] = (int) $form['section_id'];
                 } else {
-                    if ($form['monitor_id'] !== '' && (!ctype_digit($form['monitor_id']) || (int) $form['monitor_id'] < 1)) {
-                        $errors[] = 'Select a valid monitor.';
-                    }
-                    $row['monitor_id'] = $form['monitor_id'] === '' ? null : (int) $form['monitor_id'];
+                    $row['monitor_ids'] = $form['monitor_ids'];
                 }
             }
             if (!$errors) {

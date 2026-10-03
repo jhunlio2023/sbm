@@ -82,6 +82,12 @@ class Monitor_model extends CI_Model
             // Disable sign-in while preserving the account identity on saved assessments.
             $this->db->where('id', $monitor['user_id'])->where('position', 'monitoring_team')->update('users', array('virified' => 1));
         }
+        if ($this->db->table_exists('monitoring_section_monitors')) {
+            $this->db->where('monitor_id', $id)->delete('monitoring_section_monitors');
+        }
+        if ($this->db->table_exists('monitoring_sections')) {
+            $this->db->where('monitor_id', $id)->update('monitoring_sections', array('monitor_id' => null));
+        }
         $this->db->where('id', $id)->delete('monitoring_monitors');
         if (!$this->db->trans_status()) { return $this->fail('The monitor could not be deleted.'); }
         $this->db->trans_commit();

@@ -13,6 +13,10 @@ class Monitoring_model extends CI_Model
         if (!$this->db->field_exists('monitor_id', 'monitoring_sections')) {
             $this->db->query('ALTER TABLE monitoring_sections ADD monitor_id INT UNSIGNED NULL DEFAULT NULL');
         }
+        $this->db->query("CREATE TABLE IF NOT EXISTS monitoring_section_monitors (
+            section_id INT UNSIGNED NOT NULL, monitor_id INT UNSIGNED NOT NULL,
+            PRIMARY KEY (section_id, monitor_id), KEY monitor_id (monitor_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         $this->db->query("CREATE TABLE IF NOT EXISTS monitoring_indicators (
             id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
             section_id INT UNSIGNED NOT NULL, description TEXT NOT NULL,
@@ -24,6 +28,9 @@ class Monitoring_model extends CI_Model
         $this->db->query('INSERT IGNORE INTO monitoring_catalog_state (id, seeded) VALUES (1, 0)');
         $this->db->trans_begin();
         $state = $this->db->query('SELECT seeded FROM monitoring_catalog_state WHERE id = 1 FOR UPDATE')->row();
+        // Move legacy assignments once, under the catalog lock, preserving existing selections.
+        $this->db->query('INSERT IGNORE INTO monitoring_section_monitors (section_id, monitor_id) SELECT id, monitor_id FROM monitoring_sections WHERE monitor_id IS NOT NULL');
+        $this->db->query('UPDATE monitoring_sections SET monitor_id = NULL WHERE monitor_id IS NOT NULL');
         if (!$state->seeded) {
             $original = $this->original_definition();
             foreach ($original['sections'] as $position => $section) {
@@ -47,7 +54,14 @@ class Monitoring_model extends CI_Model
 
     public function sections()
     {
-        return $this->db->order_by('sort_order')->order_by('id')->get('monitoring_sections')->result_array();
+        $sections = $this->db->order_by('sort_order')->order_by('id')->get('monitoring_sections')->result_array();
+        $assignments = array();
+        foreach ($this->db->order_by('monitor_id')->get('monitoring_section_monitors')->result_array() as $assignment) {
+            $assignments[$assignment['section_id']][] = (int) $assignment['monitor_id'];
+        }
+        foreach ($sections as &$section) { $section['monitor_ids'] = $assignments[$section['id']] ?? array(); }
+        unset($section);
+        return $sections;
     }
 
     public function indicators()
@@ -61,7 +75,7 @@ class Monitoring_model extends CI_Model
         $definition['sections'] = array();
         $items = $this->indicators();
         foreach ($this->sections() as $section) {
-            if ($monitor_id !== null && (string) $section['monitor_id'] !== (string) $monitor_id) { continue; }
+            if ($monitor_id !== null && !in_array((int) $monitor_id, $section['monitor_ids'], true)) { continue; }
             $group = array('title' => (count($definition['sections']) + 1) . '. ' . $section['title'], 'items' => array());
             if ($monitor_id !== null) { $group['id'] = (int) $section['id']; }
             foreach ($items as $item) {
@@ -76,7 +90,7 @@ class Monitoring_model extends CI_Model
     {
         $allowed = array();
         foreach ($this->sections() as $section) {
-            if ((string) $section['monitor_id'] === (string) $monitor_id) { $allowed[] = (string) $section['id']; }
+            if (in_array((int) $monitor_id, $section['monitor_ids'], true)) { $allowed[] = (string) $section['id']; }
         }
         foreach ($definition['sections'] as $section) {
             if (empty($section['id']) || !in_array((string) $section['id'], $allowed, true)) { return false; }
@@ -99,19 +113,40 @@ class Monitoring_model extends CI_Model
             $this->db->trans_rollback();
             return 'Select an existing Domain.';
         }
-        if ($entity === 'section' && $action !== 'delete' && !empty($data['monitor_id'])
-            && !$this->db->get_where('monitoring_monitors', array('id' => $data['monitor_id']))->row()) {
-            $this->db->trans_rollback();
-            return 'Select an existing monitor. The selected monitor may have been deleted.';
+        $monitor_ids = array();
+        if ($entity === 'section' && $action !== 'delete') {
+            $monitor_ids = $data['monitor_ids'] ?? array();
+            if (!is_array($monitor_ids)) {
+                $this->db->trans_rollback();
+                return 'Select valid monitors.';
+            }
+            foreach ($monitor_ids as $monitor_id) {
+                if ((!is_string($monitor_id) && !is_int($monitor_id)) || !ctype_digit((string) $monitor_id)
+                    || (int) $monitor_id < 1 || !$this->db->get_where('monitoring_monitors', array('id' => $monitor_id))->row()) {
+                    $this->db->trans_rollback();
+                    return 'Select existing monitors. A selected monitor may have been deleted.';
+                }
+            }
+            $monitor_ids = array_unique(array_map('intval', $monitor_ids));
+            unset($data['monitor_ids']);
+            $data['monitor_id'] = null;
         }
         if ($entity === 'section' && $action === 'delete'
             && $this->db->where('section_id', $id)->count_all_results('monitoring_indicators') > 0) {
             $this->db->trans_rollback();
             return 'Move or delete this Domain’s indicators before deleting the Domain.';
         }
-        if ($action === 'create') { $this->db->insert($table, $data); }
+        if ($action === 'create') { $this->db->insert($table, $data); $id = $this->db->insert_id(); }
         elseif ($action === 'update') { $this->db->where('id', $id)->update($table, $data); }
         else { $this->db->where('id', $id)->delete($table); }
+        if ($entity === 'section') {
+            $this->db->where('section_id', $id)->delete('monitoring_section_monitors');
+            if ($action !== 'delete') {
+                foreach ($monitor_ids as $monitor_id) {
+                    $this->db->insert('monitoring_section_monitors', array('section_id' => $id, 'monitor_id' => $monitor_id));
+                }
+            }
+        }
         return $this->finish_transaction() ? null : 'The change could not be saved. Please try again.';
     }
 

@@ -33,12 +33,12 @@ foreach ($monitors as $monitor) {
         </div>
         <div class="form-group" id="monitor-field" <?= $form['entity'] === 'section' ? '' : 'style="display:none"'; ?>>
             <label for="entry-monitor">Monitors</label>
-            <select name="monitor_id" id="entry-monitor" class="form-control" <?= $form['entity'] === 'section' ? '' : 'disabled'; ?>>
-                <option value="">Select a monitor (optional)</option>
+            <select name="monitor_ids[]" multiple data-placeholder="Select monitors (optional)" id="entry-monitor" class="form-control" <?= $form['entity'] === 'section' ? '' : 'disabled'; ?>>
                 <?php foreach ($monitor_labels as $id => $label): ?>
-                    <option value="<?= (int) $id; ?>" <?= (string) $form['monitor_id'] === (string) $id ? 'selected' : ''; ?>><?= html_escape($label); ?></option>
+                    <option value="<?= (int) $id; ?>" <?= in_array((int) $id, $form['monitor_ids'], true) ? 'selected' : ''; ?>><?= html_escape($label); ?></option>
                 <?php endforeach; ?>
             </select>
+            <small class="form-text text-muted">Select one or more monitors for this Domain.</small>
             <?php if (!$monitors): ?><small class="form-text text-muted">No monitors yet. <a href="<?= base_url('Pages/monitors'); ?>">Add a monitor</a> to make it available here.</small><?php endif; ?>
         </div>
         <div class="form-group"><label for="entry-text">Domain title / Indicator text</label><textarea class="form-control" id="entry-text" name="text" rows="3" required maxlength="5000"><?= html_escape($form['text']); ?></textarea></div>
@@ -51,7 +51,7 @@ foreach ($monitors as $monitor) {
 <div class="card"><div class="card-body">
     <div class="monitoring-section-heading flex-wrap">
         <div><h4><?= html_escape($section['title']); ?></h4><span class="monitoring-badge mt-2">Order <?= (int) $section['sort_order']; ?></span>
-            <p class="text-muted mb-0 mt-2">Monitor: <?= html_escape(empty($section['monitor_id']) ? 'Not assigned' : ($monitor_labels[$section['monitor_id']] ?? 'Monitor no longer available')); ?></p>
+            <p class="text-muted mb-0 mt-2">Monitors: <?= html_escape(!$section['monitor_ids'] ? 'Not assigned' : implode('; ', array_map(function ($id) use ($monitor_labels) { return $monitor_labels[$id] ?? 'Monitor no longer available'; }, $section['monitor_ids']))); ?></p>
         </div>
         <div><button type="button" class="btn btn-sm btn-outline-primary edit-entry" data-entity="section" data-id="<?= (int) $section['id']; ?>">Edit Domain</button> <button type="button" class="btn btn-sm btn-outline-danger delete-entry" data-entity="section" data-id="<?= (int) $section['id']; ?>">Delete Domain</button></div>
     </div>
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#entry-text').attr('maxlength', indicator ? 5000 : 255);
     }
     $('#entry-entity').on('change', function () {
-        $('#entry-monitor').val('').trigger('change.select2');
+        $('#entry-monitor').val([]).trigger('change.select2');
         $('#entry-id').val(''); $('#entry-action').val('create'); $('#editor-heading').text('Add an entry'); toggleSection();
     });
     $('.edit-entry').on('click', function () {
@@ -93,13 +93,13 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#entry-entity').val(entity).trigger('change.select2');
         $('#entry-id').val(id); $('#entry-action').val('update');
         $('#entry-section').val(entry.section_id || '').trigger('change.select2');
-        $('#entry-monitor').val(entry.monitor_id || '').trigger('change.select2');
+        $('#entry-monitor').val(entry.monitor_ids || []).trigger('change.select2');
         $('#entry-order').val(entry.sort_order); $('#entry-text').val(entry.description || entry.title);
         $('#editor-heading').text('Edit ' + (entity === 'section' ? 'Domain' : 'Indicator')); toggleSection();
         document.getElementById('settings-editor').scrollIntoView({behavior: 'smooth'}); $('#entry-text').trigger('focus');
     });
     $('#new-entry').on('click', function () {
-        $('#entry-monitor').val('').trigger('change.select2');
+        $('#entry-monitor').val([]).trigger('change.select2');
         $('#entry-id').val(''); $('#entry-action').val('create'); $('#entry-text').val(''); $('#entry-order').val('1'); $('#editor-heading').text('Add an entry'); toggleSection();
     });
     $('.delete-entry').on('click', function () {

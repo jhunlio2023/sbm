@@ -316,9 +316,6 @@
                             <li><a href="<?= base_url('Pages/monitoring_tool'); ?>" class="waves-effect"><i class="mdi mdi-clipboard-check-outline"></i><span> Monitoring Tool </span></a></li>
                         <?php } ?>
                         <?php if ($this->session->position == 'region') { ?>
-                            <li><a href="<?= base_url('Pages/regional_accounts'); ?>" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Accounts </span></a></li>
-
-
                             <li>
                                 <a href="javascript: void(0);" class="waves-effect">
                                     <i class="mdi mdi-format-list-checks"></i>
@@ -360,6 +357,7 @@
                                     </li>
                                 </ul>
                             </li>
+                            <li><a href="<?= base_url('Pages/regional_accounts'); ?>" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Accounts </span></a></li>
                             <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>
 
                         <?php } ?>
