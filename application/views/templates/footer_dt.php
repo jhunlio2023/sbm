@@ -1,6 +1,9 @@
 <!-- Vendor js -->
 <script src="<?= base_url(); ?>assets/js/vendor.min.js"></script>
 
+<?php if (!empty($load_select2)): ?>
+<script src="<?= base_url('assets/libs/select2/select2.min.js'); ?>"></script>
+<?php endif; ?>
 <!-- Required datatable js -->
 <script src="<?= base_url(); ?>assets/libs/datatables/jquery.dataTables.min.js"></script>
 <script src="<?= base_url(); ?>assets/libs/datatables/dataTables.bootstrap4.min.js"></script>

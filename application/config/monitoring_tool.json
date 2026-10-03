@@ -1,0 +1,71 @@
+{
+  "title": "Project Implementation Monitoring Tool for The Last Mile Schools and Geographically Isolated and Disadvantaged Areas (GIDAs)",
+  "introduction": [
+    "This monitoring tool aims to assess key areas of school operations and program implementation in Last Mile Schools and Geographically Isolated and Disadvantaged Areas (GIDA) Schools. It covers critical domains such as Curriculum and Teaching, Learning Environment, Leadership, Governance and Accountability, Human Resource and Team Development, and Finance and Resource Management and Mobilization.",
+    "The tool is designed to evaluate the effectiveness of school processes, identify challenges, and determine necessary interventions to improve education service delivery. Respondents are encouraged to carefully review each item and tick the appropriate column that best reflects the school’s current status. Comments and recommendations should be provided in the Remarks section to guide decision-making and continuous improvement efforts."
+  ],
+  "sections": [
+    {
+      "title": "1. Curriculum and Teaching",
+      "items": [
+        "Are teachers effectively implementing the structured curriculum of the Enhanced Basic Education Curriculum, ensuring foundational skills in literacy, numeracy, and socio-emotional learning are prioritized?",
+        "Are contextualized and localized teaching strategies utilized to make learning more relevant and responsive to the needs of learners in Last Mile and GIDA schools?",
+        "Are formative and summative assessments aligned with curriculum standards and used to track and improve student learning outcomes?",
+        "Are innovative and flexible teaching modalities, such as blended learning, multi-grade teaching, or modular instruction, effectively implemented to address learning gaps in remote and disadvantaged areas?",
+        "Are teachers provided with ongoing professional development opportunities to strengthen their competencies in curriculum implementation, differentiated instruction, and inclusive education?"
+      ]
+    },
+    {
+      "title": "2. Learning Environment",
+      "items": [
+        "Are classrooms and other learning spaces safe, well-ventilated, and conducive to effective teaching and learning?",
+        "Are schools implementing child-friendly, gender-sensitive, and inclusive policies to promote a positive and supportive learning environment?",
+        "Are learners provided with adequate access to hygiene facilities, clean water, and sanitation to support their health and well-being?",
+        "Are safety and disaster preparedness measures in place, including emergency response plans and risk reduction strategies, to protect students and personnel?",
+        "Are psychosocial support programs and guidance services available to address learners' emotional and mental well-being, especially in challenging learning conditions?"
+      ]
+    },
+    {
+      "title": "3. Leadership",
+      "items": [
+        "Does the school leadership effectively implement policies and programs that align with the Enhanced Basic Education Curriculum and ensure quality education delivery?",
+        "Does the school head actively engage stakeholders, including parents, local government units, and community partners, to support school improvement initiatives?",
+        "Does the school leader provide instructional supervision, mentoring, and capacity-building opportunities to enhance teacher performance and professional growth?",
+        "Is there a clear strategic plan in place to address challenges related to school operations, resource management, and learner performance?",
+        "Does the school leader promote a culture of accountability, collaboration, and continuous improvement to ensure effective school governance?"
+      ]
+    },
+    {
+      "title": "4. Governance and Accountability",
+      "items": [
+        "Are school governance structures, such as the School Governance Council (SGC) and other advisory bodies, actively involved in decision-making and policy implementation?",
+        "Are financial and physical resources managed transparently and efficiently, following DepEd policies and guidelines?",
+        "Are monitoring and evaluation mechanisms in place to assess the effectiveness of school programs and ensure continuous improvement?",
+        "Are stakeholders, including parents, local government units, and community organizations, regularly engaged in supporting school initiatives and ensuring accountability?",
+        "Are school performance reports, budget utilization, and other key documents publicly shared to promote transparency and informed decision-making?",
+        "Are mechanisms in place to prevent and address gender-based violence, discrimination, and bullying within the school community?",
+        "Does the school integrate gender-responsive budgeting in its Annual Implementation Plan (AIP) to ensure equitable access to learning resources and facilities for all learners?"
+      ]
+    },
+    {
+      "title": "5. Human Resource and Team Development",
+      "items": [
+        "Are teachers and non-teaching personnel provided with regular capacity-building programs to enhance their competencies in curriculum implementation, classroom management, and inclusive education?",
+        "Are professional development opportunities aligned with the needs of teachers and staff, considering the unique challenges of Last Mile and GIDA schools?",
+        "Are mentoring and coaching programs in place to support newly hired and less experienced teachers in improving instructional delivery?",
+        "Are teamwork, collaboration, and shared leadership encouraged among school personnel to strengthen school operations and improve learner outcomes?",
+        "Are teacher welfare, recognition, and support mechanisms implemented to enhance motivation, retention, and overall job satisfaction?"
+      ]
+    },
+    {
+      "title": "6. Finance and Resource Management and Mobilization",
+      "items": [
+        "Are financial resources, including school funds and grants, managed transparently and utilized effectively to support school programs and learner needs?",
+        "Are procurement and budgeting processes aligned with DepEd policies to ensure accountability and efficiency in resource allocation?",
+        "Are alternative funding sources, such as partnerships with LGUs, NGOs, and private organizations, actively explored to support school operations and infrastructure development?",
+        "Are financial reports and resource utilization updates regularly shared with stakeholders to promote transparency and accountability?",
+        "Are schools implementing sustainability initiatives to maximize available resources and ensure continuous support for learners and teachers?"
+      ]
+    }
+  ]
+}

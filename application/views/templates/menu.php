@@ -312,7 +312,12 @@
 
                         <?php } ?>
 
+                        <?php if ($this->session->position === 'monitoring_team') { ?>
+                            <li><a href="<?= base_url('Pages/monitoring_tool'); ?>" class="waves-effect"><i class="mdi mdi-clipboard-check-outline"></i><span> Monitoring Tool </span></a></li>
+                        <?php } ?>
                         <?php if ($this->session->position == 'region') { ?>
+                            <li><a href="<?= base_url('Pages/regional_accounts'); ?>" class="waves-effect"><i class="mdi mdi-account-supervisor"></i><span> Manage Accounts </span></a></li>
+
 
                             <li>
                                 <a href="javascript: void(0);" class="waves-effect">
@@ -338,6 +343,21 @@
                                     <li><a href="<?= base_url(); ?>Pages/report_overall_accomplishments">Overall Accomplishments</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/region_checklist_completed_report">Checklist Completion</a></li>
                                     <li><a href="<?= base_url(); ?>Pages/report_sgc">School Governance Council</a></li>
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="javascript: void(0);" class="waves-effect"><i class="mdi mdi-clipboard-check-outline"></i><span> Monitoring Tool </span><span class="menu-arrow"></span></a>
+                                <ul class="nav-second-level" aria-expanded="false">
+                                    <li><a href="<?= base_url('Pages/monitoring_tool'); ?>">GIDA</a></li>
+                                    <li><a href="<?= base_url('Pages/monitored_schools'); ?>">Monitored Schools</a></li>
+                                    <li>
+                                        <a href="javascript: void(0);">Settings <span class="menu-arrow"></span></a>
+                                        <ul class="nav-third-level" aria-expanded="false">
+                                            <li><a href="<?= base_url('Pages/monitoring_settings'); ?>">Indicators</a></li>
+                                            <li><a href="<?= base_url('Pages/monitors'); ?>">Monitors</a></li>
+                                            <li><a href="<?= base_url('Pages/monitoring_report_settings'); ?>">Report Letterhead</a></li>
+                                        </ul>
+                                    </li>
                                 </ul>
                             </li>
                             <li><a href="#" class="waves-effect" data-toggle="modal" data-target="#renren"><i class="fas fa-lock"></i><span>Change Password</span></a></li>

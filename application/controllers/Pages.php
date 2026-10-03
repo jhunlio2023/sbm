@@ -3,6 +3,487 @@
 
 class Pages extends CI_Controller
 {
+    public function __construct()
+    {
+        parent::__construct();
+        if ($this->session->logged_in && $this->session->position === 'region' && $this->session->id) {
+            $account = $this->db->get_where('users', array('id' => $this->session->id, 'position' => 'region', 'virified' => 0))->row();
+            if (!$account) { $this->session->sess_destroy(); show_error('Your account is no longer active. Please sign in again.', 403); }
+        }
+        if ($this->session->position === 'monitoring_team'
+            && !in_array(strtolower($this->router->method), array('view', 'monitoring_tool', 'logout', 'log_in'), true)) {
+            show_error('Monitoring Team accounts can access only the Monitoring Tool.', 403);
+        }
+    }
+
+    public function monitoring_tool($id = null)
+    {
+        $team_user = $this->session->position === 'monitoring_team';
+        if (!$this->session->logged_in || !in_array($this->session->position, array('region', 'monitoring_team'), true)) {
+            show_error('You are not authorized to access the Monitoring Tool.', 403);
+        }
+        $monitor = null;
+        if ($team_user) {
+            $this->load->model('Monitor_model');
+            $this->Monitor_model->initialize();
+            $monitor = $this->Monitor_model->for_user($this->session->id);
+            if (!$monitor) { show_error('Your Monitoring Team account is unavailable.', 403); }
+        }
+        if ($this->session->virified == 1) {
+            show_error('Your account must be verified to access this page.', 403);
+        }
+        $this->db->query(file_get_contents(FCPATH . 'database/monitoring_tool.sql'));
+        $this->load->model('Monitoring_model');
+        $this->Monitoring_model->initialize();
+        $fields = array(
+            'school_year' => 'School Year', 'division' => 'Division',
+            'district' => 'District', 'school_name' => 'School',
+            'school_head' => 'Name of School Head', 'school_contact' => 'School Head Contact Number',
+            'cluster_head' => 'Name of PSDS/Cluster Head', 'cluster_contact' => 'PSDS/Cluster Head Contact Number',
+            'prepared_by' => 'Prepared by', 'conformed_by' => 'Conformed (School Head)'
+        );
+        $record = null;
+        if ($id !== null) {
+            if (!ctype_digit((string) $id)) { show_404(); }
+            $record = $this->db->get_where('monitoring_tool_records', array('id' => $id, 'created_by' => $this->session->username))->row();
+            if (!$record) { show_404(); }
+        }
+        $account = $this->db->select('fname, mname, lname')->get_where('users', array('id' => $this->session->id))->row_array();
+        if (!$account) { show_error('Your account is unavailable. Please sign in again.', 403); }
+        $prepared_by = implode(' ', array_filter(array_map('trim', array(
+            (string) $account['fname'], (string) $account['mname'], (string) $account['lname']
+        )), 'strlen'));
+        $values = $record ? json_decode($record->payload, true) : array();
+        $values['prepared_by'] = $prepared_by;
+        $definition = $record ? ($values['definition'] ?? $this->Monitoring_model->original_definition()) : $this->Monitoring_model->definition($team_user ? $monitor['id'] : null);
+        if ($team_user && !$this->Monitoring_model->allows_definition($monitor['id'], $definition)) { show_error('Your assigned Indicators Groups have changed. Start a new assessment.', 403); }
+        if (!$record) {
+            $current_year = (int) (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('Y');
+            $values['school_year'] = $current_year . '-' . ($current_year + 1);
+        }
+        $divisions = $this->db->distinct()->select('s.division_id AS id, d.description')
+            ->from('schools s')->join('division d', 'd.id = s.division_id', 'inner')
+            ->order_by('d.description', 'ASC')->get()->result_array();
+        $districts = $this->db->select('id, division_id, description')->order_by('description', 'ASC')->get('district')->result_array();
+        $schools = $this->db->select('recID, schoolID, schoolName, division_id, district_id')->order_by('schoolName', 'ASC')->get('schools')->result_array();
+        // Resolve older records by name only when the match is unambiguous within its parent.
+        foreach (array('division_id' => array($divisions, 'id', 'description', 'division', null),
+            'district_id' => array($districts, 'id', 'description', 'district', 'division_id'),
+            'school_rec_id' => array($schools, 'recID', 'schoolName', 'school_name', 'district_id')) as $key => $lookup) {
+            if (empty($values[$key]) && !empty($values[$lookup[3]])) {
+                $matches = array_values(array_filter($lookup[0], function ($row) use ($lookup, $values) {
+                    return $row[$lookup[2]] === $values[$lookup[3]]
+                        && ($lookup[4] === null || (isset($values[$lookup[4]]) && (string) $row[$lookup[4]] === (string) $values[$lookup[4]]));
+                }));
+                if (count($matches) === 1) { $values[$key] = (string) $matches[0][$lookup[1]]; }
+            }
+        }
+        $errors = array();
+        if (!$this->session->userdata('monitoring_token')) {
+            $this->session->set_userdata('monitoring_token', bin2hex(random_bytes(32)));
+        }
+        if ($this->input->method() === 'post') {
+            $token = $this->input->post('monitoring_token');
+            if (!is_string($token) || !hash_equals($this->session->userdata('monitoring_token'), $token)) {
+                show_error('Invalid form token. Reload the page and try again.', 403);
+            }
+            // Use the signed definition displayed when this form was opened, even if Settings changed meanwhile.
+            $snapshot = $this->input->post('definition_snapshot');
+            $signature = $this->input->post('definition_signature');
+            if (!is_string($snapshot) || !is_string($signature)
+                || !hash_equals(hash_hmac('sha256', $snapshot, $this->session->userdata('monitoring_token')), $signature)) {
+                show_error('The indicator form has expired. Reload the page and try again.', 403);
+            }
+            $definition = json_decode(base64_decode($snapshot, true), true);
+            if (!is_array($definition) || !isset($definition['sections'])) { show_error('Invalid indicator form.', 400); }
+            if ($team_user && !$this->Monitoring_model->allows_definition($monitor['id'], $definition)) {
+                show_error('Your assigned Indicators Groups have changed. Reload the Monitoring Tool.', 403);
+            }
+            if (!$definition['sections']) { $errors[] = 'No indicators are available. Contact a Region user to assign an Indicators Group.'; }
+            $values = array('definition' => $definition);
+            foreach ($fields + array('technical_assistance' => 'Technical Assistance Needed') as $key => $label) {
+                $value = $key === 'prepared_by' ? $prepared_by : $this->input->post($key);
+                $values[$key] = is_string($value) ? trim($value) : '';
+                $limit = $key === 'technical_assistance' ? 10000 : ($key === 'school_year' ? 30 : 255);
+                if (mb_strlen($values[$key]) > $limit) { $errors[] = $label . ' is too long.'; }
+            }
+            foreach (array('division_id', 'district_id', 'school_rec_id') as $key) {
+                $value = $this->input->post($key);
+                $values[$key] = is_string($value) && ctype_digit($value) ? $value : '';
+            }
+            $division = $district = $school = null;
+            foreach ($divisions as $row) { if ((string) $row['id'] === $values['division_id']) { $division = $row; } }
+            foreach ($districts as $row) {
+                if ((string) $row['id'] === $values['district_id'] && (string) $row['division_id'] === $values['division_id']) { $district = $row; }
+            }
+            foreach ($schools as $row) {
+                if ((string) $row['recID'] === $values['school_rec_id'] && (string) $row['district_id'] === $values['district_id']
+                    && (string) $row['division_id'] === $values['division_id']) { $school = $row; }
+            }
+            $values['division'] = $division ? $division['description'] : '';
+            $values['district'] = $district ? $district['description'] : '';
+            $values['school_name'] = $school ? $school['schoolName'] : '';
+            if (!$division || !$district || !$school) { $errors[] = 'Select a valid division, district, and school in sequence.'; }
+            if ($values['school_year'] === '') { $errors[] = 'School year is required.'; }
+            $levels = $this->input->post('levels');
+            $values['levels'] = is_array($levels) ? array_values(array_intersect(array('Elementary', 'IS', 'JHS', 'SHS'), $levels)) : array();
+            $answers = $this->input->post('answers');
+            $remarks = $this->input->post('remarks');
+            $group_notes = $this->input->post('group_notes');
+            $group_fields = array('best_practices' => 'Best Practices', 'issues_concerns' => 'Issues/Concerns', 'action_taken' => 'Action Taken', 'status_remarks' => 'Status');
+            $index = 0;
+            foreach ($definition['sections'] as $group_index => $section) {
+                foreach ($group_fields as $key => $label) {
+                    $note = is_array($group_notes) && isset($group_notes[$group_index]) && is_array($group_notes[$group_index])
+                        ? ($group_notes[$group_index][$key] ?? '') : '';
+                    if (!is_string($note)) { $errors[] = $label . ' must be text.'; $note = ''; }
+                    $note = trim($note);
+                    if (mb_strlen($note) > 5000) { $errors[] = $label . ' must not exceed 5,000 characters per group.'; }
+                    $values['group_notes'][$group_index][$key] = $note;
+                }
+                foreach ($section['items'] as $item) {
+                    $answer = is_array($answers) && isset($answers[$index]) ? $answers[$index] : '';
+                    if (!in_array($answer, array('', 'yes', 'no'), true)) {
+                        $errors[] = 'Choose Yes or No for each answered item.';
+                        $answer = '';
+                    }
+                    $remark = is_array($remarks) && isset($remarks[$index]) && is_string($remarks[$index]) ? trim($remarks[$index]) : '';
+                    if (mb_strlen($remark) > 5000) { $errors[] = 'Remarks must not exceed 5,000 characters per item.'; }
+                    $values['answers'][$index] = $answer;
+                    $values['remarks'][$index] = $remark;
+                    $index++;
+                }
+            }
+            if (!$errors) {
+                $row = array('school_name' => $values['school_name'], 'school_year' => $values['school_year'],
+                    'payload' => json_encode($values, JSON_UNESCAPED_UNICODE), 'updated_at' => date('Y-m-d H:i:s'));
+                if ($record) {
+                    $saved = $this->db->where('id', $record->id)->where('created_by', $this->session->username)->update('monitoring_tool_records', $row);
+                } else {
+                    $row['created_by'] = $this->session->username;
+                    $row['created_at'] = $row['updated_at'];
+                    $saved = $this->db->insert('monitoring_tool_records', $row);
+                    $id = $this->db->insert_id();
+                }
+                if ($saved) {
+                    $this->session->set_flashdata('monitoring_success', 'Monitoring record saved.');
+                    redirect('Pages/monitoring_tool/' . $id);
+                    return;
+                }
+                $errors[] = 'The record could not be saved. Please try again.';
+            }
+        }
+        $definition_snapshot = base64_encode(json_encode($definition, JSON_UNESCAPED_UNICODE));
+        $definition_signature = hash_hmac('sha256', $definition_snapshot, $this->session->userdata('monitoring_token'));
+        $data = compact('definition_snapshot', 'definition_signature', 'definition', 'fields', 'values', 'errors', 'record', 'divisions', 'districts', 'schools');
+        $this->load->view('templates/header');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/monitoring_tool', $data);
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_basic', array('load_select2' => true));
+    }
+
+    public function monitored_schools($id = null)
+    {
+        $this->require_region_dashboard_access();
+        if ($this->session->virified == 1) { show_error('Your account must be verified to access this page.', 403); }
+        $this->db->query(file_get_contents(FCPATH . 'database/monitoring_tool.sql'));
+        $this->load->model('Monitoring_model');
+        $original = $this->Monitoring_model->original_definition();
+        if ($id !== null) {
+            if (!ctype_digit((string) $id)) { show_404(); }
+            $this->db->where('id', $id);
+        }
+        $records = $this->db->order_by('updated_at', 'DESC')->get('monitoring_tool_records')->result();
+        if ($id !== null && !$records) { show_404(); }
+        $schools = array(); $complete = 0;
+        foreach ($records as $record) {
+            $record->details = json_decode($record->payload, true) ?: array();
+            $record->definition = $record->details['definition'] ?? $original;
+            $record->yes = $record->no = $record->total = 0;
+            foreach ($record->definition['sections'] as $section) {
+                foreach ($section['items'] as $item) {
+                    $answer = $record->details['answers'][$record->total] ?? '';
+                    if ($answer === 'yes') { $record->yes++; }
+                    if ($answer === 'no') { $record->no++; }
+                    $record->total++;
+                }
+            }
+            $record->unanswered = $record->total - $record->yes - $record->no;
+            $record->complete = $record->total > 0 && $record->unanswered === 0;
+            if ($record->complete) { $complete++; }
+            $key = !empty($record->details['school_rec_id']) ? 'id:' . $record->details['school_rec_id']
+                : 'name:' . json_encode(array($record->details['division'] ?? '', $record->details['district'] ?? '', $record->school_name));
+            $schools[$key] = true;
+        }
+        $school_count = count($schools);
+        $detail = $id !== null;
+        $this->load->view('templates/header_dt');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/monitored_schools', compact('records', 'school_count', 'complete', 'detail'));
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_dt', array('load_select2' => true));
+    }
+
+    public function monitoring_report_settings()
+    {
+        $this->require_region_dashboard_access();
+        if ($this->session->virified == 1) { show_error('Your account must be verified.', 403); }
+        $this->load->model('Monitoring_report_model');
+        $this->Monitoring_report_model->initialize();
+        if (!$this->session->userdata('monitoring_token')) $this->session->set_userdata('monitoring_token', bin2hex(random_bytes(32)));
+        $errors = array();
+        if ($this->input->method() === 'post') {
+            $token = $this->input->post('monitoring_token');
+            if (!is_string($token) || !hash_equals($this->session->userdata('monitoring_token'), $token)) show_error('Invalid form token.', 403);
+            $directory = FCPATH . 'uploads/monitoring_letterheads/';
+            if (!is_dir($directory) && !mkdir($directory, 0755, true)) show_error('Unable to create the letterhead directory.', 500);
+            $this->load->library('upload', array('upload_path' => $directory, 'allowed_types' => 'png|jpg|jpeg', 'max_size' => 5120, 'max_width' => 6000, 'max_height' => 3000, 'encrypt_name' => true));
+            if (!$this->upload->do_upload('letterhead')) {
+                $errors[] = strip_tags($this->upload->display_errors());
+            } else {
+                $file = $this->upload->data();
+                $path = 'uploads/monitoring_letterheads/' . $file['file_name'];
+                if (!$file['is_image']) { unlink($file['full_path']); $errors[] = 'Upload a PNG or JPEG image.'; }
+                elseif (!$this->Monitoring_report_model->set_letterhead($this->session->region, $path)) {
+                    unlink($file['full_path']); $errors[] = 'The letterhead could not be saved.';
+                } else {
+                    $this->session->set_flashdata('report_settings_success', 'Letterhead saved. It will appear on consolidated reports for your region.');
+                    redirect('Pages/monitoring_report_settings'); return;
+                }
+            }
+        }
+        $letterhead = $this->Monitoring_report_model->letterhead($this->session->region);
+        $this->load->view('templates/header'); $this->load->view('templates/menu');
+        $this->load->view('pages/monitoring_report_settings', compact('letterhead', 'errors'));
+        $this->load->view('templates/footer'); $this->load->view('templates/footer_basic');
+    }
+
+    public function consolidated_monitoring_report($id = null)
+    {
+        $this->require_region_dashboard_access();
+        if ($this->session->virified == 1) show_error('Your account must be verified.', 403);
+        if (!is_string($id) || !ctype_digit($id)) show_404();
+        $this->db->query(file_get_contents(FCPATH . 'database/monitoring_tool.sql'));
+        $target = $this->db->get_where('monitoring_tool_records', array('id' => $id))->row();
+        if (!$target) show_404();
+        $records = $this->db->where('school_year', $target->school_year)->order_by('updated_at', 'DESC')->order_by('id', 'DESC')->get('monitoring_tool_records')->result();
+        $this->load->model('Monitoring_model');
+        $this->load->model('Monitoring_report_model');
+        $this->Monitoring_report_model->initialize();
+        $report = $this->Monitoring_report_model->consolidate($records, $target, $this->Monitoring_model->original_definition());
+        $letterhead = $this->Monitoring_report_model->letterhead($this->session->region);
+        $report_date = (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('F j, Y');
+        $this->load->view('pages/consolidated_monitoring_report', compact('target', 'report', 'letterhead', 'report_date'));
+    }
+
+    public function monitoring_settings()
+    {
+        $this->require_region_dashboard_access();
+        if ($this->session->virified == 1) { show_error('Your account must be verified to access this page.', 403); }
+        $this->load->model('Monitoring_model');
+        $this->Monitoring_model->initialize();
+        $this->load->model('Monitor_model');
+        $this->Monitor_model->initialize();
+        if (!$this->session->userdata('monitoring_token')) {
+            $this->session->set_userdata('monitoring_token', bin2hex(random_bytes(32)));
+        }
+        $errors = array();
+        $form = array('entity' => 'indicator', 'id' => '', 'text' => '', 'section_id' => '', 'monitor_id' => '', 'sort_order' => '1');
+        if ($this->input->method() === 'post') {
+            $token = $this->input->post('monitoring_token');
+            if (!is_string($token) || !hash_equals($this->session->userdata('monitoring_token'), $token)) {
+                show_error('Invalid form token. Reload the page and try again.', 403);
+            }
+            foreach ($form as $key => $default) {
+                $value = $this->input->post($key);
+                $form[$key] = is_string($value) ? trim($value) : '';
+            }
+            $action = $this->input->post('action');
+            if (!in_array($form['entity'], array('section', 'indicator'), true)
+                || !in_array($action, array('create', 'update', 'delete'), true)) { show_error('Invalid settings action.', 400); }
+            if ($action !== 'create' && (!ctype_digit($form['id']) || (int) $form['id'] < 1)) { show_error('Invalid entry.', 400); }
+            $row = array();
+            if ($action !== 'delete') {
+                $limit = $form['entity'] === 'section' ? 255 : 5000;
+                if ($form['text'] === '' || mb_strlen($form['text']) > $limit) { $errors[] = 'Enter text between 1 and ' . $limit . ' characters.'; }
+                if (!ctype_digit($form['sort_order']) || (int) $form['sort_order'] > 99999) { $errors[] = 'Order must be a number from 0 to 99999.'; }
+                $row = array('sort_order' => (int) $form['sort_order']);
+                $row[$form['entity'] === 'section' ? 'title' : 'description'] = $form['text'];
+                if ($form['entity'] === 'indicator') {
+                    if (!ctype_digit($form['section_id'])) { $errors[] = 'Select a Domain.'; }
+                    $row['section_id'] = (int) $form['section_id'];
+                } else {
+                    if ($form['monitor_id'] !== '' && (!ctype_digit($form['monitor_id']) || (int) $form['monitor_id'] < 1)) {
+                        $errors[] = 'Select a valid monitor.';
+                    }
+                    $row['monitor_id'] = $form['monitor_id'] === '' ? null : (int) $form['monitor_id'];
+                }
+            }
+            if (!$errors) {
+                $error = $this->Monitoring_model->change($form['entity'], $action, (int) $form['id'], $row);
+                if ($error) { $errors[] = $error; }
+                else {
+                    $this->session->set_flashdata('monitoring_settings_success', 'Settings saved. New monitoring forms will use the updated indicators.');
+                    redirect('Pages/monitoring_settings');
+                    return;
+                }
+            }
+        }
+        $sections = $this->Monitoring_model->sections();
+        $indicators = $this->Monitoring_model->indicators();
+        $monitors = $this->Monitor_model->all();
+        $this->load->view('templates/header');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/monitoring_settings', compact('sections', 'indicators', 'monitors', 'errors', 'form'));
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_basic', array('load_select2' => true));
+    }
+
+    public function monitors()
+    {
+        $this->require_region_dashboard_access();
+        if ($this->session->virified == 1) { show_error('Your account must be verified to access this page.', 403); }
+        $this->load->model('Monitor_model');
+        $this->Monitor_model->initialize();
+        if (!$this->session->userdata('monitoring_token')) {
+            $this->session->set_userdata('monitoring_token', bin2hex(random_bytes(32)));
+        }
+        $fields = array('first_name' => 'First Name', 'middle_name' => 'Middle Name', 'last_name' => 'Last Name', 'section_unit' => 'Section/Unit', 'email' => 'Email Address');
+        $form = array('id' => '', 'first_name' => '', 'middle_name' => '', 'last_name' => '', 'section_unit' => '', 'email' => '');
+        $errors = array();
+        if ($this->input->method() === 'post') {
+            $token = $this->input->post('monitoring_token');
+            if (!is_string($token) || !hash_equals($this->session->userdata('monitoring_token'), $token)) {
+                show_error('Invalid form token. Reload the page and try again.', 403);
+            }
+            $action = $this->input->post('action');
+            if (!in_array($action, array('create', 'update', 'delete'), true)) { show_error('Invalid monitor action.', 400); }
+            foreach ($form as $key => $default) {
+                $value = $this->input->post($key);
+                $form[$key] = is_string($value) ? trim($value) : '';
+            }
+            if ($action === 'create') { $form['id'] = ''; }
+            else {
+                if (!ctype_digit($form['id']) || (int) $form['id'] < 1) { show_error('Invalid monitor.', 400); }
+                if (!$this->Monitor_model->find($form['id'])) { show_404(); }
+            }
+            $password = $this->input->post('account_password');
+            $password = is_string($password) ? $password : '';
+            $data = array();
+            if ($action !== 'delete') {
+                foreach ($fields as $key => $label) {
+                    $limit = $key === 'section_unit' ? 255 : ($key === 'email' ? 254 : 100);
+                    if ($key !== 'middle_name' && $form[$key] === '') { $errors[] = $label . ' is required.'; }
+                    if (mb_strlen($form[$key]) > $limit) { $errors[] = $label . ' must be at most ' . $limit . ' characters.'; }
+                    $data[$key] = $form[$key];
+                }
+                $data['email'] = strtolower($data['email']);
+                if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) { $errors[] = 'Enter a valid email address.'; }
+                $existing = $form['id'] ? $this->Monitor_model->find($form['id']) : null;
+                if ((!$existing || empty($existing['user_id'])) && $password === '') { $errors[] = 'Generate a password for the new account.'; }
+                if ($password !== '' && (strlen($password) < 12 || strlen($password) > 72)) { $errors[] = 'Password must be between 12 and 72 bytes.'; }
+            }
+            if (!$errors) {
+                $saved = $action === 'delete' ? $this->Monitor_model->delete($form['id']) : $this->Monitor_model->save($form['id'], $data, $password);
+                if ($saved) {
+                    $this->session->set_flashdata('monitors_success', $action === 'delete' ? 'Monitor deleted.' : 'Monitor saved.');
+                    redirect('Pages/monitors');
+                    return;
+                }
+                $errors[] = $this->Monitor_model->error ?: 'The change could not be saved. Please try again.';
+            }
+        } elseif ($this->input->get('edit') !== null) {
+            $id = $this->input->get('edit');
+            if (!is_string($id) || !ctype_digit($id) || (int) $id < 1) { show_404(); }
+            $form = $this->Monitor_model->find($id);
+            if (!$form) { show_404(); }
+        }
+        $monitors = $this->Monitor_model->all();
+        $this->load->view('templates/header');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/monitors', compact('fields', 'form', 'errors', 'monitors'));
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_basic');
+    }
+
+    public function regional_accounts()
+    {
+        $this->require_region_dashboard_access();
+        if ($this->session->virified == 1) { show_error('Your account must be verified to access this page.', 403); }
+        $this->load->model('Monitor_model');
+        $this->Monitor_model->initialize();
+        $this->load->model('Monitoring_model');
+        $this->Monitoring_model->initialize();
+        $this->db->query(file_get_contents(FCPATH . 'database/monitoring_tool.sql'));
+        $this->load->model('Regional_accounts_model');
+        if (!$this->session->userdata('regional_accounts_token')) {
+            $this->session->set_userdata('regional_accounts_token', bin2hex(random_bytes(32)));
+        }
+        $form = array('id' => '', 'username' => '', 'email' => '', 'fname' => '', 'mname' => '', 'lname' => '', 'position' => 'region', 'section_unit' => '');
+        $errors = array();
+        if ($this->input->method() === 'post') {
+            $token = $this->input->post('regional_accounts_token');
+            if (!is_string($token) || !hash_equals($this->session->userdata('regional_accounts_token'), $token)) {
+                show_error('Invalid form token. Reload the page and try again.', 403);
+            }
+            $action = $this->input->post('action');
+            if (!in_array($action, array('save', 'activate', 'deactivate', 'delete', 'reset'), true)) { show_error('Invalid account action.', 400); }
+            foreach ($form as $key => $default) {
+                $value = $this->input->post($key);
+                $form[$key] = is_string($value) ? trim($value) : '';
+            }
+            $existing = null;
+            if ($form['id'] !== '' || $action !== 'save') {
+                if (!ctype_digit($form['id']) || (int) $form['id'] < 1) { show_error('Invalid account.', 400); }
+                $existing = $this->Regional_accounts_model->find($form['id']);
+                if (!$existing) { show_error('You can manage only Regional and Monitoring Team accounts.', 403); }
+            }
+            if ($action === 'save') {
+                if (!in_array($form['position'], array('region', 'monitoring_team'), true)
+                    || ($existing && $existing['position'] !== $form['position'])) { show_error('Invalid account level.', 403); }
+                if ($existing) { $form['username'] = $existing['username']; }
+                foreach (array('username' => 'Username', 'fname' => 'First Name', 'mname' => 'Middle Name', 'lname' => 'Last Name') as $key => $label) {
+                    if (($key !== 'mname' && $form[$key] === '') || mb_strlen($form[$key]) > 45) { $errors[] = $label . ' must be ' . ($key === 'mname' ? 'at most' : 'between 1 and') . ' 45 characters.'; }
+                }
+                $form['email'] = strtolower($form['email']);
+                if (!filter_var($form['email'], FILTER_VALIDATE_EMAIL) || strlen($form['email']) > 254) { $errors[] = 'Enter a valid email address.'; }
+                if ($form['position'] === 'monitoring_team' && ($form['section_unit'] === '' || mb_strlen($form['section_unit']) > 255)) { $errors[] = 'Section/Unit is required and must not exceed 255 characters.'; }
+                $password = $this->input->post('account_password');
+                $password = is_string($password) ? $password : '';
+                if (!$existing && (strlen($password) < 12 || strlen($password) > 72)) { $errors[] = 'Generate a password between 12 and 72 characters.'; }
+                if (!$errors && $this->Regional_accounts_model->save($form['id'], $form, $password, $this->session->region)) {
+                    if ($existing && (string) $existing['id'] === (string) $this->session->id) {
+                        $this->session->set_userdata('user', trim($form['fname'] . ' ' . $form['mname'] . ' ' . $form['lname']));
+                    }
+                    $this->session->set_flashdata('regional_accounts_success', 'Account saved.');
+                    redirect('Pages/regional_accounts'); return;
+                }
+            } else {
+                $password = $action === 'reset' ? bin2hex(random_bytes(12)) : null;
+                if ($this->Regional_accounts_model->change($form['id'], $action, $this->session->id, $password)) {
+                    $message = $action === 'reset' ? 'New password for ' . $existing['username'] . ': ' . $password
+                        : 'Account ' . array('activate' => 'activated.', 'deactivate' => 'deactivated.', 'delete' => 'deleted.')[$action];
+                    $this->session->set_flashdata('regional_accounts_success', $message);
+                    redirect('Pages/regional_accounts'); return;
+                }
+                $form = array_intersect_key($existing, $form);
+            }
+            if (!$errors) { $errors[] = $this->Regional_accounts_model->error ?: 'The account could not be saved.'; }
+        } elseif ($this->input->get('edit') !== null) {
+            $id = $this->input->get('edit');
+            if (!is_string($id) || !ctype_digit($id)) { show_404(); }
+            $existing = $this->Regional_accounts_model->find($id);
+            if (!$existing) { show_error('You can manage only Regional and Monitoring Team accounts.', 403); }
+            $form = array_intersect_key($existing, $form);
+        }
+        $accounts = $this->Regional_accounts_model->all();
+        $this->load->view('templates/header');
+        $this->load->view('templates/menu');
+        $this->load->view('pages/regional_accounts', compact('accounts', 'form', 'errors'));
+        $this->load->view('templates/footer');
+        $this->load->view('templates/footer_basic');
+    }
 
     private function is_user_manager()
     {
@@ -419,6 +900,7 @@ class Pages extends CI_Controller
 
     public function view()
     {
+        if ($this->session->position === 'monitoring_team') { redirect('Pages/monitoring_tool'); return; }
 
         if ($this->session->position == 'admin') {
             $page = "dashboard";
