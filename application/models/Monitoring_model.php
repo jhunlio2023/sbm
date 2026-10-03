@@ -64,6 +64,50 @@ class Monitoring_model extends CI_Model
         return $sections;
     }
 
+    public function add_monitor_names($records)
+    {
+        if (!$records) { return; }
+        $school_key = function ($record, $values) {
+            $school = !empty($values['school_rec_id']) ? 'id:' . $values['school_rec_id']
+                : 'name:' . json_encode(array($values['division'] ?? '', $values['district'] ?? '', $record->school_name));
+            return json_encode(array($record->school_year, $school));
+        };
+        $groups = array(); $years = array();
+        foreach ($records as $record) {
+            $groups[$school_key($record, $record->details)] = array();
+            $years[] = $record->school_year;
+        }
+        // Fetch contributor names only; ownership still controls the visible assessments.
+        $contributors = $this->db->select('r.school_name, r.school_year, r.created_by, r.payload')
+            ->from('monitoring_tool_records r')
+            ->where_in('r.school_year', array_unique($years))->order_by('r.updated_at', 'DESC')->order_by('r.id', 'DESC')->get()->result();
+        // Resolve names separately: legacy tables can use different username collations.
+        $usernames = array_values(array_unique(array_map(function ($record) { return $record->created_by; }, $contributors)));
+        $account_names = array();
+        if ($usernames) {
+            $accounts = $this->db->select('username, fname, mname, lname')->where_in('username', $usernames)->get('users')->result();
+            foreach ($accounts as $account) {
+                $account_names[$account->username] = implode(' ', array_filter(array_map('trim', array(
+                    (string) $account->fname, (string) $account->mname, (string) $account->lname
+                )), 'strlen'));
+            }
+        }
+        foreach ($contributors as $contributor) {
+            $values = json_decode($contributor->payload, true) ?: array();
+            $key = $school_key($contributor, $values);
+            if (!isset($groups[$key]) || isset($groups[$key][$contributor->created_by])) { continue; }
+            $name = $account_names[$contributor->created_by] ?? '';
+            $saved_name = $values['prepared_by'] ?? '';
+            $groups[$key][$contributor->created_by] = $name !== '' ? $name
+                : (is_string($saved_name) && trim($saved_name) !== '' ? trim($saved_name) : 'Name not recorded');
+        }
+        foreach ($records as $record) {
+            $names = array_values($groups[$school_key($record, $record->details)]);
+            natcasesort($names);
+            $record->monitor_names = array_values($names);
+        }
+    }
+
     public function indicators()
     {
         return $this->db->order_by('sort_order')->order_by('id')->get('monitoring_indicators')->result_array();

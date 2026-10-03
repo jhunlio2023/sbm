@@ -11,8 +11,8 @@ class Pages extends CI_Controller
             if (!$account) { $this->session->sess_destroy(); show_error('Your account is no longer active. Please sign in again.', 403); }
         }
         if ($this->session->position === 'monitoring_team'
-            && !in_array(strtolower($this->router->method), array('view', 'monitoring_tool', 'logout', 'log_in'), true)) {
-            show_error('Monitoring Team accounts can access only the Monitoring Tool.', 403);
+            && !in_array(strtolower($this->router->method), array('view', 'monitoring_tool', 'monitored_schools', 'logout', 'log_in'), true)) {
+            show_error('Monitoring Team accounts can access only the Monitoring Tool and their Monitored Schools.', 403);
         }
     }
 
@@ -185,7 +185,15 @@ class Pages extends CI_Controller
 
     public function monitored_schools($id = null)
     {
-        $this->require_region_dashboard_access();
+        $team_user = $this->session->position === 'monitoring_team';
+        if ($team_user) {
+            if (!$this->session->logged_in) { show_error('You are not authorized to access Monitored Schools.', 403); }
+            $this->load->model('Monitor_model');
+            $this->Monitor_model->initialize();
+            if (!$this->Monitor_model->for_user($this->session->id)) {
+                show_error('Your Monitoring Team account is unavailable.', 403);
+            }
+        } else { $this->require_region_dashboard_access(); }
         if ($this->session->virified == 1) { show_error('Your account must be verified to access this page.', 403); }
         $this->db->query(file_get_contents(FCPATH . 'database/monitoring_tool.sql'));
         $this->load->model('Monitoring_model');
@@ -194,6 +202,7 @@ class Pages extends CI_Controller
             if (!ctype_digit((string) $id)) { show_404(); }
             $this->db->where('id', $id);
         }
+        if ($team_user) { $this->db->where('created_by', $this->session->username); }
         $records = $this->db->order_by('updated_at', 'DESC')->get('monitoring_tool_records')->result();
         if ($id !== null && !$records) { show_404(); }
         $schools = array(); $complete = 0;
@@ -216,11 +225,12 @@ class Pages extends CI_Controller
                 : 'name:' . json_encode(array($record->details['division'] ?? '', $record->details['district'] ?? '', $record->school_name));
             $schools[$key] = true;
         }
+        if ($id === null) { $this->Monitoring_model->add_monitor_names($records); }
         $school_count = count($schools);
         $detail = $id !== null;
         $this->load->view('templates/header_dt');
         $this->load->view('templates/menu');
-        $this->load->view('pages/monitored_schools', compact('records', 'school_count', 'complete', 'detail'));
+        $this->load->view('pages/monitored_schools', compact('records', 'school_count', 'complete', 'detail', 'team_user'));
         $this->load->view('templates/footer');
         $this->load->view('templates/footer_dt', array('load_select2' => true));
     }

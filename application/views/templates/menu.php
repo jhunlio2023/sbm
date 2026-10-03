@@ -314,6 +314,7 @@
 
                         <?php if ($this->session->position === 'monitoring_team') { ?>
                             <li><a href="<?= base_url('Pages/monitoring_tool'); ?>" class="waves-effect"><i class="mdi mdi-clipboard-check-outline"></i><span> Monitoring Tool </span></a></li>
+                            <li><a href="<?= base_url('Pages/monitored_schools'); ?>" class="waves-effect"><i class="fas fa-school"></i><span> Monitored Schools </span></a></li>
                         <?php } ?>
                         <?php if ($this->session->position == 'region') { ?>
                             <li>
