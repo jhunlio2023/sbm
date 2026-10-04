@@ -157,3 +157,30 @@
 .directory-responses { display:flex; gap:5px; margin-bottom:5px; white-space:nowrap; }
 .directory-actions { display:flex; flex-wrap:wrap; gap:7px; min-width:180px; max-width:230px; }
 .directory-actions .btn { font-size:11px; }
+
+/* Division count summary */
+.monitoring-page .division-summary-table { width:100%; min-width:720px; table-layout:fixed; margin:0; border-collapse:separate; border-spacing:0; border:1px solid var(--monitoring-border); border-radius:14px; overflow:hidden; }
+.division-summary-table thead th { padding:18px 12px; background:#f6f7fb; color:#687086; font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; border:0; border-bottom:1px solid var(--monitoring-border); vertical-align:middle; line-height:1.6; }
+.division-summary-table th:first-child { width:32%; text-align:left; }
+.division-summary-table thead th:not(:first-child) { width:17%; }
+.monitoring-page .division-summary-table td,.monitoring-page .division-summary-table thead th:not(:first-child) { text-align:center; vertical-align:middle; font-variant-numeric:tabular-nums; }
+.division-summary-table td,.division-summary-table tbody th { padding:18px 12px; border:0; border-bottom:1px solid #edf0f5; vertical-align:middle; }
+.division-summary-table tbody th { padding-left:20px; color:#39445b; font-size:13px; font-weight:600; line-height:1.55; overflow-wrap:anywhere; }
+.division-summary-table tbody tr { background:#fff; transition:background-color .15s ease; }
+.division-summary-table tbody tr:nth-child(even) { background:#fcfcfe; }
+.division-summary-table.table-hover tbody tr:hover { background:#fff7f9; }
+.division-summary-table .division-count { display:flex; align-items:center; justify-content:center; width:max-content; min-width:56px; min-height:40px; margin:0 auto; padding:8px 14px; border-radius:12px; font-size:17px; line-height:1.4; font-weight:700; text-align:center; font-variant-numeric:tabular-nums; }
+.division-summary-table .count-schools { color:#8b1e3f; background:#f9e9ee; }
+.division-summary-table .count-assessments { color:#7653c6; background:#f1ecfb; }
+.division-summary-table .count-complete { color:#17718d; background:#e8f6fa; }
+.division-summary-table .count-incomplete { color:#94600a; background:#fff4dc; }
+.division-summary-table tfoot { background:#f8eff2; color:#64142d; font-weight:700; }
+.division-summary-table tfoot th,.division-summary-table tfoot td { padding:20px 12px; vertical-align:middle; border:0; border-top:2px solid #ead5dc; }
+.division-summary-table tfoot th { padding-left:20px; font-size:13px; }
+.division-summary-table tfoot .division-count { background:#fff; box-shadow:0 2px 6px rgba(100,20,45,.06); }
+@media print { .monitoring-page .division-summary-table { min-width:0; table-layout:auto; }.division-summary-table .division-count { min-width:0; color:#000; border:1px solid #bbb; font-size:12px; box-shadow:none; } }
+
+.division-summary-table button.division-count { border:1px solid transparent; cursor:pointer; transition:transform .15s ease, box-shadow .15s ease; }
+.division-summary-table button.division-count:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(100,20,45,.12); border-color:currentColor; }
+.division-summary-table button.division-count:focus-visible { outline:3px solid #8b1e3f; outline-offset:3px; }
+@media(prefers-reduced-motion:reduce) { .division-summary-table button.division-count { transition:none; }.division-summary-table button.division-count:hover { transform:none; } }
