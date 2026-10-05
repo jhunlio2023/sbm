@@ -274,6 +274,11 @@ class Pages extends CI_Controller
         $this->consolidated_monitoring_report($id === null ? $this->input->get('record_id') : $id, 'division');
     }
 
+    public function thematic_division_monitoring_report($id = null)
+    {
+        $this->consolidated_monitoring_report($id === null ? $this->input->get('record_id') : $id, 'thematic');
+    }
+
     public function consolidated_monitoring_report($id = null, $scope = 'school')
     {
         $this->require_region_dashboard_access();
@@ -286,14 +291,15 @@ class Pages extends CI_Controller
         $this->load->model('Monitoring_model');
         $this->load->model('Monitoring_report_model');
         $this->Monitoring_report_model->initialize();
-        $division_report = $scope === 'division';
+        $thematic_report = $scope === 'thematic';
+        $division_report = $scope === 'division' || $thematic_report;
         $report = $division_report
             ? $this->Monitoring_report_model->consolidate_division($records, $target, $this->Monitoring_model->original_definition())
             : $this->Monitoring_report_model->consolidate($records, $target, $this->Monitoring_model->original_definition());
         $letterhead = $this->Monitoring_report_model->letterhead($this->session->region);
         $report_date = (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('F j, Y');
         $prepared_by = trim((string) $this->session->user);
-        $this->load->view('pages/consolidated_monitoring_report', compact('target', 'report', 'letterhead', 'report_date', 'prepared_by', 'division_report'));
+        $this->load->view('pages/consolidated_monitoring_report', compact('target', 'report', 'letterhead', 'report_date', 'prepared_by', 'division_report', 'thematic_report'));
     }
 
     public function monitoring_settings()
