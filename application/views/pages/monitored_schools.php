@@ -32,6 +32,32 @@ foreach ($records as $entry) {
 }
 asort($division_options, SORT_NATURAL | SORT_FLAG_CASE);
 ?>
+<?php if (!$team_user):
+$division_reports = array();
+foreach ($records as $entry) {
+    $division_name = trim($entry->details['division'] ?? '');
+    $report_key = json_encode(array($division_name, $entry->school_year));
+    if (!isset($division_reports[$report_key])) $division_reports[$report_key] = array('division' => $division_name, 'year' => $entry->school_year, 'id' => $entry->id);
+}
+usort($division_reports, function ($a, $b) {
+    $order = strnatcasecmp($a['division'], $b['division']);
+    return $order ?: strcmp($b['year'], $a['year']);
+});
+?>
+<section class="card no-print"><div class="card-body">
+<h4>Division Consolidated Reports</h4>
+<p class="text-muted">Combine monitoring notes from all schools in a division for the selected school year. Reports include all assessments, regardless of directory filters.</p>
+<?php if ($division_reports): ?>
+<form action="<?= base_url('Pages/consolidated_division_monitoring_report'); ?>" method="get" target="_blank" rel="noopener">
+<div class="row"><div class="col-md-8 form-group">
+<label for="division-report">Division / School Year</label>
+<select id="division-report" name="record_id" class="form-control" required>
+<?php foreach ($division_reports as $option): ?><option value="<?= (int) $option['id']; ?>"><?= html_escape(($option['division'] ?: 'Unspecified division') . ' — ' . $option['year']); ?></option><?php endforeach; ?>
+</select></div><div class="col-md-4 form-group d-flex align-items-end"><button type="submit" class="btn btn-primary">Open Division Report</button></div></div>
+</form>
+<?php else: ?><p class="text-muted mb-0">No monitoring assessments have been saved yet.</p><?php endif; ?>
+</div></section>
+<?php endif; ?>
 <div class="monitoring-summary">
  <div class="monitoring-stat"><span>Monitored schools</span><strong id="directory-school-count"><?= $school_count; ?></strong></div>
  <div class="monitoring-stat stat-no"><span>Assessments</span><strong id="directory-assessment-count"><?= count($records); ?></strong></div>

@@ -269,7 +269,12 @@ class Pages extends CI_Controller
         $this->load->view('templates/footer'); $this->load->view('templates/footer_basic');
     }
 
-    public function consolidated_monitoring_report($id = null)
+    public function consolidated_division_monitoring_report($id = null)
+    {
+        $this->consolidated_monitoring_report($id === null ? $this->input->get('record_id') : $id, 'division');
+    }
+
+    public function consolidated_monitoring_report($id = null, $scope = 'school')
     {
         $this->require_region_dashboard_access();
         if ($this->session->virified == 1) show_error('Your account must be verified.', 403);
@@ -281,10 +286,14 @@ class Pages extends CI_Controller
         $this->load->model('Monitoring_model');
         $this->load->model('Monitoring_report_model');
         $this->Monitoring_report_model->initialize();
-        $report = $this->Monitoring_report_model->consolidate($records, $target, $this->Monitoring_model->original_definition());
+        $division_report = $scope === 'division';
+        $report = $division_report
+            ? $this->Monitoring_report_model->consolidate_division($records, $target, $this->Monitoring_model->original_definition())
+            : $this->Monitoring_report_model->consolidate($records, $target, $this->Monitoring_model->original_definition());
         $letterhead = $this->Monitoring_report_model->letterhead($this->session->region);
         $report_date = (new DateTimeImmutable('now', new DateTimeZone('Asia/Manila')))->format('F j, Y');
-        $this->load->view('pages/consolidated_monitoring_report', compact('target', 'report', 'letterhead', 'report_date'));
+        $prepared_by = trim((string) $this->session->user);
+        $this->load->view('pages/consolidated_monitoring_report', compact('target', 'report', 'letterhead', 'report_date', 'prepared_by', 'division_report'));
     }
 
     public function monitoring_settings()

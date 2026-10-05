@@ -20,6 +20,33 @@ class Monitoring_report_model extends CI_Model
         return !empty($values['school_rec_id']) ? 'id:' . $values['school_rec_id']
             : 'name:' . json_encode(array($values['division'] ?? '', $values['district'] ?? '', $record->school_name));
     }
+    public function consolidate_division($records, $target, $original)
+    {
+        $target_values = json_decode($target->payload, true) ?: array();
+        $division = trim($target_values['division'] ?? '');
+        $schools = array();
+        foreach ($records as $record) {
+            $values = json_decode($record->payload, true) ?: array();
+            if ($record->school_year !== $target->school_year || trim($values['division'] ?? '') !== $division) continue;
+            $key = $this->school_key($record, $values);
+            if (!isset($schools[$key])) $schools[$key] = array('target' => $record, 'records' => array());
+            $schools[$key]['records'][] = $record;
+        }
+        $domains = array();
+        foreach ($schools as $school) {
+            $report = $this->consolidate($school['records'], $school['target'], $original);
+            foreach ($report['domains'] as $domain) {
+                $key = mb_strtolower($domain['title']);
+                if (!isset($domains[$key])) $domains[$key] = array('title' => $domain['title'], 'best_practices' => array(), 'issues_concerns' => array(), 'action_taken' => array(), 'status_remarks' => array());
+                foreach (array('best_practices', 'issues_concerns', 'action_taken', 'status_remarks') as $field) {
+                    foreach ($domain[$field] as $note) {
+                        if (!in_array($note, $domains[$key][$field], true)) $domains[$key][$field][] = $note;
+                    }
+                }
+            }
+        }
+        return array('domains' => array_values($domains), 'school' => array('division' => $division), 'school_count' => count($schools));
+    }
     // Records arrive newest first. Keep each author's latest entry for each domain.
     public function consolidate($records, $target, $original)
     {
