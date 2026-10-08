@@ -26,11 +26,31 @@
 <div class="monitoring-hero no-print"><div><h2><?= $detail ? 'Monitoring Record Details' : 'Monitored Schools'; ?></h2><p><?= $team_user ? 'View the schools you monitored, your responses, and technical assistance needs.' : 'School assessments, responses, and technical assistance needs across regional monitoring records.'; ?></p></div><div class="monitoring-hero-actions"><a href="<?= base_url('Pages/monitoring_tool'); ?>">New assessment</a><?php if ($detail): ?><a href="<?= base_url('Pages/monitored_schools'); ?>">All monitored schools</a><?php endif; ?></div></div>
 <?php if (!$detail):
 $division_options = array();
+$school_groups = array();
 foreach ($records as $entry) {
+    $school_key = !empty($entry->details['school_rec_id']) ? 'id:' . $entry->details['school_rec_id']
+        : 'name:' . json_encode(array($entry->details['division'] ?? '', $entry->details['district'] ?? '', $entry->school_name));
+    $entry->directory_school_key = $school_key;
+    if (!isset($school_groups[$school_key])) {
+        $school_groups[$school_key] = clone $entry;
+        $school_groups[$school_key]->assessments = array();
+        $school_groups[$school_key]->years = array();
+        $school_groups[$school_key]->monitor_names = array();
+        $school_groups[$school_key]->yes = $school_groups[$school_key]->no = 0;
+        $school_groups[$school_key]->unanswered = $school_groups[$school_key]->total = 0;
+        $school_groups[$school_key]->complete_count = 0;
+    }
+    $school = $school_groups[$school_key];
+    $school->assessments[] = $entry;
+    $school->years[$entry->school_year] = $entry->school_year;
+    $school->monitor_names = array_values(array_unique(array_merge($school->monitor_names, $entry->monitor_names)));
+    foreach (array('yes', 'no', 'unanswered', 'total') as $field) $school->$field += $entry->$field;
+    if ($entry->complete) $school->complete_count++;
     $division_name = trim($entry->details['division'] ?? '');
     $division_options[$division_name] = $division_name !== '' ? $division_name : 'Unspecified division';
 }
 asort($division_options, SORT_NATURAL | SORT_FLAG_CASE);
+uasort($school_groups, function ($a, $b) { return strnatcasecmp($a->school_name, $b->school_name); });
 ?>
 <?php if (!$team_user):
 $division_reports = array();
@@ -65,28 +85,28 @@ usort($division_reports, function ($a, $b) {
  <div class="monitoring-stat stat-open"><span>Incomplete assessments</span><strong id="directory-incomplete-count"><?= count($records) - $complete; ?></strong></div>
 </div>
 <div class="card"><div class="card-body">
-<div class="monitoring-section-heading"><div><h4>School Monitoring Directory</h4><p class="text-muted mb-0 mt-1">Monitored by lists everyone who submitted an assessment for the same school and school year.</p></div></div>
+<div class="monitoring-section-heading"><div><h4>School Monitoring Directory</h4><p class="text-muted mb-0 mt-1">Each school appears once, with all its monitors and assessments across school years. Response totals combine all assessments for the school. Actions open the most recently updated assessment; its consolidated report covers that school year.</p></div></div>
 <div class="row no-print"><div class="col-md-5 form-group">
 <label for="directory-division">Division</label>
 <select id="directory-division" class="form-control"><option value="">All divisions</option>
 <?php foreach ($division_options as $value => $label): ?><option value="<?= html_escape('division:' . $value); ?>"><?= html_escape($label); ?></option><?php endforeach; ?>
 </select></div>
-<div class="col-md-4 form-group"><label for="directory-status">Assessment status</label><select id="directory-status" class="form-control"><option value="">All assessments</option><option value="complete">All indicators answered</option><option value="incomplete">Incomplete assessments</option></select></div>
+<div class="col-md-4 form-group"><label for="directory-status">Schools with assessment status</label><select id="directory-status" class="form-control"><option value="">All assessments</option><option value="complete">All indicators answered</option><option value="incomplete">Incomplete assessments</option></select></div>
 <div class="col-md-3 form-group d-flex align-items-end"><button type="button" id="directory-reset" class="btn btn-outline-secondary">Show all assessments</button></div></div>
 <p id="directory-drilldown" class="text-muted no-print" role="status" aria-live="polite"></p>
 <div class="table-responsive"><table id="monitored-schools-table" class="table monitored-records-table"><thead><tr><th>School / Year</th><th>Division / District</th><th>Responses</th><th>Status</th><th>Monitored by</th><th>Actions</th></tr></thead><tbody>
-<?php foreach ($records as $record): $v = $record->details; ?>
-<tr data-division="<?= html_escape('division:' . trim($v['division'] ?? '')); ?>" data-school="<?= html_escape(!empty($v['school_rec_id']) ? 'id:' . $v['school_rec_id'] : 'name:' . json_encode(array($v['division'] ?? '', $v['district'] ?? '', $record->school_name))); ?>" data-complete="<?= $record->complete ? '1' : '0'; ?>">
-<td><strong><?= html_escape($record->school_name); ?></strong><br><?= html_escape($record->school_year); ?><br><small>Record #<?= (int) $record->id; ?></small></td>
+<?php foreach ($school_groups as $record): $v = $record->details; ?>
+<tr data-division="<?= html_escape('division:' . trim($v['division'] ?? '')); ?>" data-school="<?= html_escape($record->directory_school_key); ?>" data-school-name="<?= html_escape($record->school_name); ?>" data-assessments="<?= count($record->assessments); ?>" data-complete="<?= $record->complete_count; ?>">
+<td><strong><?= html_escape($record->school_name); ?></strong><br><?= html_escape(implode(', ', $record->years)); ?><br><small><?= count($record->assessments); ?> assessments</small></td>
 <td><?= html_escape($v['division'] ?? '—'); ?><br><small><?= html_escape($v['district'] ?? '—'); ?></small></td>
 <td><div class="directory-responses"><span class="record-response response-yes">Yes <?= $record->yes; ?></span><span class="record-response response-no">No <?= $record->no; ?></span></div><small><?= $record->unanswered; ?> unanswered / <?= $record->total; ?></small></td>
-<td><span class="record-response <?= $record->complete ? 'response-yes' : 'response-open'; ?>"><?= $record->complete ? 'All answered' : 'Incomplete'; ?></span></td>
-<td><ul class="directory-monitors" aria-label="Monitors for this school and school year"><?php foreach ($record->monitor_names as $monitor_name): ?><li><i class="mdi mdi-account-outline" aria-hidden="true"></i><span><?= html_escape($monitor_name); ?></span></li><?php endforeach; ?></ul></td>
-<td><div class="directory-actions"><?php if (!$team_user): ?><a class="btn btn-sm btn-outline-primary" href="<?= base_url('Pages/consolidated_monitoring_report/' . $record->id); ?>" target="_blank" rel="noopener">Consolidated Report</a><?php endif; ?> <a class="btn btn-sm btn-outline-primary" href="<?= base_url('Pages/monitored_schools/' . $record->id); ?>">Details</a> <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('Pages/monitored_schools/' . $record->id) . '?print=1'; ?>" target="_blank" rel="noopener" aria-label="<?= html_escape('Print monitoring tool for ' . $record->school_name); ?>"><i class="mdi mdi-printer" aria-hidden="true"></i> Print</a><?php if ((string) $record->created_by === (string) $this->session->username): ?> <a class="btn btn-sm btn-link" href="<?= base_url('Pages/monitoring_tool/' . $record->id); ?>">Edit</a><?php endif; ?></div></td>
+<td><span class="record-response response-yes"><?= $record->complete_count; ?> complete</span><br><span class="record-response response-open"><?= count($record->assessments) - $record->complete_count; ?> incomplete</span></td>
+<td><ul class="directory-monitors" aria-label="Monitors for this school"><?php foreach ($record->monitor_names as $monitor_name): ?><li><i class="mdi mdi-account-outline" aria-hidden="true"></i><span><?= html_escape($monitor_name); ?></span></li><?php endforeach; ?></ul></td>
+<td><?php $assessment = $record->assessments[0]; ?><small>Latest assessment · <?= html_escape($assessment->school_year); ?></small><div class="directory-actions"><?php if (!$team_user): ?><a class="btn btn-sm btn-outline-primary" href="<?= base_url('Pages/consolidated_monitoring_report/' . $assessment->id); ?>" target="_blank" rel="noopener">Consolidated Report</a><?php endif; ?> <a class="btn btn-sm btn-outline-primary" href="<?= base_url('Pages/monitored_schools/' . $assessment->id); ?>">Details</a> <a class="btn btn-sm btn-outline-secondary" href="<?= base_url('Pages/monitored_schools/' . $assessment->id) . '?print=1'; ?>" target="_blank" rel="noopener" aria-label="<?= html_escape('Print monitoring tool for ' . $record->school_name); ?>"><i class="mdi mdi-printer" aria-hidden="true"></i> Print</a><?php if ((string) $assessment->created_by === (string) $this->session->username): ?> <a class="btn btn-sm btn-link" href="<?= base_url('Pages/monitoring_tool/' . $assessment->id); ?>">Edit</a><?php endif; ?></div></td>
 </tr><?php endforeach; ?>
 </tbody></table></div></div></div>
 <section class="card" aria-labelledby="division-summary-heading"><div class="card-body">
-<div class="monitoring-section-heading"><div><h4 id="division-summary-heading">Summary by Division</h4><p class="text-muted mb-0 mt-1">Counts include all assessments matching your filters, across all pages. Each school is counted once per division. Select a count to view its assessments above.</p></div></div>
+<div class="monitoring-section-heading"><div><h4 id="division-summary-heading">Summary by Division</h4><p class="text-muted mb-0 mt-1">Counts include all assessments for schools matching your filters, across all pages. Each school is counted once per division. Select a count to view its assessments above.</p></div></div>
 <div class="table-responsive"><table class="table table-hover division-summary-table">
 <thead><tr><th scope="col">Division</th><th scope="col">Monitored schools</th><th scope="col">Assessments</th><th scope="col">All indicators answered</th><th scope="col">Incomplete assessments</th></tr></thead>
 <tbody id="division-summary-body"></tbody>
@@ -153,21 +173,22 @@ document.addEventListener('DOMContentLoaded', function () {
    var selected = divisionFilter.val();
    var row = settings.aoData[index].nTr, status = statusFilter.val();
    return (!selected || row.getAttribute('data-division') === selected)
-     && (!status || (row.getAttribute('data-complete') === '1') === (status === 'complete'));
+     && (!status || (status === 'complete' ? Number(row.getAttribute('data-complete')) > 0 : Number(row.getAttribute('data-assessments')) > Number(row.getAttribute('data-complete'))));
  });
- var table = $('#monitored-schools-table').DataTable({pageLength: 10, order:[], columnDefs:[{targets:5,orderable:false,searchable:false}], language:{emptyTable:'No monitoring assessments have been saved yet.',search:'Search assessments:'}});
+ var table = $('#monitored-schools-table').DataTable({pageLength:10, order:[], columnDefs:[{targets:5,orderable:false,searchable:false}], language:{emptyTable:'No monitoring assessments have been saved yet.',search:'Search schools:'}});
  function updateSummary() {
    var schools = new Set(), assessments = 0, complete = 0, divisions = new Map();
    table.rows({search:'applied'}).nodes().each(function (row) {
-     schools.add(row.getAttribute('data-school')); assessments++;
-     var isComplete = row.getAttribute('data-complete') === '1';
-     if (isComplete) complete++;
+     schools.add(row.getAttribute('data-school'));
+     var assessmentCount = Number(row.getAttribute('data-assessments'));
+     var completeCount = Number(row.getAttribute('data-complete'));
+     assessments += assessmentCount; complete += completeCount;
      var division = row.getAttribute('data-division').slice('division:'.length);
      if (!divisions.has(division)) divisions.set(division, {schools:new Set(), assessments:0, complete:0});
      var counts = divisions.get(division);
      counts.schools.add(row.getAttribute('data-school'));
-     counts.assessments++;
-     if (isComplete) counts.complete++;
+     counts.assessments += assessmentCount;
+     counts.complete += completeCount;
    });
    $('#directory-school-count').text(schools.size);
    $('#directory-assessment-count').text(assessments);
